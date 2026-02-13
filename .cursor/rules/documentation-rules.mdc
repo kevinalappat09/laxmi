@@ -1,0 +1,364 @@
+---
+description: Apply to all documentation steps
+alwaysApply: false
+---
+
+# TypeScript Documentation Rules (STRICT MODE)
+
+## PURPOSE
+
+Generate deterministic, AI-optimized documentation.
+
+Output must:
+
+* Be concise
+* Follow exact section order
+* Use required table formats
+* Contain no narrative text
+* Contain no stylistic variation
+* Contain no redundant wording
+
+Deviation from format is not allowed.
+
+---
+
+# GLOBAL RULES
+
+1. Use exact section headings defined below.
+2. Sections must appear in the specified order.
+3. Omit sections only if they have zero applicable items.
+4. Use tables exactly as defined.
+5. Each description must be exactly one sentence.
+6. No multi-sentence descriptions.
+7. No bullet lists unless explicitly allowed.
+8. No examples unless explicitly requested.
+9. No explanation of TypeScript basics.
+10. No commentary outside defined sections.
+11. No additional prose before or after documentation.
+12. No emojis.
+13. No marketing language.
+14. No subjective wording.
+15. No speculative commentary.
+
+---
+
+# REQUIRED SECTION ORDER
+
+If present, sections must appear in this exact order:
+
+1. Module Header (JSDoc block)
+2. Constants
+3. Enums
+4. Types
+5. Classes
+6. Functions
+7. Design Decisions
+8. Extension Guidelines
+9. Errors
+
+No reordering allowed.
+
+---
+
+# 1. MODULE HEADER (MANDATORY)
+
+Always include at top of file:
+
+```ts
+/**
+ * @module <ExactFileNameWithoutExtension>
+ * @description <Single sentence describing responsibility>
+ * @stability stable | experimental | internal
+ */
+```
+
+Rules:
+
+* Description must be one sentence.
+* No additional tags except:
+
+  * @public
+  * @internal
+  * @deprecated
+  * @extension-points (only if applicable)
+
+If extensible:
+
+```ts
+ * @extension-points
+ * - <Interface or type designed for extension>
+ * - <Registration location>
+```
+
+No extra commentary allowed.
+
+---
+
+# 2. CONSTANTS
+
+Include only exported constants.
+
+Format:
+
+```
+### Constants
+
+| Name | Type | Description |
+|------|------|------------|
+| CONST_NAME | Type | Single sentence description. |
+```
+
+Rules:
+
+* No explanation of primitive types.
+* Description must describe purpose, not value.
+* One sentence only.
+
+---
+
+# 3. ENUMS
+
+Include only exported enums.
+
+Format:
+
+```
+### Enums
+
+#### EnumName
+
+| Value | Description |
+|-------|------------|
+| VALUE | Single sentence description. |
+```
+
+Rules:
+
+* One sentence per value.
+* If enum requires centralized handling, append:
+
+```
+Extension:
+- New values must be handled in <ExactLocation>.
+```
+
+No additional text.
+
+---
+
+# 4. TYPES
+
+Include only exported types and interfaces.
+
+Format:
+
+```
+### Types
+
+#### TypeName
+
+| Field | Type | Description |
+|-------|------|------------|
+| fieldName | Type | Single sentence description. |
+```
+
+Rules:
+
+* Do not explain primitive types.
+* Mention invariants only if critical.
+* One sentence per field.
+* If forward-compatible:
+
+```
+Extension:
+- Additional optional fields must remain backward compatible.
+```
+
+No extra text.
+
+---
+
+# 5. CLASSES
+
+Format:
+
+```
+### Classes
+
+#### ClassName
+
+Responsibility: Single sentence description.
+
+##### Methods
+
+| Signature | Description |
+|-----------|------------|
+| methodName(arg: Type): ReturnType | Single sentence description. |
+```
+
+Rules:
+
+* Use full method signature.
+* No parameter breakdown.
+* One sentence per method.
+* Do not document private methods.
+
+If non-obvious design:
+
+```
+Design Notes:
+- Stateless | Stateful.
+- Depends on <AbstractionName>.
+```
+
+Maximum two bullet points.
+
+---
+
+# 6. FUNCTIONS
+
+Only exported functions.
+
+Format:
+
+```
+### Functions
+
+| Signature | Description |
+|-----------|------------|
+| function name(arg: Type): ReturnType | Single sentence description. |
+```
+
+Rules:
+
+* Use full signature.
+* No parameter descriptions.
+* One sentence only.
+* No examples.
+* No multi-line descriptions.
+
+If behavior is non-obvious:
+
+```
+Notes:
+- <Design constraint>.
+- <Error behavior if semantically important>.
+```
+
+Maximum two bullet points.
+
+---
+
+# 7. DESIGN DECISIONS
+
+Include only if a non-obvious architectural decision exists.
+
+Format:
+
+```
+### Design Decisions
+
+Decision: Single sentence.
+Reason: Single sentence.
+Impact: Single sentence.
+```
+
+No additional commentary.
+
+---
+
+# 8. EXTENSION GUIDELINES
+
+Include only if module is intentionally extensible.
+
+Format:
+
+```
+### Extension Guidelines
+
+- Add new implementations in <ExactDirectory>.
+- Register new implementations in <ExactRegistryLocation>.
+- Maintain backward compatibility of exported types.
+```
+
+Maximum three bullet points.
+No additional text.
+
+---
+
+# 9. ERRORS
+
+Only include if error semantics define system behavior.
+
+Format:
+
+```
+### Errors
+
+- Throws <ErrorType> when <Condition>.
+- Returns null when <Condition>.
+```
+
+Maximum three bullet points.
+One sentence per bullet.
+
+---
+
+# PROHIBITED CONTENT
+
+The following must never be generated:
+
+* Parameter-by-parameter explanation
+* Tutorial-style explanation
+* Code examples
+* Inline comments explaining trivial logic
+* Historical explanations
+* Performance commentary unless critical
+* Repetition of type information in prose
+* Subjective language (e.g., "simple", "robust", "clean")
+
+---
+
+# LANGUAGE CONSTRAINTS
+
+Descriptions must:
+
+* Start with a verb in present tense.
+* Avoid filler words.
+* Avoid adjectives unless technically required.
+* Be declarative.
+* Be ≤ 20 words where possible.
+* Never exceed 30 words.
+
+---
+
+# STRICT OUTPUT VALIDATION RULES
+
+Before generating documentation, enforce:
+
+* Section order is correct.
+* No empty tables.
+* No multi-sentence descriptions.
+* No undocumented exported symbol.
+* No undocumented exported enum value.
+* No undocumented exported type field.
+* No additional sections.
+* No trailing commentary.
+
+If a section has zero items, omit the section entirely.
+
+---
+
+# CURSOR EXECUTION DIRECTIVE
+
+When generating documentation:
+
+* Follow this specification exactly.
+* Do not improvise structure.
+* Do not expand descriptions.
+* Do not change headings.
+* Do not reorder sections.
+* Do not add stylistic variations.
+* Keep output compact and machine-readable.
+
+Strict compliance is required.
