@@ -7,7 +7,7 @@
 import Database from "better-sqlite3";
 import path from "path";
 
-export type SQLiteDatabase = Database.Database;
+export type SQLiteDatabase = InstanceType<typeof Database>;
 
 export function openDatabase(profileDirectory: string): SQLiteDatabase {
     const dbPath = path.join(profileDirectory, "database.db");
