@@ -58,3 +58,9 @@ export function getProfilePreferencesPath(profileName: string): string {
     return path.join(getProfileDirectory(profileName), "preferences.json");
 }
 
+/**
+ * Returns the path to the database file for the given profile.
+ */
+export function getProfileDbPath(profileName: string): string {
+    return path.join(getProfileDirectory(profileName), "profile.db");
+}
