@@ -26,6 +26,7 @@ import {
 import { MigrationService } from '../migration/migrationService';
 import { validateProfileName } from '../../utils/profileValidator';
 import * as fs from 'fs';
+import { profileSessionService } from '../profileSession/profileSessionService';
 
 /* ------------------------------------------------------------------ */
 /* Internal helpers                                                    */
@@ -115,7 +116,7 @@ export async function deleteProfile(profileName: string): Promise<void> {
 export async function openProfile(
     profileName: string,
     migrationService: MigrationService
-): Promise<SQLiteDatabase> {
+): Promise<void> {
     const profilePath = getProfileDirectory(profileName);
 
     if (!fs.existsSync(profilePath)) {
@@ -134,6 +135,6 @@ export async function openProfile(
     const db = openDatabase(dbPath);
     migrationService.migrate(db);
 
+    profileSessionService.setDatabaseConnection(db); // Set active database connection
     await setLastOpenedProfile(profileName);
-    return db;
 }
