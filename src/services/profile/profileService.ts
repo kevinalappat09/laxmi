@@ -8,7 +8,6 @@ import {
     getRootDataDirectory,
     getProfileDirectory,
     getProfilePreferencesPath,
-    getProfileDbPath,
 } from '../path/pathService';
 
 import {
@@ -36,8 +35,9 @@ async function initializeProfileDb(
     profileName: string,
     migrationService: MigrationService
 ): Promise<void> {
-    const dbPath = getProfileDbPath(profileName);
-    const db = openDatabase(dbPath);
+    const profileDir = getProfileDirectory(profileName);
+    await fs.promises.mkdir(profileDir, { recursive: true });
+    const db = openDatabase(profileDir);
 
     initializeSchema(db);
     migrationService.migrate(db);
@@ -50,6 +50,7 @@ async function initializeProfileDb(
 
 export async function listProfiles(): Promise<string[]> {
     const appDataPath = getRootDataDirectory();
+    await fs.promises.mkdir(appDataPath, { recursive: true });
     const entries = await fs.promises.readdir(appDataPath, {
         withFileTypes: true,
     });
@@ -125,14 +126,8 @@ export async function openProfile(
         );
     }
 
-    const dbPath = getProfileDbPath(profileName);
-
-    if (!fs.existsSync(dbPath)) {
-        // Profile exists but DB is missing → initialize it
-        await initializeProfileDb(profileName, migrationService);
-    }
-
-    const db = openDatabase(dbPath);
+    const db = openDatabase(profilePath);
+    initializeSchema(db);
     migrationService.migrate(db);
 
     profileSessionService.setDatabaseConnection(db); // Set active database connection

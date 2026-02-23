@@ -18,23 +18,30 @@ function App() {
   useEffect(() => {
     let isMounted = true
 
-    window.financeAPI.getLastOpenedProfile().then(async (profileName) => {
-      if (!isMounted) return
+    window.financeAPI
+      .getLastOpenedProfile()
+      .then(async (profileName) => {
+        if (!isMounted) return
 
-      if (profileName) {
-        await window.financeAPI.openProfile(profileName)
+        if (profileName) {
+          await window.financeAPI.openProfile(profileName)
+          if (!isMounted) return
+          setCurrentProfile(profileName)
+          setShowSelectionDialog(false)
+          setIsLoading(false)
+        } else {
+          const existingProfiles = await window.financeAPI.listProfiles()
+          if (!isMounted) return
+          setProfiles(existingProfiles)
+          setShowSelectionDialog(true)
+          setIsLoading(false)
+        }
+      })
+      .catch(() => {
         if (!isMounted) return
-        setCurrentProfile(profileName)
-        setShowSelectionDialog(false)
-        setIsLoading(false)
-      } else {
-        const existingProfiles = await window.financeAPI.listProfiles()
-        if (!isMounted) return
-        setProfiles(existingProfiles)
         setShowSelectionDialog(true)
         setIsLoading(false)
-      }
-    })
+      })
 
     return () => {
       isMounted = false
@@ -60,7 +67,8 @@ function App() {
                 {profiles.map((name) => (
                   <li
                     key={name}
-                    onDoubleClick={() => handleOpenProfile(name)}
+                    onClick={() => handleOpenProfile(name)}
+                    style={{ cursor: 'pointer', padding: '0.5rem 0' }}
                   >
                     {name}
                   </li>
