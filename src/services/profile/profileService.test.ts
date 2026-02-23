@@ -25,6 +25,11 @@ jest.mock('fs', () => ({
     },
     existsSync: jest.fn(),
 }));
+jest.mock('electron', () => ({
+    app: {
+        isPackaged: false,
+    },
+}));
 
 /* ------------------------------------------------------------------ */
 /* Imports AFTER mocks                                                */

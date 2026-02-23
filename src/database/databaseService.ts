@@ -5,13 +5,10 @@
  */
 
 import Database from "better-sqlite3";
-import path from "path";
 
 export type SQLiteDatabase = InstanceType<typeof Database>;
 
-export function openDatabase(profileDirectory: string): SQLiteDatabase {
-    const dbPath = path.join(profileDirectory, "database.db");
-
+export function openDatabase(dbPath: string): SQLiteDatabase {
     const db = new Database(dbPath);
 
     db.pragma("foreign_keys = ON");
@@ -29,18 +26,23 @@ export function initializeSchema(db: SQLiteDatabase): void {
         CREATE TABLE IF NOT EXISTS _schema (
           version INTEGER NOT NULL
         );
-      `);
+    `);
 
-    // prevents overwrite
-    const row = db.prepare(`SELECT version FROM _schema LIMIT 1`).get();
+    const row = db.prepare(
+        `SELECT version FROM _schema LIMIT 1`
+    ).get() as { version: number } | undefined;
 
     if (!row) {
-        db.prepare(`INSERT INTO _schema (version) VALUES (0)`).run();
+        db.prepare(
+            `INSERT INTO _schema (version) VALUES (0)`
+        ).run();
     }
 }
 
 export function getCurrentSchemaVersion(db: SQLiteDatabase): number {
-    const row = db.prepare(`SELECT version FROM _schema LIMIT 1`).get() as { version: number } | undefined;
+    const row = db.prepare(
+        `SELECT version FROM _schema LIMIT 1`
+    ).get() as { version: number } | undefined;
 
     if (!row) {
         throw new Error("_schema table is not initialized.");
@@ -49,10 +51,12 @@ export function getCurrentSchemaVersion(db: SQLiteDatabase): number {
     return row.version;
 }
 
-export function setSchemaVersion(db: SQLiteDatabase, version: number): void {
+export function setSchemaVersion(
+    db: SQLiteDatabase,
+    version: number
+): void {
     db.exec(`DELETE FROM _schema;`);
-    db.prepare(`INSERT INTO _schema (version) VALUES (?)`).run(version);
+    db.prepare(
+        `INSERT INTO _schema (version) VALUES (?)`
+    ).run(version);
 }
-
-
-

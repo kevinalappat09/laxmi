@@ -3,10 +3,12 @@ import path from "path"
 import * as globalPreferencesService from "./src/services/globalPreferences/globalPreferencesService"
 import * as profileService from "./src/services/profile/profileService"
 import { MigrationService } from "./src/services/migration/migrationService"
+import { getRootDataDirectory } from "./src/services/path/pathService"
 
-const isDev = !app.isPackaged
+const isDev = !app.isPackaged;
+
 const migrationService = new MigrationService(
-    path.join(app.getAppPath(), "migrations")
+    path.join(getRootDataDirectory(), "migrations")
 )
 
 ipcMain.handle("get-last-opened-profile", () =>

@@ -8,7 +8,11 @@ declare global {
         openProfile: (profileName: string) => Promise<void>
     }
 
+
     interface Window {
-        financeAPI: IFinanceAPI
+        financeAPI: IFinanceAPI;
+        environmentAPI: {
+            getIsDev: () => Promise<boolean>;
+        };
     }
 }

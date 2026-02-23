@@ -9,3 +9,7 @@ contextBridge.exposeInMainWorld("financeAPI", {
     openProfile: (profileName: string): Promise<void> =>
         ipcRenderer.invoke("open-profile", profileName)
 })
+
+contextBridge.exposeInMainWorld("environmentAPI", {
+    getIsDev: (): Promise<boolean> => ipcRenderer.invoke("get-is-dev-status")
+})

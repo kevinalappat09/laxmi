@@ -1,7 +1,6 @@
 import * as os from "os";
 import * as path from "path";
-import { isDev } from "../environment/environmentService";
-
+import { app } from "electron";
 /**
  * Returns the base application data directory for a given platform and home directory.
  *
@@ -31,7 +30,8 @@ export function getBaseAppDataPathFor(platform: NodeJS.Platform, homeDir: string
 export function getRootDataDirectory(): string {
     const homeDir = os.homedir();
     const baseAppDataPath = getBaseAppDataPathFor(process.platform, homeDir);
-    const appFolderName = isDev() ? "Laxmi-Dev" : "Laxmi";
+
+    const appFolderName = app.isPackaged ? "Laxmi" : "Laxmi-Dev";
 
     return path.join(baseAppDataPath, appFolderName);
 }
