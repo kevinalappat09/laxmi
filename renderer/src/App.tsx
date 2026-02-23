@@ -1,18 +1,67 @@
 import { useEffect, useState } from 'react'
 import './App.css'
 
+function MainHome({
+  currentProfile,
+  onSwitchProfile,
+}: {
+  currentProfile: string
+  onSwitchProfile: () => void
+}) {
+  const environment = import.meta.env.MODE
+
+  return (
+    <div className="main-home">
+      <h1>Welcome back, {currentProfile}!</h1>
+      <button onClick={onSwitchProfile}>Logout/Switch Profile</button>
+      <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#666' }}>
+        Environment: {environment}
+      </div>
+    </div>
+  )
+}
+
 function App() {
   const [currentProfile, setCurrentProfile] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showSelectionDialog, setShowSelectionDialog] = useState(false)
   const [profiles, setProfiles] = useState<string[]>([])
   const [newProfileName, setNewProfileName] = useState('')
+  const [error, setError] = useState<string | null>(null)
 
   const handleOpenProfile = async (name: string) => {
-    await window.financeAPI.openProfile(name)
-    setCurrentProfile(name)
-    setShowSelectionDialog(false)
-    setIsLoading(false)
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      await window.financeAPI.openProfile(name)
+      setCurrentProfile(name)
+      setShowSelectionDialog(false)
+    } catch (e) {
+      console.error(e)
+      setError('Failed to open profile.')
+      setShowSelectionDialog(true)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSwitchProfile = async () => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const existingProfiles = await window.financeAPI.listProfiles()
+      setProfiles(existingProfiles)
+      setCurrentProfile(null)
+      setShowSelectionDialog(true)
+    } catch (e) {
+      console.error(e)
+      setError('Failed to load profiles.')
+      setShowSelectionDialog(true)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   useEffect(() => {
@@ -52,7 +101,12 @@ function App() {
     <div className="app-root">
       {isLoading && <div>Loading...</div>}
 
-      {!isLoading && currentProfile && <div>Hello {currentProfile}</div>}
+      {!isLoading && currentProfile && (
+        <MainHome
+          currentProfile={currentProfile}
+          onSwitchProfile={handleSwitchProfile}
+        />
+      )}
 
       {!isLoading && !currentProfile && showSelectionDialog && (
         <div className="profile-selection">
@@ -60,6 +114,11 @@ function App() {
 
           <div className="profile-list">
             <h2>Existing Profiles</h2>
+            {error && (
+              <div style={{ color: 'red', marginBottom: '0.5rem' }}>
+                {error}
+              </div>
+            )}
             {profiles.length === 0 ? (
               <div>No profiles found.</div>
             ) : (
@@ -89,8 +148,14 @@ function App() {
               onClick={async () => {
                 const trimmed = newProfileName.trim()
                 if (!trimmed) return
-                await window.financeAPI.createProfile(trimmed)
-                await handleOpenProfile(trimmed)
+                setError(null)
+                try {
+                  await window.financeAPI.createProfile(trimmed)
+                  await handleOpenProfile(trimmed)
+                } catch (e) {
+                  console.error(e)
+                  setError('Failed to create profile.')
+                }
               }}
             >
               Create Profile
