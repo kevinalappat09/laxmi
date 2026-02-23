@@ -134,7 +134,7 @@
     "build:electron": "tsc",
     "dev": "concurrently \"npm:dev:react\" \"npm:dev:electron\"",
     "dev:react": "npm --prefix renderer run dev",
-    "dev:electron": "concurrently \"tsc -w\" \"wait-on http://localhost:5173 && electron dist/main.js",
+    "dev:electron": "concurrently \"tsc -w\" \"wait-on http://localhost:5173 && electron dist/main.js\"",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:run": "jest --runInBand"
