@@ -1,13 +1,8 @@
-/**
- * @module profileService
- * @description Manages all profile-related operations including listing, creating, deleting, and opening profiles.
- * @stability stable
- */
-
 import {
     getRootDataDirectory,
     getProfileDirectory,
     getProfilePreferencesPath,
+    getProfileDbPath,
 } from '../path/pathService';
 
 import {
@@ -35,9 +30,8 @@ async function initializeProfileDb(
     profileName: string,
     migrationService: MigrationService
 ): Promise<void> {
-    const profileDir = getProfileDirectory(profileName);
-    await fs.promises.mkdir(profileDir, { recursive: true });
-    const db = openDatabase(profileDir);
+    const dbPath = getProfileDbPath(profileName);
+    const db = openDatabase(dbPath);
 
     initializeSchema(db);
     migrationService.migrate(db);
@@ -50,7 +44,7 @@ async function initializeProfileDb(
 
 export async function listProfiles(): Promise<string[]> {
     const appDataPath = getRootDataDirectory();
-    await fs.promises.mkdir(appDataPath, { recursive: true });
+
     const entries = await fs.promises.readdir(appDataPath, {
         withFileTypes: true,
     });
@@ -65,6 +59,7 @@ export async function createProfile(
     migrationService: MigrationService
 ): Promise<void> {
     const existingProfiles = await listProfiles();
+
     const validationResult = validateProfileName(
         profileName,
         existingProfiles
@@ -76,7 +71,6 @@ export async function createProfile(
 
     const profilePath = getProfileDirectory(profileName);
 
-    // Safeguard (validator should already catch this)
     if (fs.existsSync(profilePath)) {
         throw new Error(
             `Profile with name '${profileName}' already exists.`
@@ -104,6 +98,7 @@ export async function deleteProfile(profileName: string): Promise<void> {
     }
 
     const globalPrefs = await loadPreferences();
+
     if (globalPrefs.last_opened_profile === profileName) {
         await setLastOpenedProfile(null);
     }
@@ -117,7 +112,7 @@ export async function deleteProfile(profileName: string): Promise<void> {
 export async function openProfile(
     profileName: string,
     migrationService: MigrationService
-): Promise<void> {
+): Promise<SQLiteDatabase> {
     const profilePath = getProfileDirectory(profileName);
 
     if (!fs.existsSync(profilePath)) {
@@ -126,10 +121,20 @@ export async function openProfile(
         );
     }
 
-    const db = openDatabase(profilePath);
-    initializeSchema(db);
+    const dbPath = getProfileDbPath(profileName);
+    const dbExists = fs.existsSync(dbPath);
+
+    const db = openDatabase(dbPath);
+
+    if (!dbExists) {
+        initializeSchema(db);
+        closeDatabase(db);
+    }
+
     migrationService.migrate(db);
 
-    profileSessionService.setDatabaseConnection(db); // Set active database connection
+    profileSessionService.setDatabaseConnection(db);
     await setLastOpenedProfile(profileName);
+
+    return db;
 }

@@ -12,7 +12,6 @@
         ]
     },
     "include": [
-        "main.ts",
-        "preload.ts"
+        "**/*.ts"
     ]
 }
