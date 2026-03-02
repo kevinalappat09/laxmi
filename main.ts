@@ -4,6 +4,8 @@ import * as globalPreferencesService from "./src/services/globalPreferences/glob
 import * as profileService from "./src/services/profile/profileService"
 import { MigrationService } from "./src/services/migration/migrationService"
 import { getRootDataDirectory } from "./src/services/path/pathService"
+import { AccountServiceImpl } from "./src/services/account/accountService"
+import { CreateAccountRequest, UpdateAccountRequest } from "./src/types/account"
 
 const isDev = !app.isPackaged;
 
@@ -23,6 +25,32 @@ ipcMain.handle("create-profile", (_event, profileName: string) =>
 
 ipcMain.handle("open-profile", async (_event, profileName: string) => {
     await profileService.openProfile(profileName, migrationService)
+})
+
+const accountService = new AccountServiceImpl()
+
+ipcMain.handle("create-account", (_event, request: CreateAccountRequest) => {
+    request.opened_on = new Date(request.opened_on)
+    return accountService.createAccount(request)
+})
+
+ipcMain.handle("update-account", (_event, accountId: number, request: UpdateAccountRequest) => {
+    if (request.opened_on) {
+        request.opened_on = new Date(request.opened_on)
+    }
+    return accountService.updateAccount(accountId, request)
+})
+
+ipcMain.handle("deactivate-account", (_event, accountId: number) => {
+    return accountService.deactivateAccount(accountId)
+})
+
+ipcMain.handle("get-account", (_event, accountId: number) => {
+    return accountService.getAccount(accountId)
+})
+
+ipcMain.handle("list-active-accounts", () => {
+    return accountService.listActiveAccounts()
 })
 
 function createWindow(): void {
