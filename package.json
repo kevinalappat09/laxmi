@@ -137,7 +137,8 @@
     "dev:electron": "concurrently \"tsc -w\" \"wait-on http://localhost:5173 && electron dist/main.js\"",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:run": "jest --runInBand"
+    "test:run": "jest --runInBand",
+    "postinstall": "npm rebuild better-sqlite3"
   },
   "keywords": [],
   "author": "",
