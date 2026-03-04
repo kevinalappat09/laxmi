@@ -467,4 +467,140 @@ describe("CategoryRepositoryImpl", () => {
             expect(found?.category_name).toBe("Grocery Shopping");
         });
     });
+
+    describe("getAllChildrenRecursive", () => {
+        it("should return all direct and indirect children of a category", () => {
+            const parent = repository.save({
+                category_name: "Food",
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            });
+
+            const child1 = repository.save({
+                category_name: "Groceries",
+                parent_category_id: parent.category_id,
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            });
+
+            const child2 = repository.save({
+                category_name: "Dining Out",
+                parent_category_id: parent.category_id,
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            });
+
+            const grandchild = repository.save({
+                category_name: "Organic Produce",
+                parent_category_id: child1.category_id,
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            });
+
+            const children = repository.getAllChildrenRecursive(parent.category_id!);
+
+            expect(children).toHaveLength(3);
+            expect(children).toContain(child1.category_id);
+            expect(children).toContain(child2.category_id);
+            expect(children).toContain(grandchild.category_id);
+        });
+
+        it("should return empty array when category has no children", () => {
+            const parent = repository.save({
+                category_name: "Food",
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            });
+
+            const children = repository.getAllChildrenRecursive(parent.category_id!);
+
+            expect(children).toHaveLength(0);
+        });
+    });
+
+    describe("deactivateRecursive", () => {
+        it("should deactivate a category and all its children recursively", () => {
+            const parent = repository.save({
+                category_name: "Food",
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            });
+
+            const child1 = repository.save({
+                category_name: "Groceries",
+                parent_category_id: parent.category_id,
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            });
+
+            const child2 = repository.save({
+                category_name: "Dining Out",
+                parent_category_id: parent.category_id,
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            });
+
+            const grandchild = repository.save({
+                category_name: "Organic Produce",
+                parent_category_id: child1.category_id,
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            });
+
+            repository.deactivateRecursive(parent.category_id!);
+
+            expect(repository.findById(parent.category_id!)).toBeNull();
+            expect(repository.findById(child1.category_id!)).toBeNull();
+            expect(repository.findById(child2.category_id!)).toBeNull();
+            expect(repository.findById(grandchild.category_id!)).toBeNull();
+        });
+
+        it("should only deactivate children of the specified parent, not other categories", () => {
+            const parent1 = repository.save({
+                category_name: "Food",
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            });
+
+            const parent2 = repository.save({
+                category_name: "Transport",
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            });
+
+            const child1 = repository.save({
+                category_name: "Groceries",
+                parent_category_id: parent1.category_id,
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            });
+
+            const child2 = repository.save({
+                category_name: "Gas",
+                parent_category_id: parent2.category_id,
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            });
+
+            repository.deactivateRecursive(parent1.category_id!);
+
+            expect(repository.findById(parent1.category_id!)).toBeNull();
+            expect(repository.findById(child1.category_id!)).toBeNull();
+            expect(repository.findById(parent2.category_id!)).not.toBeNull();
+            expect(repository.findById(child2.category_id!)).not.toBeNull();
+        });
+    });
 });

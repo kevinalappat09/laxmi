@@ -551,4 +551,61 @@ describe("TransactionRepositoryImpl", () => {
             expect(totalValue).toBeCloseTo(625, 2);
         });
     });
+
+    describe("deleteByAccountId", () => {
+        it("should soft-delete all transactions for a given account", () => {
+            const account2Result = mockDb.prepare(`INSERT INTO accounts (institution_name, account_name, account_type, sub_type, color, opened_on, created_on, modified_on, is_active)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`).run("Test Bank", "Savings", "ASSET", "SAVINGS", "#FF5733", "2024-01-01", new Date().toISOString(), new Date().toISOString(), 1);
+            const account2Id = account2Result.lastInsertRowid as number;
+
+            const txn1: Transaction = {
+                account_id: testAccountId,
+                transaction_date: new Date("2024-01-15"),
+                transaction_type: TransactionType.Deposit,
+                amount: 100,
+                category_id: testCategoryId,
+                classification: Classification.Needs,
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            };
+
+            const txn2: Transaction = {
+                account_id: testAccountId,
+                transaction_date: new Date("2024-01-16"),
+                transaction_type: TransactionType.Withdraw,
+                amount: 50,
+                category_id: testCategoryId,
+                classification: Classification.Wants,
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            };
+
+            const txn3: Transaction = {
+                account_id: account2Id,
+                transaction_date: new Date("2024-01-17"),
+                transaction_type: TransactionType.Deposit,
+                amount: 200,
+                category_id: testCategoryId,
+                classification: Classification.Needs,
+                is_active: true,
+                created_on: new Date(),
+                modified_on: new Date(),
+            };
+
+            const saved1 = repository.save(txn1);
+            const saved2 = repository.save(txn2);
+            const saved3 = repository.save(txn3);
+
+            repository.deleteByAccountId(testAccountId);
+
+            const remainingForTestAccount = repository.findByAccountId(testAccountId);
+            const remainingForAccount2 = repository.findByAccountId(account2Id);
+
+            expect(remainingForTestAccount.length).toBe(0);
+            expect(remainingForAccount2.length).toBe(1);
+            expect(remainingForAccount2[0].transaction_id).toBe(saved3.transaction_id);
+        });
+    });
 });

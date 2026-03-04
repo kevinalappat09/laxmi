@@ -18,6 +18,7 @@ export interface TransactionRepository {
     findById(transactionId: number): Transaction | null;
     findByAccountId(accountId: number): Transaction[];
     delete(transactionId: number): void;
+    deleteByAccountId(accountId: number): void;
     findWithFilter(query: TransactionReportQuery): Transaction[];
     aggregate(query: TransactionReportQuery): ReportRow[];
 }
@@ -159,6 +160,20 @@ export class TransactionRepositoryImpl implements TransactionRepository {
         `);
 
         stmt.run(new Date().toISOString(), transactionId);
+    }
+
+    deleteByAccountId(accountId: number): void {
+        if (!this.db) {
+            throw new Error("No active database connection. Open a profile first.");
+        }
+
+        const stmt = this.db.prepare(`
+            UPDATE transactions 
+            SET is_active = 0, modified_on = ?
+            WHERE account_id = ?
+        `);
+
+        stmt.run(new Date().toISOString(), accountId);
     }
 
     findWithFilter(query: TransactionReportQuery): Transaction[] {

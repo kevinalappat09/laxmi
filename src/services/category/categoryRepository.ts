@@ -14,6 +14,8 @@ export interface CategoryRepository {
     findByParent(parentId: number): Category[];
     findRootCategories(): Category[];
     deactivate(categoryId: number): void;
+    getAllChildrenRecursive(parentId: number): number[];
+    deactivateRecursive(categoryId: number): void;
 }
 
 export class CategoryRepositoryImpl implements CategoryRepository {
@@ -149,6 +151,46 @@ export class CategoryRepositoryImpl implements CategoryRepository {
         `);
 
         stmt.run(new Date().toISOString(), categoryId);
+    }
+
+    getAllChildrenRecursive(parentId: number): number[] {
+        if (!this.db) {
+            throw new Error("No active database connection. Open a profile first.");
+        }
+
+        const stmt = this.db.prepare(`
+            WITH RECURSIVE children AS (
+                SELECT category_id FROM categories WHERE parent_category_id = ?
+                UNION ALL
+                SELECT c.category_id FROM categories c
+                INNER JOIN children ch ON c.parent_category_id = ch.category_id
+            )
+            SELECT category_id FROM children
+        `);
+
+        const rows = stmt.all(parentId) as any[];
+        return rows.map((row) => row.category_id);
+    }
+
+    deactivateRecursive(categoryId: number): void {
+        if (!this.db) {
+            throw new Error("No active database connection. Open a profile first.");
+        }
+
+        const childIds = this.getAllChildrenRecursive(categoryId);
+        const now = new Date().toISOString();
+
+        const stmt = this.db.prepare(`
+            UPDATE categories 
+            SET is_active = 0, modified_on = ?
+            WHERE category_id = ?
+        `);
+
+        stmt.run(now, categoryId);
+
+        for (const childId of childIds) {
+            stmt.run(now, childId);
+        }
     }
 
     private mapRowToCategory(row: any): Category {
