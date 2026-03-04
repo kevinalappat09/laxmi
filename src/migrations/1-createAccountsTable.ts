@@ -17,12 +17,4 @@ export function up(db: SQLiteDatabase): void {
 
         CREATE INDEX IF NOT EXISTS idx_accounts_is_active ON accounts(is_active);
     `);
-
-    db.exec(`
-        CREATE TABLE IF NOT EXISTS transactions (
-            transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
-            account_id INTEGER NOT NULL REFERENCES accounts(account_id),
-            is_active INTEGER NOT NULL DEFAULT 1
-        );
-    `);
 }
