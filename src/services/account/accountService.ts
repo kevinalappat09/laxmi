@@ -6,6 +6,7 @@
 
 import { Account, AccountType, CreateAccountRequest, UpdateAccountRequest } from "../../types/account";
 import { AccountRepositoryImpl } from "./accountRepository";
+import { TransactionRepositoryImpl } from "../transaction/transactionRepository";
 import { profileSessionService } from "../profileSession/profileSessionService";
 
 /**
@@ -103,6 +104,8 @@ export class AccountServiceImpl implements AccountService {
             throw new Error(`Account with ID ${accountId} not found.`);
         }
 
+        const transactionRepository = new TransactionRepositoryImpl(db);
+        transactionRepository.deleteByAccountId(accountId);
         repository.deactivate(accountId);
     }
 

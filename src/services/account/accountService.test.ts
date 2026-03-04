@@ -31,7 +31,16 @@ describe("AccountServiceImpl", () => {
             CREATE TABLE transactions (
                 transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
                 account_id INTEGER NOT NULL REFERENCES accounts(account_id),
-                is_active INTEGER NOT NULL DEFAULT 1
+                transaction_date TEXT NOT NULL,
+                transaction_type TEXT NOT NULL,
+                amount DECIMAL NOT NULL,
+                category_id INTEGER,
+                classification TEXT NOT NULL,
+                note TEXT,
+                transfer_account_id INTEGER,
+                is_active INTEGER NOT NULL DEFAULT 1,
+                created_on TEXT NOT NULL,
+                modified_on TEXT NOT NULL
             );
         `);
 

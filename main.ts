@@ -6,6 +6,14 @@ import { MigrationService } from "./src/services/migration/migrationService"
 import { getRootDataDirectory } from "./src/services/path/pathService"
 import { AccountServiceImpl } from "./src/services/account/accountService"
 import { CreateAccountRequest, UpdateAccountRequest } from "./src/types/account"
+import { TransactionServiceImpl } from "./src/services/transaction/transactionService"
+import { CategoryServiceImpl } from "./src/services/category/categoryService"
+import {
+    CreateTransactionRequest,
+    UpdateTransactionRequest,
+    TransactionReportQuery,
+} from "./src/types/transaction"
+import { CreateCategoryRequest, UpdateCategoryRequest } from "./src/types/category"
 
 const isDev = !app.isPackaged;
 
@@ -28,6 +36,8 @@ ipcMain.handle("open-profile", async (_event, profileName: string) => {
 })
 
 const accountService = new AccountServiceImpl()
+const transactionService = new TransactionServiceImpl()
+const categoryService = new CategoryServiceImpl()
 
 ipcMain.handle("create-account", (_event, request: CreateAccountRequest) => {
     request.opened_on = new Date(request.opened_on)
@@ -51,6 +61,78 @@ ipcMain.handle("get-account", (_event, accountId: number) => {
 
 ipcMain.handle("list-active-accounts", () => {
     return accountService.listActiveAccounts()
+})
+
+ipcMain.handle("create-transaction", (_event, request: CreateTransactionRequest) => {
+    request.transaction_date = new Date(request.transaction_date)
+    return transactionService.createTransaction(request)
+})
+
+ipcMain.handle("update-transaction", (_event, transactionId: number, request: UpdateTransactionRequest) => {
+    if (request.transaction_date) {
+        request.transaction_date = new Date(request.transaction_date)
+    }
+    return transactionService.updateTransaction(transactionId, request)
+})
+
+ipcMain.handle("delete-transaction", (_event, transactionId: number) => {
+    return transactionService.deleteTransaction(transactionId)
+})
+
+ipcMain.handle("get-transaction", (_event, transactionId: number) => {
+    return transactionService.getTransaction(transactionId)
+})
+
+ipcMain.handle("get-transactions-by-account", (_event, accountId: number) => {
+    return transactionService.getTransactionsByAccount(accountId)
+})
+
+ipcMain.handle("find-transactions-with-filter", (_event, query: TransactionReportQuery) => {
+    if (query.fromDate) {
+        query.fromDate = new Date(query.fromDate)
+    }
+    if (query.toDate) {
+        query.toDate = new Date(query.toDate)
+    }
+    return transactionService.findWithFilter(query)
+})
+
+ipcMain.handle("aggregate-transactions", (_event, query: TransactionReportQuery) => {
+    if (query.fromDate) {
+        query.fromDate = new Date(query.fromDate)
+    }
+    if (query.toDate) {
+        query.toDate = new Date(query.toDate)
+    }
+    return transactionService.aggregate(query)
+})
+
+ipcMain.handle("create-category", (_event, request: CreateCategoryRequest) => {
+    return categoryService.createCategory(request)
+})
+
+ipcMain.handle("update-category", (_event, categoryId: number, request: UpdateCategoryRequest) => {
+    return categoryService.updateCategory(categoryId, request)
+})
+
+ipcMain.handle("deactivate-category", (_event, categoryId: number) => {
+    return categoryService.deactivateCategory(categoryId)
+})
+
+ipcMain.handle("get-category", (_event, categoryId: number) => {
+    return categoryService.getCategory(categoryId)
+})
+
+ipcMain.handle("list-active-categories", () => {
+    return categoryService.listActiveCategories()
+})
+
+ipcMain.handle("get-categories-by-parent", (_event, parentId: number) => {
+    return categoryService.getCategoriesByParent(parentId)
+})
+
+ipcMain.handle("get-root-categories", () => {
+    return categoryService.getRootCategories()
 })
 
 function createWindow(): void {
