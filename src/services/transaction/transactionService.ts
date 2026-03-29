@@ -13,9 +13,9 @@ import {
     TransactionReportQuery,
     ReportRow,
 } from "../../types/transaction";
-import { TransactionRepositoryImpl } from "./transactionRepository";
-import { AccountRepositoryImpl } from "../account/accountRepository";
-import { CategoryRepositoryImpl } from "../category/categoryRepository";
+import { TransactionRepositoryImpl } from "../../repository/transaction/transactionRepository";
+import { AccountRepositoryImpl } from "../../repository/account/accountRepository";
+import { CategoryRepositoryImpl } from "../../repository/category/categoryRepository";
 import { profileSessionService } from "../profileSession/profileSessionService";
 
 export interface TransactionService {

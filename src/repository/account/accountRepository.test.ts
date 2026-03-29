@@ -170,7 +170,7 @@ describe("AccountRepositoryImpl", () => {
             };
 
             const saved1 = repository.save(account1);
-            const saved2 = repository.save(account2);
+            repository.save(account2);
 
             const active = repository.findAllActive();
 

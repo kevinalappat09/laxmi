@@ -615,8 +615,8 @@ describe("TransactionRepositoryImpl", () => {
                 modified_on: new Date(),
             };
 
-            const saved1 = repository.save(txn1);
-            const saved2 = repository.save(txn2);
+            repository.save(txn1);
+            repository.save(txn2);
             const saved3 = repository.save(txn3);
 
             repository.deleteByAccountId(testAccountId);

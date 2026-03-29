@@ -14,7 +14,7 @@ import {
     CSVRowError,
     CSVTransactionRow,
 } from "../../types/csvImport";
-import { TransactionRepositoryImpl } from "../transaction/transactionRepository";
+import { TransactionRepositoryImpl } from "../../repository/transaction/transactionRepository";
 import { CategoryServiceImpl } from "../category/categoryService";
 import { profileSessionService } from "../profileSession/profileSessionService";
 import { CSVParser } from "./csvParser";

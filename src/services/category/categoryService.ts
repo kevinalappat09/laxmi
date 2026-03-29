@@ -5,7 +5,7 @@
  */
 
 import { Category, CreateCategoryRequest, UpdateCategoryRequest } from "../../types/category";
-import { CategoryRepositoryImpl } from "./categoryRepository";
+import { CategoryRepositoryImpl } from "../../repository/category/categoryRepository";
 import { profileSessionService } from "../profileSession/profileSessionService";
 
 export interface CategoryService {

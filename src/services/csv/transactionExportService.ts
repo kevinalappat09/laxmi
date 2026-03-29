@@ -8,7 +8,7 @@ import fs from "fs";
 import path from "path";
 import { dialog } from "electron";
 import { CSVExportRequest, CSVExportResult } from "../../types/csvImport";
-import { TransactionRepositoryImpl } from "../transaction/transactionRepository";
+import { TransactionRepositoryImpl } from "../../repository/transaction/transactionRepository";
 import { profileSessionService } from "../profileSession/profileSessionService";
 import { CSVParser } from "./csvParser";
 

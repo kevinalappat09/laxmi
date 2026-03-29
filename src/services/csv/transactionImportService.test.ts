@@ -16,14 +16,14 @@ jest.mock("../profileSession/profileSessionService");
 
 jest.mock("../category/categoryService");
 
-jest.mock("../transaction/transactionRepository");
+jest.mock("../../repository/transaction/transactionRepository");
 
 import { TransactionImportServiceImpl } from "./transactionImportService";
 import { dialog } from "electron";
 import fs from "fs";
 import { profileSessionService } from "../profileSession/profileSessionService";
 import { CategoryServiceImpl } from "../category/categoryService";
-import { TransactionRepositoryImpl } from "../transaction/transactionRepository";
+import { TransactionRepositoryImpl } from "../../repository/transaction/transactionRepository";
 import { TransactionType, Classification } from "../../types/transaction";
 
 const mockDialog = dialog as jest.Mocked<typeof dialog>;

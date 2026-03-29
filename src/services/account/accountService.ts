@@ -5,8 +5,8 @@
  */
 
 import { Account, AccountType, CreateAccountRequest, UpdateAccountRequest } from "../../types/account";
-import { AccountRepositoryImpl } from "./accountRepository";
-import { TransactionRepositoryImpl } from "../transaction/transactionRepository";
+import { AccountRepositoryImpl } from "../../repository/account/accountRepository";
+import { TransactionRepositoryImpl } from "../../repository/transaction/transactionRepository";
 import { profileSessionService } from "../profileSession/profileSessionService";
 
 /**
