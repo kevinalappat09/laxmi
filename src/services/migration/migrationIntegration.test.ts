@@ -144,45 +144,39 @@ describe("Migration Integration Tests", () => {
         expect(transaction.classification).toBe("needs");
     });
 
-    it("should allow inserting valid categories with hierarchy", () => {
+    it("should seed categories with valid hierarchy", () => {
         db = new Database(":memory:");
         initializeSchema(db);
 
         const migrationService = new MigrationService(migrationsDir);
         migrationService.migrate(db);
 
-        // Insert root categories
-        db.prepare(`
-            INSERT INTO categories (category_name, parent_category_id, is_active, created_on, modified_on)
-            VALUES (?, ?, ?, ?, ?)
-        `).run("Food", null, 1, "2024-01-01T00:00:00Z", "2024-01-01T00:00:00Z");
-
-        db.prepare(`
-            INSERT INTO categories (category_name, parent_category_id, is_active, created_on, modified_on)
-            VALUES (?, ?, ?, ?, ?)
-        `).run("Utilities", null, 1, "2024-01-01T00:00:00Z", "2024-01-01T00:00:00Z");
-
-        // Insert child categories
-        db.prepare(`
-            INSERT INTO categories (category_name, parent_category_id, is_active, created_on, modified_on)
-            VALUES (?, ?, ?, ?, ?)
-        `).run("Groceries", 1, 1, "2024-01-01T00:00:00Z", "2024-01-01T00:00:00Z");
-
-        db.prepare(`
-            INSERT INTO categories (category_name, parent_category_id, is_active, created_on, modified_on)
-            VALUES (?, ?, ?, ?, ?)
-        `).run("Restaurants", 1, 1, "2024-01-01T00:00:00Z", "2024-01-01T00:00:00Z");
-
-        // Verify categories were inserted
-        const rootCategories = db
-            .prepare("SELECT * FROM categories WHERE parent_category_id IS NULL")
+        const allCategories = db
+            .prepare("SELECT * FROM categories")
             .all() as any[];
-        expect(rootCategories).toHaveLength(2);
+        expect(allCategories).toHaveLength(65);
 
-        const childCategories = db
-            .prepare("SELECT * FROM categories WHERE parent_category_id = 1")
-            .all() as any[];
-        expect(childCategories).toHaveLength(2);
+        const incomeSalary = db
+            .prepare(`
+                SELECT c.category_name, p.category_name AS parent_name
+                FROM categories c
+                LEFT JOIN categories p ON p.category_id = c.parent_category_id
+                WHERE c.category_name = ?
+            `)
+            .get("Salary") as any;
+        expect(incomeSalary).toBeDefined();
+        expect(incomeSalary.parent_name).toBe("Income");
+
+        const vacationTravel = db
+            .prepare(`
+                SELECT c.category_name, p.category_name AS parent_name
+                FROM categories c
+                LEFT JOIN categories p ON p.category_id = c.parent_category_id
+                WHERE c.category_name = ?
+            `)
+            .get("Travel") as any;
+        expect(vacationTravel).toBeDefined();
+        expect(vacationTravel.parent_name).toBe("Vacation");
     });
 
     it("should enforce schema version after migration", () => {
@@ -193,6 +187,6 @@ describe("Migration Integration Tests", () => {
         migrationService.migrate(db);
 
         const version = getCurrentSchemaVersion(db);
-        expect(version).toBe(4);
+        expect(version).toBe(5);
     });
 });
