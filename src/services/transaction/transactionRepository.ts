@@ -39,6 +39,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
             amount,
             category_id,
             classification,
+            payee,
             note,
             transfer_account_id,
             is_active,
@@ -59,6 +60,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
                     amount = ?,
                     category_id = ?,
                     classification = ?,
+                    payee = ?,
                     note = ?,
                     transfer_account_id = ?,
                     is_active = ?,
@@ -73,6 +75,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
                 amount,
                 category_id ?? null,
                 classification,
+                payee ?? null,
                 note ?? null,
                 transfer_account_id ?? null,
                 is_active ? 1 : 0,
@@ -91,12 +94,13 @@ export class TransactionRepositoryImpl implements TransactionRepository {
                     amount,
                     category_id,
                     classification,
+                    payee,
                     note,
                     transfer_account_id,
                     is_active,
                     created_on,
                     modified_on
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `);
 
             const result = stmt.run(
@@ -106,6 +110,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
                 amount,
                 category_id ?? null,
                 classification,
+                payee ?? null,
                 note ?? null,
                 transfer_account_id ?? null,
                 is_active ? 1 : 0,
@@ -374,6 +379,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
             amount: row.amount,
             category_id: row.category_id ?? undefined,
             classification: row.classification as Classification,
+            payee: row.payee ?? undefined,
             note: row.note ?? undefined,
             transfer_account_id: row.transfer_account_id ?? undefined,
             is_active: row.is_active === 1,

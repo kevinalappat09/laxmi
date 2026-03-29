@@ -38,6 +38,7 @@ describe("Migration Integration Tests", () => {
         expect(columnNames).toContain("amount");
         expect(columnNames).toContain("category_id");
         expect(columnNames).toContain("classification");
+        expect(columnNames).toContain("payee");
         expect(columnNames).toContain("note");
         expect(columnNames).toContain("transfer_account_id");
         expect(columnNames).toContain("is_active");
@@ -192,6 +193,6 @@ describe("Migration Integration Tests", () => {
         migrationService.migrate(db);
 
         const version = getCurrentSchemaVersion(db);
-        expect(version).toBe(3);
+        expect(version).toBe(4);
     });
 });

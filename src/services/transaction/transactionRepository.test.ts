@@ -62,6 +62,7 @@ describe("TransactionRepositoryImpl", () => {
                 classification TEXT NOT NULL CHECK(
                     classification IN ('needs', 'wants', 'unnecessary', 'wasteful')
                 ),
+                payee TEXT,
                 note TEXT,
                 transfer_account_id INTEGER,
                 is_active INTEGER NOT NULL DEFAULT 1,
@@ -184,9 +185,29 @@ describe("TransactionRepositoryImpl", () => {
             const result = repository.save(transaction);
 
             expect(result.transaction_id).toBeDefined();
+            expect(result.payee).toBeUndefined();
             expect(result.note).toBeUndefined();
             expect(result.category_id).toBeUndefined();
             expect(result.transfer_account_id).toBeUndefined();
+        });
+
+        it("should persist and retrieve payee", () => {
+            const transaction: Transaction = {
+                account_id: testAccountId,
+                transaction_date: new Date("2025-03-01"),
+                transaction_type: TransactionType.Deposit,
+                amount: 200,
+                classification: Classification.Needs,
+                payee: "Acme Corp",
+                is_active: true,
+                created_on: new Date("2025-03-01T10:00:00Z"),
+                modified_on: new Date("2025-03-01T10:00:00Z"),
+            };
+
+            const saved = repository.save(transaction);
+            const found = repository.findById(saved.transaction_id!);
+
+            expect(found?.payee).toBe("Acme Corp");
         });
     });
 

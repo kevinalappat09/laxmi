@@ -49,6 +49,7 @@ describe("TransactionServiceImpl", () => {
                 classification TEXT NOT NULL CHECK(
                     classification IN ('needs', 'wants', 'unnecessary', 'wasteful')
                 ),
+                payee TEXT,
                 note TEXT,
                 transfer_account_id INTEGER REFERENCES accounts(account_id),
                 is_active INTEGER NOT NULL DEFAULT 1,
@@ -128,8 +129,24 @@ describe("TransactionServiceImpl", () => {
 
             expect(created.transaction_id).toBeGreaterThan(0);
             expect(created.category_id).toBeUndefined();
+            expect(created.payee).toBeUndefined();
             expect(created.note).toBeUndefined();
             expect(created.transfer_account_id).toBeUndefined();
+        });
+
+        test("stores and returns payee on create", () => {
+            const request = {
+                account_id: accountId,
+                transaction_date: new Date("2024-03-01"),
+                transaction_type: TransactionType.Deposit,
+                amount: 300,
+                classification: Classification.Needs,
+                payee: "Employer Inc",
+            };
+
+            const created = service.createTransaction(request);
+
+            expect(created.payee).toBe("Employer Inc");
         });
 
         test("throws when account_id is missing", () => {

@@ -14,6 +14,14 @@ import {
     CreateCategoryRequest,
     UpdateCategoryRequest,
 } from "../../../src/types/category"
+import {
+    CSVImportRequest,
+    CSVImportResult,
+    CSVPreviewResult,
+    CSVExportRequest,
+    CSVExportResult,
+    CSVTemplateResult,
+} from "../../../src/types/csvImport"
 
 export {}
 
@@ -58,6 +66,11 @@ declare global {
         listActiveCategories: () => Promise<Category[]>
         getCategoriesByParent: (parentId: number) => Promise<Category[]>
         getRootCategories: () => Promise<Category[]>
+
+        csvOpenAndPreview: () => Promise<CSVPreviewResult>
+        csvImportConfirm: (request: CSVImportRequest) => Promise<CSVImportResult>
+        csvGenerateTemplate: () => Promise<CSVTemplateResult>
+        csvExportTransactions: (request: CSVExportRequest) => Promise<CSVExportResult>
     }
 
     interface Window {

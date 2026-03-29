@@ -47,6 +47,7 @@ export interface Transaction {
     amount: number;
     category_id?: number;
     classification: Classification;
+    payee?: string;
     note?: string;
     transfer_account_id?: number;
     is_active: boolean;
@@ -89,6 +90,7 @@ export interface CreateTransactionRequest {
     amount: number;
     category_id?: number;
     classification: Classification;
+    payee?: string;
     note?: string;
     transfer_account_id?: number;
 }
@@ -99,6 +101,7 @@ export interface UpdateTransactionRequest {
     amount?: number;
     category_id?: number;
     classification?: Classification;
+    payee?: string;
     note?: string;
     transfer_account_id?: number;
 }

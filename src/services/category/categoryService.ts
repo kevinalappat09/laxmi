@@ -16,6 +16,7 @@ export interface CategoryService {
     listActiveCategories(): Category[];
     getCategoriesByParent(parentId: number): Category[];
     getRootCategories(): Category[];
+    getCategoryNameMap(): Map<string, number>;
 }
 
 export class CategoryServiceImpl implements CategoryService {
@@ -132,6 +133,21 @@ export class CategoryServiceImpl implements CategoryService {
 
         const repository = new CategoryRepositoryImpl(db);
         return repository.findRootCategories();
+    }
+
+    getCategoryNameMap(): Map<string, number> {
+        const db = profileSessionService.getDatabaseConnection();
+        if (!db) {
+            throw new Error("No active database connection. Open a profile first.");
+        }
+
+        const repository = new CategoryRepositoryImpl(db);
+        const categories = repository.findAll();
+        const map = new Map<string, number>();
+        for (const cat of categories) {
+            map.set(cat.category_name.toLowerCase(), cat.category_id!);
+        }
+        return map;
     }
 
     private validateCreateRequest(request: CreateCategoryRequest, db: any): void {

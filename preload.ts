@@ -7,6 +7,14 @@ import {
 } from "./src/types/transaction"
 import { CreateCategoryRequest, UpdateCategoryRequest, Category } from "./src/types/category"
 import { Account } from "./src/types/account"
+import {
+    CSVImportRequest,
+    CSVImportResult,
+    CSVPreviewResult,
+    CSVExportRequest,
+    CSVExportResult,
+    CSVTemplateResult,
+} from "./src/types/csvImport"
 
 contextBridge.exposeInMainWorld("financeAPI", {
     // Profile management
@@ -67,6 +75,15 @@ contextBridge.exposeInMainWorld("financeAPI", {
         ipcRenderer.invoke("get-categories-by-parent", parentId),
     getRootCategories: (): Promise<Category[]> =>
         ipcRenderer.invoke("get-root-categories"),
+
+    csvOpenAndPreview: (): Promise<CSVPreviewResult> =>
+        ipcRenderer.invoke("csv-open-and-preview"),
+    csvImportConfirm: (request: CSVImportRequest): Promise<CSVImportResult> =>
+        ipcRenderer.invoke("csv-import-confirm", request),
+    csvGenerateTemplate: (): Promise<CSVTemplateResult> =>
+        ipcRenderer.invoke("csv-generate-template"),
+    csvExportTransactions: (request: CSVExportRequest): Promise<CSVExportResult> =>
+        ipcRenderer.invoke("csv-export-transactions", request),
 })
 
 contextBridge.exposeInMainWorld("environmentAPI", {

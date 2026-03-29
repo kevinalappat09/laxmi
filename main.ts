@@ -1,4 +1,8 @@
 import { app, BrowserWindow, ipcMain } from "electron"
+import { TransactionImportServiceImpl } from "./src/services/csv/transactionImportService"
+import { TransactionExportServiceImpl } from "./src/services/csv/transactionExportService"
+import { CSVTemplateServiceImpl } from "./src/services/csv/csvTemplateService"
+import { CSVImportRequest, CSVExportRequest } from "./src/types/csvImport"
 import path from "path"
 import * as globalPreferencesService from "./src/services/globalPreferences/globalPreferencesService"
 import * as profileService from "./src/services/profile/profileService"
@@ -38,6 +42,9 @@ ipcMain.handle("open-profile", async (_event, profileName: string) => {
 const accountService = new AccountServiceImpl()
 const transactionService = new TransactionServiceImpl()
 const categoryService = new CategoryServiceImpl()
+const csvImportService = new TransactionImportServiceImpl()
+const csvExportService = new TransactionExportServiceImpl()
+const csvTemplateService = new CSVTemplateServiceImpl()
 
 ipcMain.handle("create-account", (_event, request: CreateAccountRequest) => {
     request.opened_on = new Date(request.opened_on)
@@ -133,6 +140,22 @@ ipcMain.handle("get-categories-by-parent", (_event, parentId: number) => {
 
 ipcMain.handle("get-root-categories", () => {
     return categoryService.getRootCategories()
+})
+
+ipcMain.handle("csv-open-and-preview", () => {
+    return csvImportService.openAndPreview()
+})
+
+ipcMain.handle("csv-import-confirm", (_event, request: CSVImportRequest) => {
+    return csvImportService.confirmImport(request)
+})
+
+ipcMain.handle("csv-generate-template", () => {
+    return csvTemplateService.generateTemplate()
+})
+
+ipcMain.handle("csv-export-transactions", (_event, request: CSVExportRequest) => {
+    return csvExportService.exportToCSV(request)
 })
 
 function createWindow(): void {
