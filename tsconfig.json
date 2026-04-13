@@ -13,5 +13,10 @@
     },
     "include": [
         "**/*.ts"
+    ],
+    "exclude": [
+        "renderer",
+        "dist",
+        "node_modules"
     ]
 }

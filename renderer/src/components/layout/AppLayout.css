@@ -1,0 +1,13 @@
+.app-layout {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app-layout__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+}

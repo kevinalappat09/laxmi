@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { AppLayout } from './components/layout/AppLayout'
 import './App.css'
 
 function MainHome({
@@ -11,13 +12,15 @@ function MainHome({
   const environment = import.meta.env.MODE
 
   return (
-    <div className="main-home">
-      <h1>Welcome back, {currentProfile}!</h1>
-      <button onClick={onSwitchProfile}>Logout/Switch Profile</button>
-      <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#666' }}>
-        Environment: {environment}
+    <AppLayout>
+      <div className="main-home">
+        <h1>Welcome back, {currentProfile}!</h1>
+        <button onClick={onSwitchProfile}>Logout/Switch Profile</button>
+        <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#666' }}>
+          Environment: {environment}
+        </div>
       </div>
-    </div>
+    </AppLayout>
   )
 }
 

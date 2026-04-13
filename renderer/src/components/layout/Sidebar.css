@@ -1,0 +1,90 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 240px;
+  min-width: 240px;
+  height: 100%;
+  background-color: #1a1a1a;
+  border-right: 1px solid #2e2e2e;
+  overflow: hidden;
+  transition: width 0.22s ease, min-width 0.22s ease;
+}
+
+.sidebar--collapsed {
+  width: 0;
+  min-width: 0;
+  border-right-color: transparent;
+}
+
+.sidebar__header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 12px 8px;
+  flex-shrink: 0;
+}
+
+.sidebar__toggle-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #8a8a8a;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.sidebar__toggle-btn:hover {
+  background-color: #2e2e2e;
+  color: #e0e0e0;
+}
+
+.sidebar__toggle-btn:focus,
+.sidebar__toggle-btn:focus-visible {
+  outline: none;
+  background-color: #2e2e2e;
+}
+
+.sidebar__nav {
+  flex: 1;
+  padding: 4px 8px;
+  overflow-y: auto;
+}
+
+/* Floating toggle button shown when sidebar is collapsed */
+.sidebar__open-btn {
+  position: fixed;
+  top: 12px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #8a8a8a;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 0;
+  z-index: 100;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.sidebar__open-btn:hover {
+  background-color: #2e2e2e;
+  color: #e0e0e0;
+}
+
+.sidebar__open-btn:focus,
+.sidebar__open-btn:focus-visible {
+  outline: none;
+}
