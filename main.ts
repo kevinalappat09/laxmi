@@ -22,7 +22,7 @@ import { CreateCategoryRequest, UpdateCategoryRequest } from "./src/types/catego
 const isDev = !app.isPackaged;
 
 const migrationService = new MigrationService(
-    path.join(getRootDataDirectory(), "migrations")
+    path.join(__dirname, "src", "migrations")
 )
 
 ipcMain.handle("get-last-opened-profile", () =>

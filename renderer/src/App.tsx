@@ -1,18 +1,22 @@
 import { useEffect, useState } from 'react'
-import { AppLayout } from './components/layout/AppLayout'
+import { AppLayout, type Page } from './components/layout/AppLayout'
+import { AccountsPage } from './pages/accounts/AccountsPage'
+import { AccountDetailPage } from './pages/accounts/AccountDetailPage'
 import './App.css'
 
 function MainHome({
   currentProfile,
   onSwitchProfile,
+  onNavigate,
 }: {
   currentProfile: string
   onSwitchProfile: () => void
+  onNavigate: (page: Page) => void
 }) {
   const environment = import.meta.env.MODE
 
   return (
-    <AppLayout>
+    <AppLayout activePage="home" onNavigate={onNavigate}>
       <div className="main-home">
         <h1>Welcome back, {currentProfile}!</h1>
         <button onClick={onSwitchProfile}>Logout/Switch Profile</button>
@@ -31,6 +35,18 @@ function App() {
   const [profiles, setProfiles] = useState<string[]>([])
   const [newProfileName, setNewProfileName] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [activePage, setActivePage] = useState<Page>('home')
+  const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null)
+
+  const handleSelectAccount = (accountId: number) => {
+    setSelectedAccountId(accountId)
+    setActivePage('account-detail')
+  }
+
+  const handleBackToAccounts = () => {
+    setSelectedAccountId(null)
+    setActivePage('accounts')
+  }
 
   const handleOpenProfile = async (name: string) => {
     setIsLoading(true)
@@ -104,11 +120,24 @@ function App() {
     <div className="app-root">
       {isLoading && <div>Loading...</div>}
 
-      {!isLoading && currentProfile && (
+      {!isLoading && currentProfile && activePage === 'home' && (
         <MainHome
           currentProfile={currentProfile}
           onSwitchProfile={handleSwitchProfile}
+          onNavigate={setActivePage}
         />
+      )}
+
+      {!isLoading && currentProfile && activePage === 'accounts' && (
+        <AppLayout activePage="accounts" onNavigate={setActivePage}>
+          <AccountsPage onSelectAccount={handleSelectAccount} />
+        </AppLayout>
+      )}
+
+      {!isLoading && currentProfile && activePage === 'account-detail' && selectedAccountId !== null && (
+        <AppLayout activePage="accounts" onNavigate={setActivePage}>
+          <AccountDetailPage accountId={selectedAccountId} onBack={handleBackToAccounts} />
+        </AppLayout>
       )}
 
       {!isLoading && !currentProfile && showSelectionDialog && (

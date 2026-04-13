@@ -1,11 +1,14 @@
+import { type Page } from './AppLayout'
 import './Sidebar.css'
 
 interface SidebarProps {
   isOpen: boolean
   onToggle: () => void
+  activePage: Page
+  onNavigate: (page: Page) => void
 }
 
-export function Sidebar({ isOpen, onToggle }: SidebarProps) {
+export function Sidebar({ isOpen, onToggle, activePage, onNavigate }: SidebarProps) {
   return (
     <>
       {!isOpen && (
@@ -32,7 +35,18 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         </div>
 
         <nav className="sidebar__nav" aria-label="Main navigation">
-          {/* Navigation items will go here */}
+          <button
+            className={`sidebar__nav-item${activePage === 'home' ? ' sidebar__nav-item--active' : ''}`}
+            onClick={() => onNavigate('home')}
+          >
+            Home
+          </button>
+          <button
+            className={`sidebar__nav-item${activePage === 'accounts' ? ' sidebar__nav-item--active' : ''}`}
+            onClick={() => onNavigate('accounts')}
+          >
+            Accounts
+          </button>
         </nav>
       </aside>
     </>

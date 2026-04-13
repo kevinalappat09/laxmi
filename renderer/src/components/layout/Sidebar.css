@@ -56,6 +56,44 @@
   flex: 1;
   padding: 4px 8px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar__nav-item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: #8a8a8a;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar__nav-item:hover {
+  background-color: #2e2e2e;
+  color: #e0e0e0;
+  border-color: transparent;
+}
+
+.sidebar__nav-item--active {
+  background-color: #2a2a3a;
+  color: #a8b0ff;
+}
+
+.sidebar__nav-item--active:hover {
+  background-color: #2e2e4a;
+  color: #b8c0ff;
+  border-color: transparent;
 }
 
 /* Floating toggle button shown when sidebar is collapsed */
