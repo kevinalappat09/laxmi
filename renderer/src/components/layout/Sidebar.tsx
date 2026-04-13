@@ -42,10 +42,16 @@ export function Sidebar({ isOpen, onToggle, activePage, onNavigate }: SidebarPro
             Home
           </button>
           <button
-            className={`sidebar__nav-item${activePage === 'accounts' ? ' sidebar__nav-item--active' : ''}`}
+            className={`sidebar__nav-item${activePage === 'accounts' || activePage === 'account-detail' ? ' sidebar__nav-item--active' : ''}`}
             onClick={() => onNavigate('accounts')}
           >
             Accounts
+          </button>
+          <button
+            className={`sidebar__nav-item${activePage === 'transactions' ? ' sidebar__nav-item--active' : ''}`}
+            onClick={() => onNavigate('transactions')}
+          >
+            Transactions
           </button>
         </nav>
       </aside>

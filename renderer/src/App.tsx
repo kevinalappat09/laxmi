@@ -1,32 +1,13 @@
 import { useEffect, useState } from 'react'
 import { AppLayout, type Page } from './components/layout/AppLayout'
+import { HomePage } from './pages/home/HomePage'
 import { AccountsPage } from './pages/accounts/AccountsPage'
 import { AccountDetailPage } from './pages/accounts/AccountDetailPage'
+import { TransactionsPage } from './pages/transactions/TransactionsPage'
+import { CommandPalette, type PaletteAction } from './components/CommandPalette'
 import './App.css'
 
-function MainHome({
-  currentProfile,
-  onSwitchProfile,
-  onNavigate,
-}: {
-  currentProfile: string
-  onSwitchProfile: () => void
-  onNavigate: (page: Page) => void
-}) {
-  const environment = import.meta.env.MODE
-
-  return (
-    <AppLayout activePage="home" onNavigate={onNavigate}>
-      <div className="main-home">
-        <h1>Welcome back, {currentProfile}!</h1>
-        <button onClick={onSwitchProfile}>Logout/Switch Profile</button>
-        <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#666' }}>
-          Environment: {environment}
-        </div>
-      </div>
-    </AppLayout>
-  )
-}
+type PendingAction = 'addAccount' | 'addTransaction' | null
 
 function App() {
   const [currentProfile, setCurrentProfile] = useState<string | null>(null)
@@ -37,6 +18,8 @@ function App() {
   const [error, setError] = useState<string | null>(null)
   const [activePage, setActivePage] = useState<Page>('home')
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(null)
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false)
+  const [pendingAction, setPendingAction] = useState<PendingAction>(null)
 
   const handleSelectAccount = (accountId: number) => {
     setSelectedAccountId(accountId)
@@ -47,6 +30,36 @@ function App() {
     setSelectedAccountId(null)
     setActivePage('accounts')
   }
+
+  const handlePaletteAction = (action: PaletteAction) => {
+    switch (action.type) {
+      case 'navigate':
+        setActivePage(action.page)
+        break
+      case 'selectAccount':
+        handleSelectAccount(action.accountId)
+        break
+      case 'addAccount':
+        setPendingAction('addAccount')
+        setActivePage('accounts')
+        break
+      case 'addTransaction':
+        setPendingAction('addTransaction')
+        setActivePage('transactions')
+        break
+    }
+  }
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'p') {
+        e.preventDefault()
+        if (currentProfile) setIsPaletteOpen((open) => !open)
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [currentProfile])
 
   const handleOpenProfile = async (name: string) => {
     setIsLoading(true)
@@ -121,16 +134,23 @@ function App() {
       {isLoading && <div>Loading...</div>}
 
       {!isLoading && currentProfile && activePage === 'home' && (
-        <MainHome
-          currentProfile={currentProfile}
-          onSwitchProfile={handleSwitchProfile}
-          onNavigate={setActivePage}
-        />
+        <AppLayout activePage="home" onNavigate={setActivePage}>
+          <HomePage
+            currentProfile={currentProfile}
+            onSwitchProfile={handleSwitchProfile}
+            onSelectAccount={handleSelectAccount}
+            onNavigate={setActivePage}
+          />
+        </AppLayout>
       )}
 
       {!isLoading && currentProfile && activePage === 'accounts' && (
         <AppLayout activePage="accounts" onNavigate={setActivePage}>
-          <AccountsPage onSelectAccount={handleSelectAccount} />
+          <AccountsPage
+            onSelectAccount={handleSelectAccount}
+            autoOpenDialog={pendingAction === 'addAccount'}
+            onAutoOpenHandled={() => setPendingAction(null)}
+          />
         </AppLayout>
       )}
 
@@ -138,6 +158,23 @@ function App() {
         <AppLayout activePage="accounts" onNavigate={setActivePage}>
           <AccountDetailPage accountId={selectedAccountId} onBack={handleBackToAccounts} />
         </AppLayout>
+      )}
+
+      {!isLoading && currentProfile && activePage === 'transactions' && (
+        <AppLayout activePage="transactions" onNavigate={setActivePage}>
+          <TransactionsPage
+            autoOpenDialog={pendingAction === 'addTransaction'}
+            onAutoOpenHandled={() => setPendingAction(null)}
+          />
+        </AppLayout>
+      )}
+
+      {currentProfile && (
+        <CommandPalette
+          isOpen={isPaletteOpen}
+          onClose={() => setIsPaletteOpen(false)}
+          onAction={handlePaletteAction}
+        />
       )}
 
       {!isLoading && !currentProfile && showSelectionDialog && (

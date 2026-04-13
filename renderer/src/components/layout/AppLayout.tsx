@@ -3,7 +3,7 @@ import { Sidebar } from './Sidebar'
 import { useSidebarToggle } from '../../hooks/useSidebarToggle'
 import './AppLayout.css'
 
-export type Page = 'home' | 'accounts' | 'account-detail'
+export type Page = 'home' | 'accounts' | 'account-detail' | 'transactions'
 
 interface AppLayoutProps {
   children: ReactNode

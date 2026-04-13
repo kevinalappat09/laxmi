@@ -9,9 +9,11 @@ function formatSubType(subType: string): string {
 
 interface AccountsPageProps {
   onSelectAccount: (accountId: number) => void
+  autoOpenDialog?: boolean
+  onAutoOpenHandled?: () => void
 }
 
-export function AccountsPage({ onSelectAccount }: AccountsPageProps) {
+export function AccountsPage({ onSelectAccount, autoOpenDialog, onAutoOpenHandled }: AccountsPageProps) {
   const [accounts, setAccounts] = useState<Account[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -35,6 +37,14 @@ export function AccountsPage({ onSelectAccount }: AccountsPageProps) {
   useEffect(() => {
     loadAccounts()
   }, [])
+
+  useEffect(() => {
+    if (autoOpenDialog) {
+      setSelectedAccount(undefined)
+      setDialogMode('create')
+      onAutoOpenHandled?.()
+    }
+  }, [autoOpenDialog])
 
   const handleAddClick = () => {
     setSelectedAccount(undefined)
