@@ -37,6 +37,11 @@ export interface PivotResult {
   seriesKeys: string[]
 }
 
+export interface AggregatePoint {
+  name: string
+  value: number
+}
+
 const monthShortFormatter = new Intl.DateTimeFormat(undefined, {
   month: 'short',
 })
@@ -328,6 +333,27 @@ export function pivotByKey(
   })
 
   return { data: rows, seriesKeys }
+}
+
+export function aggregateByKey(
+  txns: Transaction[],
+  keyFn: (tx: Transaction) => string | null | undefined,
+  type?: TransactionType
+): AggregatePoint[] {
+  const totals = new Map<string, number>()
+
+  txns.forEach((tx) => {
+    if (type && tx.transaction_type !== type) return
+
+    const key = keyFn(tx)
+    if (!key) return
+
+    totals.set(key, (totals.get(key) ?? 0) + tx.amount)
+  })
+
+  return Array.from(totals.entries())
+    .map(([name, value]) => ({ name, value: Number(value.toFixed(2)) }))
+    .sort((a, b) => b.value - a.value)
 }
 
 export const CLASSIFICATION_OPTIONS: Classification[] = [
