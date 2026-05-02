@@ -14,6 +14,7 @@ import {
     CSVExportRequest,
     CSVExportResult,
     CSVTemplateResult,
+    CSVExportErrorRowsResult,
 } from "./src/types/csvImport"
 
 contextBridge.exposeInMainWorld("financeAPI", {
@@ -84,8 +85,17 @@ contextBridge.exposeInMainWorld("financeAPI", {
         ipcRenderer.invoke("csv-generate-template"),
     csvExportTransactions: (request: CSVExportRequest): Promise<CSVExportResult> =>
         ipcRenderer.invoke("csv-export-transactions", request),
+    csvExportErrorRows: (rawLines: string[]): Promise<CSVExportErrorRowsResult> =>
+        ipcRenderer.invoke("csv-export-error-rows", rawLines),
 })
 
 contextBridge.exposeInMainWorld("environmentAPI", {
     getIsDev: (): Promise<boolean> => ipcRenderer.invoke("get-is-dev-status")
+})
+
+contextBridge.exposeInMainWorld("windowAPI", {
+    minimize: (): Promise<void> => ipcRenderer.invoke("window-minimize"),
+    maximize: (): Promise<void> => ipcRenderer.invoke("window-maximize"),
+    close: (): Promise<void> => ipcRenderer.invoke("window-close"),
+    isMaximized: (): Promise<boolean> => ipcRenderer.invoke("window-is-maximized"),
 })

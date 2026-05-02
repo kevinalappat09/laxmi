@@ -25,13 +25,14 @@ export function getBaseAppDataPathFor(platform: NodeJS.Platform, homeDir: string
  *
  * - Uses the appropriate base app data path for the current platform.
  * - Appends "Laxmi-Dev" when running in development mode.
- * - Appends "Laxmi" when running in production mode.
+ * - Appends "Laxmi-Prod" when running in production mode.
  */
 export function getRootDataDirectory(): string {
     const homeDir = os.homedir();
-    const baseAppDataPath = getBaseAppDataPathFor(process.platform, homeDir);
-
-    const appFolderName = app.isPackaged ? "Laxmi" : "Laxmi-Dev";
+    const baseAppDataPath = typeof app.getPath === "function"
+        ? app.getPath("appData")
+        : getBaseAppDataPathFor(process.platform, homeDir);
+    const appFolderName = app.isPackaged ? "Laxmi-Prod" : "Laxmi-Dev";
 
     return path.join(baseAppDataPath, appFolderName);
 }

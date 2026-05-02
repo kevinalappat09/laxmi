@@ -1,0 +1,116 @@
+.ui-button {
+  border: none;
+  border-radius: var(--radius-general);
+  font-family: inherit;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background-color 0.18s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.ui-button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.ui-button--size-md {
+  padding: 0.5em 1.2em;
+  font-size: var(--text-body);
+  font-weight: var(--font-weight-semibold);
+}
+
+.ui-button--size-sm {
+  padding: 0.3em 0.85em;
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-input-sm);
+}
+
+.ui-button--size-icon {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  font-size: 13px;
+  border-radius: var(--radius-input-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ui-button--variant-primary {
+  background: var(--gradient-accent);
+  color: var(--color-pure-white);
+}
+
+.ui-button--variant-primary:hover:not(:disabled) {
+  background-color: var(--color-accent-hover);
+}
+
+.ui-button--variant-secondary {
+  background-color: var(--color-bg-btn-secondary);
+  color: var(--color-text-primary);
+}
+
+.ui-button--variant-secondary:hover:not(:disabled) {
+  background-color: var(--color-bg-btn-secondary-hover);
+}
+
+.ui-button--variant-subtle {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+}
+
+.ui-button--variant-subtle:hover:not(:disabled) {
+  color: var(--color-pure-white);
+  background-color: var(--color-accent-subtle);
+}
+
+.ui-button--variant-danger {
+  background-color: transparent;
+  color: var(--color-negative);
+}
+
+.ui-button--variant-danger:hover:not(:disabled) {
+  background-color: rgba(var(--color-negative-rgb), 0.12);
+}
+
+.ui-button--variant-icon {
+  background-color: transparent;
+  color: var(--color-text-secondary);
+}
+
+.ui-button--variant-icon:hover:not(:disabled) {
+  background-color: var(--color-bg-hover);
+  color: var(--color-pure-white);
+}
+
+.ui-button--variant-pill {
+  background-color: var(--color-light-smoke);
+  color: #000000;
+  border-radius: var(--radius-buttons-pill);
+  padding: 7px 16px;
+}
+
+.ui-button--variant-pill:hover:not(:disabled) {
+  background-color: var(--color-pure-white);
+}
+
+.ui-button--variant-ghost {
+  background-color: transparent;
+  color: var(--color-pure-white);
+  border: 1px solid var(--color-pure-white);
+  border-radius: 999px;
+}
+
+.ui-button--variant-ghost:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+.ui-button--variant-square {
+  background-color: var(--color-bg-btn-secondary);
+  color: var(--color-light-smoke);
+  border-radius: var(--radius-buttons-square);
+}
+
+.ui-button--variant-square:hover:not(:disabled) {
+  background-color: var(--color-bg-btn-secondary-hover);
+}

@@ -74,3 +74,12 @@ export interface CSVExportResult {
 export interface CSVTemplateResult {
     savedPath: string;
 }
+
+/* ------------------------------------------------------------------ */
+/* Error export                                                        */
+/* ------------------------------------------------------------------ */
+
+export interface CSVExportErrorRowsResult {
+    cancelled: boolean;
+    savedPath?: string;
+}

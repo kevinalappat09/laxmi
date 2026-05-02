@@ -1,0 +1,27 @@
+.ui-card {
+  background-color: var(--color-obsidian-deep);
+  border-radius: var(--radius-cards);
+  box-shadow: var(--shadow-xl);
+  border: 1px solid var(--color-border-subtle);
+}
+
+.ui-card--padding-default {
+  padding: var(--spacing-20);
+}
+
+.ui-card--padding-tight {
+  padding: var(--spacing-14);
+}
+
+.ui-card--padding-none {
+  padding: 0;
+}
+
+.ui-card--button {
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ui-card--button:hover {
+  transform: translateY(-1px);
+}

@@ -44,6 +44,7 @@ async function initializeProfileDb(
 
 export async function listProfiles(): Promise<string[]> {
     const appDataPath = getRootDataDirectory();
+    await fs.promises.mkdir(appDataPath, { recursive: true });
 
     const entries = await fs.promises.readdir(appDataPath, {
         withFileTypes: true,

@@ -1,0 +1,88 @@
+.accounts-page {
+  padding: 32px 36px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.accounts-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.accounts-page__header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+  color: var(--color-text-heading);
+}
+
+.accounts-page__add-btn {
+  white-space: nowrap;
+}
+
+.accounts-page__error {
+  color: var(--color-error);
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.accounts-page__loading,
+.accounts-page__empty {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  margin-top: 24px;
+}
+
+.accounts-page__table-wrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+}
+
+.accounts-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.accounts-table thead tr {
+  background-color: var(--color-bg-surface);
+}
+
+.accounts-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.accounts-table__row {
+  transition: background-color 0.15s ease;
+}
+
+.accounts-table__row--clickable {
+  cursor: pointer;
+}
+
+.accounts-table__row:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.accounts-table td {
+  padding: 13px 16px;
+  color: var(--color-text-primary);
+  vertical-align: middle;
+}
+
+.accounts-table__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+

@@ -1,0 +1,166 @@
+.import-export-page {
+  padding: 32px 36px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.import-export-page__header {
+  margin-bottom: 28px;
+}
+
+.import-export-page__header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+  color: var(--color-text-heading);
+}
+
+/* Cards layout */
+.import-export-page__cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  max-width: 900px;
+}
+
+@media (max-width: 680px) {
+  .import-export-page__cards {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Individual card */
+.import-export-card {
+  background-color: var(--color-bg-elevated);
+  border-radius: 12px;
+  padding: 28px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.import-export-card__icon {
+  font-size: 2rem;
+  line-height: 1;
+  color: var(--color-accent);
+}
+
+.import-export-card__title {
+  font-size: 1.15rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-text-heading);
+}
+
+.import-export-card__desc {
+  font-size: 0.88rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+  line-height: 1.55;
+}
+
+/* Form inside export card */
+.import-export-card__form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.import-export-card__field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.import-export-card__field label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.import-export-card__field select {
+  background-color: var(--color-bg-input);
+  border: none;
+  border-radius: 7px;
+  color: var(--color-text-primary);
+  padding: 7px 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.import-export-card__field select:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+.import-export-card__radio-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.import-export-card__radio {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.88rem;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.import-export-card__radio input[type='radio'] {
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+/* Action button */
+.import-export-card__btn {
+  padding: 0.55em 1.2em;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.import-export-card__btn--primary {
+  background: var(--gradient-accent);
+  color: var(--color-accent-fg);
+}
+
+.import-export-card__btn--primary:hover:not(:disabled) {
+  background-color: var(--color-accent-hover);
+}
+
+.import-export-card__btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Feedback messages */
+.import-export-card__success {
+  font-size: 0.83rem;
+  color: var(--color-positive-alt);
+  background-color: rgba(var(--color-positive-alt-rgb), 0.08);
+  border-radius: 7px;
+  padding: 8px 12px;
+  word-break: break-all;
+}
+
+.import-export-card__success span {
+  font-weight: 500;
+}
+
+.import-export-card__error {
+  font-size: 0.83rem;
+  color: var(--color-error);
+  background-color: rgba(var(--color-error-rgb), 0.08);
+  border-radius: 7px;
+  padding: 8px 12px;
+}

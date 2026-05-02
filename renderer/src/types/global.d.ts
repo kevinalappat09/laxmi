@@ -21,6 +21,7 @@ import {
     CSVExportRequest,
     CSVExportResult,
     CSVTemplateResult,
+    CSVExportErrorRowsResult,
 } from "../../../src/types/csvImport"
 
 export {}
@@ -71,12 +72,19 @@ declare global {
         csvImportConfirm: (request: CSVImportRequest) => Promise<CSVImportResult>
         csvGenerateTemplate: () => Promise<CSVTemplateResult>
         csvExportTransactions: (request: CSVExportRequest) => Promise<CSVExportResult>
+        csvExportErrorRows: (rawLines: string[]) => Promise<CSVExportErrorRowsResult>
     }
 
     interface Window {
         financeAPI: IFinanceAPI
         environmentAPI: {
             getIsDev: () => Promise<boolean>
+        }
+        windowAPI: {
+            minimize: () => Promise<void>
+            maximize: () => Promise<void>
+            close: () => Promise<void>
+            isMaximized: () => Promise<boolean>
         }
     }
 }

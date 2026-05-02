@@ -1,0 +1,86 @@
+/* Overlay backdrop */
+.cmd-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--color-overlay);
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 15vh;
+  z-index: 9999;
+}
+
+/* Floating panel */
+.cmd-panel {
+  width: 560px;
+  max-width: calc(100vw - 2rem);
+  background: var(--color-bg-surface);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px var(--color-dialog-shadow);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Search input */
+.cmd-input {
+  width: 100%;
+  padding: 0.85rem 1.1rem;
+  font-size: 1rem;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.cmd-input::placeholder {
+  color: var(--color-text-secondary);
+}
+
+/* Results list */
+.cmd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.3rem 0;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+/* Empty state */
+.cmd-empty {
+  padding: 1rem 1.1rem;
+  color: var(--color-text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Individual item */
+.cmd-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.55rem 1.1rem;
+  cursor: pointer;
+  user-select: none;
+  gap: 0.5rem;
+}
+
+.cmd-item--active {
+  background: var(--color-bg-hover);
+}
+
+.cmd-item__label {
+  font-size: 0.93rem;
+  color: var(--color-text-primary);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cmd-item__hint {
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  white-space: nowrap;
+}

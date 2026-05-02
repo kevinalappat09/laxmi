@@ -1,0 +1,191 @@
+.account-detail {
+  padding: 32px 36px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Back button */
+.account-detail__back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.35em 0.9em;
+  font-size: 0.85rem;
+  font-weight: 500;
+  background-color: var(--color-bg-btn-secondary);
+  color: var(--color-text-primary);
+  border-radius: 6px;
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: background-color 0.15s ease;
+}
+
+.account-detail__back-btn:hover {
+  background-color: var(--color-bg-btn-secondary-hover);
+}
+
+/* Summary card */
+.account-detail__summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background-color: var(--color-bg-surface);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 1px 4px var(--color-dialog-shadow);
+}
+
+.account-detail__color-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.account-detail__summary-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.account-detail__account-name {
+  font-size: 1.35rem;
+  font-weight: 600;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+  color: var(--color-text-heading);
+}
+
+.account-detail__institution {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.account-detail__summary-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.account-detail__balance {
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.account-detail__balance--positive {
+  color: var(--color-positive);
+}
+
+.account-detail__balance--negative {
+  color: var(--color-negative);
+}
+
+.account-detail__subtype-badge {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg-hover);
+  border-radius: 4px;
+  padding: 2px 8px;
+  text-transform: capitalize;
+}
+
+/* Section heading */
+.account-detail__section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 14px 0;
+  color: var(--color-text-heading);
+}
+
+/* Transaction table */
+.account-detail__table-wrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+}
+
+.account-detail__empty {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  margin-top: 8px;
+}
+
+.transactions-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.transactions-table thead tr {
+  background-color: var(--color-bg-surface);
+}
+
+.transactions-table th {
+  text-align: left;
+  padding: 12px 16px;
+  font-weight: 600;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.transactions-table th.transactions-table__amount-col {
+  text-align: right;
+}
+
+.transactions-table__row {
+  transition: background-color 0.15s ease;
+}
+
+.transactions-table__row:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.transactions-table td {
+  padding: 13px 16px;
+  color: var(--color-text-primary);
+  vertical-align: middle;
+}
+
+.transactions-table__amount {
+  text-align: right;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.transactions-table__amount--deposit {
+  color: var(--color-positive);
+}
+
+.transactions-table__amount--withdraw {
+  color: var(--color-negative);
+}
+
+.transactions-table__amount--transfer {
+  color: var(--color-text-secondary);
+}
+
+.transactions-table__payee--empty {
+  color: var(--color-text-disabled);
+  font-style: italic;
+}
+
+/* Loading / error states */
+.account-detail__loading,
+.account-detail__error {
+  margin-top: 24px;
+  font-size: 0.95rem;
+}
+
+.account-detail__loading {
+  color: var(--color-text-secondary);
+}
+
+.account-detail__error {
+  color: var(--color-error);
+}

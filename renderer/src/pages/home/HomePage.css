@@ -1,0 +1,153 @@
+.home-page {
+  padding: 2rem;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.home-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+}
+
+.home-page__title {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.home-page__switch-btn {
+  padding: 0.4rem 1rem;
+  font-size: 0.85rem;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+  color: inherit;
+  transition: background 0.15s;
+}
+
+.home-page__switch-btn:hover {
+  background: var(--color-bg-hover);
+}
+
+.home-page__error {
+  color: var(--color-negative);
+  margin-bottom: 1rem;
+}
+
+.home-page__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--spacing-14);
+  margin-bottom: var(--spacing-24);
+}
+
+.metric-tile {
+  min-height: 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: var(--spacing-4);
+}
+
+.metric-tile__label {
+  margin: 0;
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: var(--font-weight-semibold);
+}
+
+.metric-tile__sub-label {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--text-caption);
+}
+
+.metric-tile__value {
+  margin: 0;
+  font-size: var(--text-heading-sm);
+  line-height: var(--leading-heading-sm);
+  font-weight: var(--font-weight-bold);
+}
+
+.metric-tile__value--income {
+  color: var(--color-positive);
+}
+
+.metric-tile__value--expense {
+  color: var(--color-negative);
+}
+
+.home-page__loading,
+.home-page__empty {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  margin-top: 1rem;
+}
+
+/* Account cards grid */
+.home-page__cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1.25rem;
+}
+
+.account-card {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  border-radius: 10px;
+  overflow: hidden;
+  cursor: pointer;
+  background: var(--color-bg-card);
+  text-align: left;
+  padding: 0;
+  box-shadow: 0 1px 4px var(--color-dialog-shadow);
+  transition: box-shadow 0.15s, transform 0.1s;
+  width: 100%;
+}
+
+.account-card:hover {
+  box-shadow: 0 4px 16px var(--color-dialog-shadow);
+  transform: translateY(-2px);
+}
+
+.account-card__color-bar {
+  width: 6px;
+  flex-shrink: 0;
+  border-radius: 10px 0 0 10px;
+}
+
+.account-card__body {
+  padding: 1rem 1.1rem;
+  flex: 1;
+}
+
+.account-card__institution {
+  margin: 0 0 0.15rem;
+  font-size: 0.78rem;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.account-card__name {
+  margin: 0 0 0.6rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-heading);
+}
+
+.account-card__balance {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--color-positive);
+}
+
+.account-card__balance--negative {
+  color: var(--color-negative);
+}

@@ -123,6 +123,9 @@ describe('profileService (module)', () => {
         test('returns empty array if no profiles exist', async () => {
             const profiles = await listProfiles();
             expect(profiles).toEqual([]);
+            expect(fsPromises.mkdir).toHaveBeenCalledWith('/mock/appData', {
+                recursive: true,
+            });
         });
 
         test('returns only directories', async () => {
@@ -150,7 +153,13 @@ describe('profileService (module)', () => {
                 []
             );
 
-            expect(fsPromises.mkdir).toHaveBeenCalledWith(
+            expect(fsPromises.mkdir).toHaveBeenNthCalledWith(
+                1,
+                '/mock/appData',
+                { recursive: true }
+            );
+            expect(fsPromises.mkdir).toHaveBeenNthCalledWith(
+                2,
                 '/mock/appData/NewProfile'
             );
 
@@ -178,7 +187,10 @@ describe('profileService (module)', () => {
                 createProfile('BadName', mockMigrationService)
             ).rejects.toThrow('Invalid name');
 
-            expect(fsPromises.mkdir).not.toHaveBeenCalled();
+            expect(fsPromises.mkdir).toHaveBeenCalledTimes(1);
+            expect(fsPromises.mkdir).toHaveBeenCalledWith('/mock/appData', {
+                recursive: true,
+            });
         });
 
         test('throws if profile already exists', async () => {
