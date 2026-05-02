@@ -4,44 +4,38 @@ import type { Category } from '../../../../src/types/category'
 import type { Transaction } from '../../../../src/types/transaction'
 import { TransactionType, Classification } from '../../../../src/types/transaction'
 import { TransactionDialog } from './TransactionDialog'
+import { Button } from '../../components/ui/Button'
+import { Card } from '../../components/ui/Card'
+import { Input, Select } from '../../components/ui/Input'
+import { MultiSelectDropdown } from '../../components/ui/MultiSelectDropdown'
+import { Tag } from '../../components/ui/Tag'
+import { formatCurrency, formatDate } from '../../utils/formatters'
 import './TransactionsPage.css'
-
-function formatCurrency(amount: number): string {
-  return amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })
-}
-
-function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
 
 function capitalize(str: string): string {
   return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
 interface Filters {
-  accountId: string
+  accountIds: string[]
   dateFrom: string
   dateTo: string
   minAmount: string
   maxAmount: string
   transactionType: string
   classification: string
-  categoryId: string
+  categoryIds: string[]
 }
 
 const EMPTY_FILTERS: Filters = {
-  accountId: '',
+  accountIds: [],
   dateFrom: '',
   dateTo: '',
   minAmount: '',
   maxAmount: '',
   transactionType: '',
   classification: '',
-  categoryId: '',
+  categoryIds: [],
 }
 
 interface TransactionsPageProps {
@@ -71,8 +65,8 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
   }
 
   const loadTransactions = async (accts: Account[], activeFilters: Filters) => {
-    const accountsToQuery = activeFilters.accountId
-      ? accts.filter((a) => a.account_id === Number(activeFilters.accountId))
+    const accountsToQuery = activeFilters.accountIds.length > 0
+      ? accts.filter((a) => activeFilters.accountIds.includes(String(a.account_id)))
       : accts
 
     if (accountsToQuery.length === 0) {
@@ -88,7 +82,9 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
         if (activeFilters.maxAmount) query.maxAmount = Number(activeFilters.maxAmount)
         if (activeFilters.transactionType) query.types = new Set([activeFilters.transactionType])
         if (activeFilters.classification) query.classifications = new Set([activeFilters.classification])
-        if (activeFilters.categoryId) query.categoryIds = new Set([Number(activeFilters.categoryId)])
+        if (activeFilters.categoryIds.length > 0) {
+          query.categoryIds = new Set(activeFilters.categoryIds.map(Number))
+        }
         return window.financeAPI.findTransactionsWithFilter(query)
       })
     )
@@ -130,8 +126,17 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
     }
   }, [autoOpenDialog])
 
-  const handleFilterChange = (field: keyof Filters, value: string) => {
+  const handleFilterChange = (
+    field: 'dateFrom' | 'dateTo' | 'minAmount' | 'maxAmount' | 'transactionType' | 'classification',
+    value: string
+  ) => {
     const updated = { ...filters, [field]: value }
+    setFilters(updated)
+    load(updated)
+  }
+
+  const handleMultiSelectFilterChange = (field: 'accountIds' | 'categoryIds', values: string[]) => {
+    const updated = { ...filters, [field]: values }
     setFilters(updated)
     load(updated)
   }
@@ -172,136 +177,185 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
     load()
   }
 
-  const hasActiveFilters = Object.values(filters).some((v) => v !== '')
+  const hasActiveFilters =
+    filters.accountIds.length > 0 ||
+    filters.categoryIds.length > 0 ||
+    filters.dateFrom !== '' ||
+    filters.dateTo !== '' ||
+    filters.minAmount !== '' ||
+    filters.maxAmount !== '' ||
+    filters.transactionType !== '' ||
+    filters.classification !== ''
 
   return (
     <div className="transactions-page">
       <div className="transactions-page__header">
         <h1>Transactions</h1>
-        <button className="transactions-page__add-btn" onClick={handleAddClick}>
+        <Button variant="pill" className="transactions-page__add-btn" onClick={handleAddClick}>
           + Add Transaction
-        </button>
+        </Button>
       </div>
 
-      <div className="transactions-page__filters">
+      <Card className="transactions-page__filters">
         <div className="transactions-page__filter-row">
-          <div className="transactions-page__filter-group">
-            <label htmlFor="filter-account">Account</label>
-            <select
+          <div className="transactions-page__filter-with-actions">
+            <MultiSelectDropdown
               id="filter-account"
-              value={filters.accountId}
-              onChange={(e) => handleFilterChange('accountId', e.target.value)}
-            >
-              <option value="">All Accounts</option>
-              {accounts.map((a) => (
-                <option key={a.account_id} value={a.account_id}>
-                  {a.account_name}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="transactions-page__filter-group">
-            <label htmlFor="filter-date-from">Date From</label>
-            <input
-              id="filter-date-from"
-              type="date"
-              value={filters.dateFrom}
-              onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+              label="Account"
+              className="transactions-page__filter-group transactions-page__filter-with-actions-control"
+              options={accounts.map((account) => ({
+                value: String(account.account_id),
+                label: account.account_name,
+              }))}
+              selectedValues={filters.accountIds}
+              onChange={(values) => handleMultiSelectFilterChange('accountIds', values)}
+              placeholder="All accounts"
+              allSelectedLabel="All accounts"
             />
+            <div className="transactions-page__filter-actions-buttons">
+              <Button
+                variant="subtle"
+                size="sm"
+                onClick={() => handleMultiSelectFilterChange('accountIds', accounts.map((a) => String(a.account_id)))}
+                disabled={accounts.length === 0}
+              >
+                All
+              </Button>
+              <Button
+                variant="subtle"
+                size="sm"
+                onClick={() => handleMultiSelectFilterChange('accountIds', [])}
+                disabled={accounts.length === 0}
+              >
+                None
+              </Button>
+            </div>
           </div>
 
-          <div className="transactions-page__filter-group">
-            <label htmlFor="filter-date-to">Date To</label>
-            <input
-              id="filter-date-to"
-              type="date"
-              value={filters.dateTo}
-              onChange={(e) => handleFilterChange('dateTo', e.target.value)}
-            />
-          </div>
+          <Input
+            id="filter-date-from"
+            label="Date From"
+            className="transactions-page__filter-group"
+            type="date"
+            value={filters.dateFrom}
+            onChange={(e) => handleFilterChange('dateFrom', e.target.value)}
+          />
 
-          <div className="transactions-page__filter-group">
-            <label htmlFor="filter-min-amount">Min Amount</label>
-            <input
-              id="filter-min-amount"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              value={filters.minAmount}
-              onChange={(e) => handleFilterChange('minAmount', e.target.value)}
-            />
-          </div>
+          <Input
+            id="filter-date-to"
+            label="Date To"
+            className="transactions-page__filter-group"
+            type="date"
+            value={filters.dateTo}
+            onChange={(e) => handleFilterChange('dateTo', e.target.value)}
+          />
 
-          <div className="transactions-page__filter-group">
-            <label htmlFor="filter-max-amount">Max Amount</label>
-            <input
-              id="filter-max-amount"
-              type="number"
-              min="0"
-              step="0.01"
-              placeholder="0.00"
-              value={filters.maxAmount}
-              onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
-            />
-          </div>
+          <Input
+            id="filter-min-amount"
+            label="Min Amount"
+            className="transactions-page__filter-group"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            value={filters.minAmount}
+            onChange={(e) => handleFilterChange('minAmount', e.target.value)}
+          />
 
-          <div className="transactions-page__filter-group">
-            <label htmlFor="filter-type">Type</label>
-            <select
-              id="filter-type"
-              value={filters.transactionType}
-              onChange={(e) => handleFilterChange('transactionType', e.target.value)}
-            >
+          <Input
+            id="filter-max-amount"
+            label="Max Amount"
+            className="transactions-page__filter-group"
+            type="number"
+            min="0"
+            step="0.01"
+            placeholder="0.00"
+            value={filters.maxAmount}
+            onChange={(e) => handleFilterChange('maxAmount', e.target.value)}
+          />
+
+          <Select
+            id="filter-type"
+            label="Type"
+            className="transactions-page__filter-group"
+            value={filters.transactionType}
+            onChange={(e) => handleFilterChange('transactionType', e.target.value)}
+          >
               <option value="">All Types</option>
               <option value={TransactionType.Withdraw}>Withdraw</option>
               <option value={TransactionType.Deposit}>Deposit</option>
               <option value={TransactionType.Transfer}>Transfer</option>
-            </select>
-          </div>
+          </Select>
 
-          <div className="transactions-page__filter-group">
-            <label htmlFor="filter-classification">Classification</label>
-            <select
-              id="filter-classification"
-              value={filters.classification}
-              onChange={(e) => handleFilterChange('classification', e.target.value)}
-            >
+          <Select
+            id="filter-classification"
+            label="Classification"
+            className="transactions-page__filter-group"
+            value={filters.classification}
+            onChange={(e) => handleFilterChange('classification', e.target.value)}
+          >
               <option value="">All</option>
               <option value={Classification.Needs}>Needs</option>
               <option value={Classification.Wants}>Wants</option>
               <option value={Classification.Unnecessary}>Unnecessary</option>
               <option value={Classification.Wasteful}>Wasteful</option>
-            </select>
-          </div>
+          </Select>
 
-          <div className="transactions-page__filter-group">
-            <label htmlFor="filter-category">Category</label>
-            <select
+          <div className="transactions-page__filter-with-actions">
+            <MultiSelectDropdown
               id="filter-category"
-              value={filters.categoryId}
-              onChange={(e) => handleFilterChange('categoryId', e.target.value)}
-            >
-              <option value="">All Categories</option>
-              {categories.map((c) => (
-                <option key={c.category_id} value={c.category_id}>
-                  {c.category_name}
-                </option>
-              ))}
-            </select>
+              label="Category"
+              className="transactions-page__filter-group transactions-page__filter-with-actions-control"
+              options={categories
+                .filter((category): category is Category & { category_id: number } => category.category_id !== undefined)
+                .map((category) => ({
+                  value: String(category.category_id),
+                  label: category.category_name,
+                }))}
+              selectedValues={filters.categoryIds}
+              onChange={(values) => handleMultiSelectFilterChange('categoryIds', values)}
+              placeholder="All categories"
+              allSelectedLabel="All categories"
+            />
+            <div className="transactions-page__filter-actions-buttons">
+              <Button
+                variant="subtle"
+                size="sm"
+                onClick={() =>
+                  handleMultiSelectFilterChange(
+                    'categoryIds',
+                    categories
+                      .filter((category): category is Category & { category_id: number } => category.category_id !== undefined)
+                      .map((category) => String(category.category_id))
+                  )
+                }
+                disabled={categories.length === 0}
+              >
+                All
+              </Button>
+              <Button
+                variant="subtle"
+                size="sm"
+                onClick={() => handleMultiSelectFilterChange('categoryIds', [])}
+                disabled={categories.length === 0}
+              >
+                None
+              </Button>
+            </div>
           </div>
 
           {hasActiveFilters && (
-            <button
+            <Button
+              variant="subtle"
+              size="sm"
               className="transactions-page__clear-btn"
               onClick={handleClearFilters}
             >
               Clear Filters
-            </button>
+            </Button>
           )}
         </div>
-      </div>
+      </Card>
 
       {error && <p className="transactions-page__error">{error}</p>}
 
@@ -313,7 +367,7 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
           {hasActiveFilters && ' Try clearing the filters.'}
         </div>
       ) : (
-        <div className="transactions-page__table-wrapper">
+        <Card className="transactions-page__table-wrapper" padding="none">
           <table className="transactions-table">
             <thead>
               <tr>
@@ -352,7 +406,7 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
                       )}
                     </td>
                     <td>{formatDate(tx.transaction_date)}</td>
-                    <td style={{ textTransform: 'capitalize' }}>{tx.transaction_type}</td>
+                    <td><Tag>{tx.transaction_type}</Tag></td>
                     <td className={amountClass}>
                       {amountPrefix}{formatCurrency(tx.amount)}
                     </td>
@@ -374,25 +428,29 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
                       )}
                     </td>
                     <td className="transactions-table__actions">
-                      <button
+                      <Button
+                        variant="secondary"
+                        size="sm"
                         className="transactions-table__btn-edit"
                         onClick={() => handleEditClick(tx)}
                       >
                         Edit
-                      </button>
-                      <button
+                      </Button>
+                      <Button
+                        variant="danger"
+                        size="sm"
                         className="transactions-table__btn-delete"
                         onClick={() => handleDeleteClick(tx)}
                       >
                         Delete
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 )
               })}
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
 
       {dialogMode && (

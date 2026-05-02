@@ -1,0 +1,109 @@
+.reports-page {
+  padding: 32px 36px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.reports-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.reports-page__header h1 {
+  margin: 0;
+  font-size: 1.75rem;
+  line-height: 1.2;
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-heading);
+}
+
+.reports-page__filters {
+  margin-bottom: 20px;
+  padding: var(--spacing-20);
+  border-radius: var(--radius-general);
+  background-color: var(--color-bg-surface);
+}
+
+.reports-page__filter-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--spacing-14);
+  margin-bottom: var(--spacing-20);
+}
+
+.reports-page__field {
+  min-width: 180px;
+}
+
+.reports-page__field-actions {
+  min-width: 260px;
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-8);
+}
+
+.reports-page__field-actions-control {
+  flex: 1 1 auto;
+}
+
+.reports-page__field-actions-buttons {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-6);
+  padding-bottom: 2px;
+}
+
+.reports-page__error {
+  margin: 0 0 var(--spacing-14);
+  color: var(--color-error);
+}
+
+.reports-page__loading {
+  margin: 0 0 var(--spacing-14);
+  color: var(--color-text-secondary);
+}
+
+.reports-page__charts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-20);
+}
+
+.reports-page__chart-card {
+  min-height: 360px;
+}
+
+.reports-page__chart-header {
+  margin-bottom: var(--spacing-14);
+}
+
+.reports-page__chart-header h2 {
+  margin: 0;
+  color: var(--color-text-heading);
+  font-size: var(--text-heading-sm);
+  line-height: var(--leading-heading-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.reports-page__chart-header p {
+  margin: var(--spacing-4) 0 0;
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.reports-page__chart-empty {
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-secondary);
+}
+
+@media (max-width: 960px) {
+  .reports-page__charts {
+    grid-template-columns: 1fr;
+  }
+}

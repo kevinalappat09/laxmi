@@ -1,7 +1,8 @@
-import { app, BrowserWindow, ipcMain } from "electron"
+import { app, BrowserWindow, ipcMain, Menu } from "electron"
 import { TransactionImportServiceImpl } from "./src/services/csv/transactionImportService"
 import { TransactionExportServiceImpl } from "./src/services/csv/transactionExportService"
 import { CSVTemplateServiceImpl } from "./src/services/csv/csvTemplateService"
+import { CSVErrorExportServiceImpl } from "./src/services/csv/csvErrorExportService"
 import { CSVImportRequest, CSVExportRequest } from "./src/types/csvImport"
 import path from "path"
 import * as globalPreferencesService from "./src/services/globalPreferences/globalPreferencesService"
@@ -45,6 +46,7 @@ const categoryService = new CategoryServiceImpl()
 const csvImportService = new TransactionImportServiceImpl()
 const csvExportService = new TransactionExportServiceImpl()
 const csvTemplateService = new CSVTemplateServiceImpl()
+const csvErrorExportService = new CSVErrorExportServiceImpl()
 
 ipcMain.handle("create-account", (_event, request: CreateAccountRequest) => {
     request.opened_on = new Date(request.opened_on)
@@ -158,16 +160,32 @@ ipcMain.handle("csv-export-transactions", (_event, request: CSVExportRequest) =>
     return csvExportService.exportToCSV(request)
 })
 
+ipcMain.handle("csv-export-error-rows", (_event, rawLines: string[]) => {
+    return csvErrorExportService.exportErrorRows(rawLines)
+})
+
 function createWindow(): void {
     const win = new BrowserWindow({
         width: 1200,
         height: 800,
+        frame: false,
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
             contextIsolation: true,
             nodeIntegration: false
         }
     })
+
+    ipcMain.handle("window-minimize", () => win.minimize())
+    ipcMain.handle("window-maximize", () => {
+        if (win.isMaximized()) {
+            win.unmaximize()
+        } else {
+            win.maximize()
+        }
+    })
+    ipcMain.handle("window-close", () => win.close())
+    ipcMain.handle("window-is-maximized", () => win.isMaximized())
 
     if (isDev) {
         win.loadURL("http://localhost:5173")
@@ -176,4 +194,7 @@ function createWindow(): void {
     }
 }
 
-app.whenReady().then(createWindow)
+app.whenReady().then(() => {
+    Menu.setApplicationMenu(null)
+    createWindow()
+})

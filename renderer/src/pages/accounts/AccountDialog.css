@@ -8,17 +8,20 @@
 }
 
 .account-dialog::backdrop {
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: var(--color-overlay-strong);
   backdrop-filter: blur(2px);
 }
 
 .account-dialog__panel {
-  background-color: #1e1e1e;
-  border: 1px solid #2e2e2e;
+  background-color: var(--color-bg-surface);
   border-radius: 12px;
   width: 460px;
   max-width: 90vw;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 20px 60px var(--color-dialog-shadow);
+}
+
+.account-dialog__body {
+  padding: 0 !important;
 }
 
 .account-dialog__header {
@@ -32,29 +35,11 @@
   font-size: 1.1rem;
   font-weight: 600;
   margin: 0;
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-text-heading);
 }
 
 .account-dialog__close-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  border: none;
-  background: transparent;
-  color: #8a8a8a;
-  cursor: pointer;
-  font-size: 13px;
-  padding: 0;
-  transition: background-color 0.15s ease, color 0.15s ease;
-}
-
-.account-dialog__close-btn:hover {
-  background-color: #2e2e2e;
-  color: rgba(255, 255, 255, 0.87);
-  border-color: transparent;
+  flex-shrink: 0;
 }
 
 .account-dialog__form {
@@ -73,7 +58,7 @@
 .account-dialog__field label {
   font-size: 0.8rem;
   font-weight: 600;
-  color: #8a8a8a;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -81,15 +66,14 @@
 .account-dialog__field input[type='text'],
 .account-dialog__field input[type='date'],
 .account-dialog__field select {
-  background-color: #141414;
-  border: 1px solid #2e2e2e;
+  background-color: var(--color-bg-input);
+  border: none;
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.87);
+  color: var(--color-text-primary);
   font-size: 0.9rem;
   font-family: inherit;
   padding: 9px 12px;
   outline: none;
-  transition: border-color 0.15s ease;
   width: 100%;
   box-sizing: border-box;
 }
@@ -97,7 +81,7 @@
 .account-dialog__field input[type='text']:focus,
 .account-dialog__field input[type='date']:focus,
 .account-dialog__field select:focus {
-  border-color: #646cff;
+  box-shadow: 0 0 0 2px var(--color-accent);
 }
 
 .account-dialog__field input[type='date']::-webkit-calendar-picker-indicator {
@@ -106,7 +90,7 @@
 }
 
 .account-dialog__field select option {
-  background-color: #1e1e1e;
+  background-color: var(--color-bg-surface);
 }
 
 /* Color picker */
@@ -146,14 +130,14 @@
 }
 
 .account-dialog__color-circle--selected {
-  box-shadow: 0 0 0 2px #1e1e1e, 0 0 0 4px currentColor;
+  box-shadow: 0 0 0 2px var(--color-bg-surface), 0 0 0 4px currentColor;
   transform: scale(1.1);
 }
 
 /* Error */
 .account-dialog__error {
   font-size: 0.85rem;
-  color: #e74c3c;
+  color: var(--color-error);
   margin: 0;
 }
 
@@ -166,95 +150,9 @@
 }
 
 .account-dialog__btn-cancel {
-  padding: 0.5em 1.1em;
-  font-size: 0.9rem;
   font-weight: 500;
-  background-color: #2e2e2e;
-  color: rgba(255, 255, 255, 0.7);
-  border: 1px solid transparent;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-}
-
-.account-dialog__btn-cancel:hover {
-  background-color: #3a3a3a;
-  border-color: transparent;
 }
 
 .account-dialog__btn-save {
-  padding: 0.5em 1.3em;
-  font-size: 0.9rem;
-  font-weight: 600;
-  background-color: #646cff;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.account-dialog__btn-save:hover:not(:disabled) {
-  background-color: #535bf2;
-  border-color: transparent;
-}
-
-.account-dialog__btn-save:disabled {
-  opacity: 0.55;
-  cursor: not-allowed;
-}
-
-/* Light mode overrides */
-@media (prefers-color-scheme: light) {
-  .account-dialog__panel {
-    background-color: #ffffff;
-    border-color: #e0e0e0;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-  }
-
-  .account-dialog__header h2 {
-    color: #213547;
-  }
-
-  .account-dialog__close-btn {
-    color: #888;
-  }
-
-  .account-dialog__close-btn:hover {
-    background-color: #f0f0f0;
-    color: #213547;
-  }
-
-  .account-dialog__field label {
-    color: #666;
-  }
-
-  .account-dialog__field input[type='text'],
-  .account-dialog__field input[type='date'],
-  .account-dialog__field select {
-    background-color: #f9f9f9;
-    border-color: #d0d0d0;
-    color: #213547;
-  }
-
-  .account-dialog__field input[type='date']::-webkit-calendar-picker-indicator {
-    filter: none;
-  }
-
-  .account-dialog__field select option {
-    background-color: #ffffff;
-  }
-
-  .account-dialog__color-circle--selected {
-    box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px currentColor;
-  }
-
-  .account-dialog__btn-cancel {
-    background-color: #f0f0f0;
-    color: #213547;
-  }
-
-  .account-dialog__btn-cancel:hover {
-    background-color: #e8e8e8;
-  }
+  padding-inline: 1.3em;
 }

@@ -1,0 +1,77 @@
+.title-bar {
+  display: flex;
+  align-items: center;
+  height: 36px;
+  min-height: 36px;
+  background-color: var(--color-bg-app);
+  border-bottom: 1px solid var(--color-border-subtle);
+  -webkit-app-region: drag;
+  user-select: none;
+  flex-shrink: 0;
+  position: relative;
+  z-index: 50;
+}
+
+.title-bar__left {
+  display: flex;
+  align-items: center;
+  padding: 0 var(--spacing-6);
+  -webkit-app-region: no-drag;
+}
+
+.title-bar__drag {
+  flex: 1;
+  height: 100%;
+  -webkit-app-region: drag;
+}
+
+.title-bar__controls {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  -webkit-app-region: no-drag;
+}
+
+.title-bar__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: background-color 0.12s ease, color 0.12s ease;
+  padding: 0;
+}
+
+.title-bar__btn:focus,
+.title-bar__btn:focus-visible {
+  outline: none;
+}
+
+.title-bar__sidebar-btn {
+  width: 32px;
+  height: 28px;
+  border-radius: var(--radius-input-sm);
+}
+
+.title-bar__sidebar-btn:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.title-bar__control-btn {
+  width: 46px;
+  height: 36px;
+  border-radius: 0;
+}
+
+.title-bar__control-btn:hover {
+  background-color: var(--color-bg-hover);
+  color: var(--color-text-primary);
+}
+
+.title-bar__close-btn:hover {
+  background-color: #c42b1c;
+  color: #fff;
+}

@@ -2,19 +2,12 @@ import { useEffect, useState } from 'react'
 import type { Account } from '../../../../src/types/account'
 import type { Transaction } from '../../../../src/types/transaction'
 import { TransactionType } from '../../../../src/types/transaction'
+import { Button } from '../../components/ui/Button'
+import { Card } from '../../components/ui/Card'
+import { Tag } from '../../components/ui/Tag'
+import { useNavigation } from '../../contexts/NavigationContext'
+import { formatCurrency, formatDate } from '../../utils/formatters'
 import './AccountDetailPage.css'
-
-function formatCurrency(amount: number): string {
-  return amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })
-}
-
-function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  })
-}
 
 function formatSubType(subType: string): string {
   return subType.charAt(0).toUpperCase() + subType.slice(1)
@@ -30,10 +23,10 @@ function computeBalance(transactions: Transaction[]): number {
 
 interface AccountDetailPageProps {
   accountId: number
-  onBack: () => void
 }
 
-export function AccountDetailPage({ accountId, onBack }: AccountDetailPageProps) {
+export function AccountDetailPage({ accountId }: AccountDetailPageProps) {
+  const { goBackToAccounts } = useNavigation()
   const [account, setAccount] = useState<Account | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -76,9 +69,9 @@ export function AccountDetailPage({ accountId, onBack }: AccountDetailPageProps)
   if (isLoading) {
     return (
       <div className="account-detail">
-        <button className="account-detail__back-btn" onClick={onBack}>
+        <Button variant="square" className="account-detail__back-btn" onClick={goBackToAccounts}>
           ← Back
-        </button>
+        </Button>
         <div className="account-detail__loading">Loading…</div>
       </div>
     )
@@ -87,9 +80,9 @@ export function AccountDetailPage({ accountId, onBack }: AccountDetailPageProps)
   if (error || !account) {
     return (
       <div className="account-detail">
-        <button className="account-detail__back-btn" onClick={onBack}>
+        <Button variant="square" className="account-detail__back-btn" onClick={goBackToAccounts}>
           ← Back
-        </button>
+        </Button>
         <div className="account-detail__error">{error ?? 'Account not found.'}</div>
       </div>
     )
@@ -103,11 +96,11 @@ export function AccountDetailPage({ accountId, onBack }: AccountDetailPageProps)
 
   return (
     <div className="account-detail">
-      <button className="account-detail__back-btn" onClick={onBack}>
+      <Button variant="square" className="account-detail__back-btn" onClick={goBackToAccounts}>
         ← Back
-      </button>
+      </Button>
 
-      <div className="account-detail__summary">
+      <Card className="account-detail__summary">
         <div
           className="account-detail__color-swatch"
           style={{ backgroundColor: account.color }}
@@ -118,11 +111,11 @@ export function AccountDetailPage({ accountId, onBack }: AccountDetailPageProps)
         </div>
         <div className="account-detail__summary-right">
           <span className={balanceClass}>{formatCurrency(balance)}</span>
-          <span className="account-detail__subtype-badge">
+          <Tag className="account-detail__subtype-badge">
             {formatSubType(account.sub_type)}
-          </span>
+          </Tag>
         </div>
-      </div>
+      </Card>
 
       <h2 className="account-detail__section-title">Transactions</h2>
 

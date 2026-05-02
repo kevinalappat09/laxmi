@@ -2,12 +2,11 @@ import { useEffect, useState } from 'react'
 import type { Account } from '../../../../src/types/account'
 import type { Transaction } from '../../../../src/types/transaction'
 import { TransactionType } from '../../../../src/types/transaction'
-import type { Page } from '../../components/layout/AppLayout'
+import { useNavigation } from '../../contexts/NavigationContext'
+import { Button } from '../../components/ui/Button'
+import { Card } from '../../components/ui/Card'
+import { formatCurrency } from '../../utils/formatters'
 import './HomePage.css'
-
-function formatCurrency(amount: number): string {
-  return amount.toLocaleString('en-IN', { style: 'currency', currency: 'INR' })
-}
 
 function computeBalance(transactions: Transaction[]): number {
   return transactions.reduce((sum, tx) => {
@@ -26,13 +25,35 @@ interface AccountWithBalance {
 interface HomePageProps {
   currentProfile: string
   onSwitchProfile: () => void
-  onSelectAccount: (accountId: number) => void
-  onNavigate: (page: Page) => void
 }
 
-export function HomePage({ currentProfile, onSwitchProfile, onSelectAccount }: HomePageProps) {
+interface HomeMetrics {
+  monthIncome: number
+  monthExpense: number
+  yearIncome: number
+  yearExpense: number
+}
+
+const EMPTY_HOME_METRICS: HomeMetrics = {
+  monthIncome: 0,
+  monthExpense: 0,
+  yearIncome: 0,
+  yearExpense: 0,
+}
+
+function getDateStarts(now: Date): { monthStart: Date; yearStart: Date } {
+  return {
+    monthStart: new Date(now.getFullYear(), now.getMonth(), 1),
+    yearStart: new Date(now.getFullYear(), 0, 1),
+  }
+}
+
+export function HomePage({ currentProfile, onSwitchProfile }: HomePageProps) {
+  const { selectAccount } = useNavigation()
   const [accountsWithBalance, setAccountsWithBalance] = useState<AccountWithBalance[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isLoadingMetrics, setIsLoadingMetrics] = useState(true)
+  const [metrics, setMetrics] = useState<HomeMetrics>(EMPTY_HOME_METRICS)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -41,9 +62,59 @@ export function HomePage({ currentProfile, onSwitchProfile, onSelectAccount }: H
     async function load() {
       setIsLoading(true)
       setError(null)
+      setIsLoadingMetrics(true)
       try {
         const accounts = await window.financeAPI.listActiveAccounts()
         if (!isMounted) return
+
+        if (accounts.length === 0) {
+          setMetrics(EMPTY_HOME_METRICS)
+          setIsLoadingMetrics(false)
+        }
+
+        const now = new Date()
+        const { monthStart, yearStart } = getDateStarts(now)
+        const metricResults = await Promise.all(
+          accounts.map(async (account) => {
+            const [monthTxns, yearTxns] = await Promise.all([
+              window.financeAPI.findTransactionsWithFilter({
+                accountId: account.account_id,
+                fromDate: monthStart,
+                toDate: now,
+              }),
+              window.financeAPI.findTransactionsWithFilter({
+                accountId: account.account_id,
+                fromDate: yearStart,
+                toDate: now,
+              }),
+            ])
+            return { monthTxns, yearTxns }
+          })
+        )
+        if (!isMounted) return
+
+        const monthTransactions = metricResults.flatMap((result) => result.monthTxns)
+        const yearTransactions = metricResults.flatMap((result) => result.yearTxns)
+        const monthIncome = monthTransactions
+          .filter((tx) => tx.transaction_type === TransactionType.Deposit)
+          .reduce((sum, tx) => sum + tx.amount, 0)
+        const monthExpense = monthTransactions
+          .filter((tx) => tx.transaction_type === TransactionType.Withdraw)
+          .reduce((sum, tx) => sum + tx.amount, 0)
+        const yearIncome = yearTransactions
+          .filter((tx) => tx.transaction_type === TransactionType.Deposit)
+          .reduce((sum, tx) => sum + tx.amount, 0)
+        const yearExpense = yearTransactions
+          .filter((tx) => tx.transaction_type === TransactionType.Withdraw)
+          .reduce((sum, tx) => sum + tx.amount, 0)
+
+        setMetrics({
+          monthIncome: Number(monthIncome.toFixed(2)),
+          monthExpense: Number(monthExpense.toFixed(2)),
+          yearIncome: Number(yearIncome.toFixed(2)),
+          yearExpense: Number(yearExpense.toFixed(2)),
+        })
+        setIsLoadingMetrics(false)
 
         const initial: AccountWithBalance[] = accounts.map((account) => ({
           account,
@@ -83,6 +154,7 @@ export function HomePage({ currentProfile, onSwitchProfile, onSelectAccount }: H
         if (!isMounted) return
         setError('Failed to load accounts.')
         setIsLoading(false)
+        setIsLoadingMetrics(false)
       }
     }
 
@@ -99,9 +171,40 @@ export function HomePage({ currentProfile, onSwitchProfile, onSelectAccount }: H
         <div className="home-page__welcome">
           <h1 className="home-page__title">Welcome back, {currentProfile}!</h1>
         </div>
-        <button className="home-page__switch-btn" onClick={onSwitchProfile}>
+        <Button variant="ghost" className="home-page__switch-btn" onClick={onSwitchProfile}>
           Switch Profile
-        </button>
+        </Button>
+      </div>
+
+      <div className="home-page__metrics">
+        <Card className="metric-tile">
+          <p className="metric-tile__label">This Month</p>
+          <p className="metric-tile__sub-label">Income</p>
+          <p className="metric-tile__value metric-tile__value--income">
+            {isLoadingMetrics ? '…' : formatCurrency(metrics.monthIncome)}
+          </p>
+        </Card>
+        <Card className="metric-tile">
+          <p className="metric-tile__label">This Month</p>
+          <p className="metric-tile__sub-label">Expenses</p>
+          <p className="metric-tile__value metric-tile__value--expense">
+            {isLoadingMetrics ? '…' : formatCurrency(metrics.monthExpense)}
+          </p>
+        </Card>
+        <Card className="metric-tile">
+          <p className="metric-tile__label">This Year</p>
+          <p className="metric-tile__sub-label">Income</p>
+          <p className="metric-tile__value metric-tile__value--income">
+            {isLoadingMetrics ? '…' : formatCurrency(metrics.yearIncome)}
+          </p>
+        </Card>
+        <Card className="metric-tile">
+          <p className="metric-tile__label">This Year</p>
+          <p className="metric-tile__sub-label">Expenses</p>
+          <p className="metric-tile__value metric-tile__value--expense">
+            {isLoadingMetrics ? '…' : formatCurrency(metrics.yearExpense)}
+          </p>
+        </Card>
       </div>
 
       {error && <p className="home-page__error">{error}</p>}
@@ -115,10 +218,12 @@ export function HomePage({ currentProfile, onSwitchProfile, onSelectAccount }: H
       ) : (
         <div className="home-page__cards">
           {accountsWithBalance.map(({ account, balance, isLoadingBalance }) => (
-            <button
+            <Card
               key={account.account_id}
               className="account-card"
-              onClick={() => onSelectAccount(account.account_id)}
+              padding="none"
+              asButton
+              onClick={() => selectAccount(account.account_id)}
             >
               <div
                 className="account-card__color-bar"
@@ -133,7 +238,7 @@ export function HomePage({ currentProfile, onSwitchProfile, onSelectAccount }: H
                   {isLoadingBalance ? '…' : formatCurrency(balance)}
                 </p>
               </div>
-            </button>
+            </Card>
           ))}
         </div>
       )}

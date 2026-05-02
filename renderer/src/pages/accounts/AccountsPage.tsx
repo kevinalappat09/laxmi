@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import type { Account } from '../../../../src/types/account'
 import { AccountDialog } from './AccountDialog'
+import { Button } from '../../components/ui/Button'
+import { Card } from '../../components/ui/Card'
+import { useNavigation } from '../../contexts/NavigationContext'
 import './AccountsPage.css'
 
 function formatSubType(subType: string): string {
@@ -8,12 +11,12 @@ function formatSubType(subType: string): string {
 }
 
 interface AccountsPageProps {
-  onSelectAccount: (accountId: number) => void
   autoOpenDialog?: boolean
   onAutoOpenHandled?: () => void
 }
 
-export function AccountsPage({ onSelectAccount, autoOpenDialog, onAutoOpenHandled }: AccountsPageProps) {
+export function AccountsPage({ autoOpenDialog, onAutoOpenHandled }: AccountsPageProps) {
+  const { selectAccount } = useNavigation()
   const [accounts, setAccounts] = useState<Account[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -81,9 +84,9 @@ export function AccountsPage({ onSelectAccount, autoOpenDialog, onAutoOpenHandle
     <div className="accounts-page">
       <div className="accounts-page__header">
         <h1>Accounts</h1>
-        <button className="accounts-page__add-btn" onClick={handleAddClick}>
+        <Button variant="pill" className="accounts-page__add-btn" onClick={handleAddClick}>
           + Add Account
-        </button>
+        </Button>
       </div>
 
       {error && <p className="accounts-page__error">{error}</p>}
@@ -95,7 +98,7 @@ export function AccountsPage({ onSelectAccount, autoOpenDialog, onAutoOpenHandle
           No accounts yet. Add one to get started.
         </div>
       ) : (
-        <div className="accounts-page__table-wrapper">
+        <Card className="accounts-page__table-wrapper" padding="none">
           <table className="accounts-table">
             <thead>
               <tr>
@@ -111,30 +114,34 @@ export function AccountsPage({ onSelectAccount, autoOpenDialog, onAutoOpenHandle
                   key={account.account_id}
                   className="accounts-table__row accounts-table__row--clickable"
                   style={{ borderLeft: `4px solid ${account.color}` }}
-                  onClick={() => onSelectAccount(account.account_id)}
+                  onClick={() => selectAccount(account.account_id)}
                 >
                   <td>{account.institution_name}</td>
                   <td>{account.account_name}</td>
                   <td>{formatSubType(account.sub_type)}</td>
                   <td className="accounts-table__actions" onClick={(e) => e.stopPropagation()}>
-                    <button
+                    <Button
+                      variant="secondary"
+                      size="sm"
                       className="accounts-table__btn-edit"
                       onClick={() => handleEditClick(account)}
                     >
                       Edit
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                      variant="danger"
+                      size="sm"
                       className="accounts-table__btn-delete"
                       onClick={() => handleDeleteClick(account)}
                     >
                       Delete
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
 
       {dialogMode && (

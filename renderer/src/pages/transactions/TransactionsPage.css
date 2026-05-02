@@ -16,31 +16,17 @@
   font-weight: 600;
   margin: 0;
   line-height: 1.2;
+  color: var(--color-text-heading);
 }
 
 .transactions-page__add-btn {
-  padding: 0.5em 1.2em;
-  font-size: 0.9rem;
-  font-weight: 600;
-  background-color: #646cff;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-.transactions-page__add-btn:hover {
-  background-color: #535bf2;
-  border-color: transparent;
-}
-
 /* Filters */
 .transactions-page__filters {
-  background-color: #1a1a1a;
-  border: 1px solid #2e2e2e;
+  background-color: var(--color-bg-elevated);
   border-radius: 10px;
   padding: 16px 20px;
   margin-bottom: 20px;
@@ -61,10 +47,30 @@
   flex: 1 1 140px;
 }
 
+.transactions-page__filter-with-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 220px;
+  flex: 1 1 220px;
+}
+
+.transactions-page__filter-with-actions-control {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.transactions-page__filter-actions-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-bottom: 2px;
+}
+
 .transactions-page__filter-group label {
   font-size: 0.75rem;
   font-weight: 600;
-  color: #8a8a8a;
+  color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.05em;
   white-space: nowrap;
@@ -72,22 +78,21 @@
 
 .transactions-page__filter-group input,
 .transactions-page__filter-group select {
-  background-color: #141414;
-  border: 1px solid #2e2e2e;
+  background-color: var(--color-bg-input);
+  border: none;
   border-radius: 8px;
-  color: rgba(255, 255, 255, 0.87);
+  color: var(--color-text-primary);
   font-size: 0.85rem;
   font-family: inherit;
   padding: 7px 10px;
   outline: none;
-  transition: border-color 0.15s ease;
   width: 100%;
   box-sizing: border-box;
 }
 
 .transactions-page__filter-group input:focus,
 .transactions-page__filter-group select:focus {
-  border-color: #646cff;
+  box-shadow: 0 0 0 2px var(--color-accent);
 }
 
 .transactions-page__filter-group input[type='date']::-webkit-calendar-picker-indicator {
@@ -96,40 +101,27 @@
 }
 
 .transactions-page__filter-group select option {
-  background-color: #1e1e1e;
+  background-color: var(--color-bg-surface);
 }
 
 .transactions-page__clear-btn {
   align-self: flex-end;
   padding: 7px 14px;
   font-size: 0.82rem;
-  font-weight: 500;
-  background-color: transparent;
-  color: #8a8a8a;
-  border: 1px solid #3a3a3a;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
   white-space: nowrap;
   flex-shrink: 0;
 }
 
-.transactions-page__clear-btn:hover {
-  color: rgba(255, 255, 255, 0.87);
-  border-color: #646cff;
-  background-color: #1e1e2e;
-}
-
 /* States */
 .transactions-page__error {
-  color: #e74c3c;
+  color: var(--color-error);
   margin-bottom: 16px;
   font-size: 0.9rem;
 }
 
 .transactions-page__loading,
 .transactions-page__empty {
-  color: #8a8a8a;
+  color: var(--color-text-secondary);
   font-size: 0.95rem;
   margin-top: 24px;
 }
@@ -138,7 +130,6 @@
 .transactions-page__table-wrapper {
   overflow-x: auto;
   border-radius: 10px;
-  border: 1px solid #2e2e2e;
 }
 
 .transactions-table {
@@ -148,8 +139,7 @@
 }
 
 .transactions-table thead tr {
-  background-color: #1e1e1e;
-  border-bottom: 1px solid #2e2e2e;
+  background-color: var(--color-bg-surface);
 }
 
 .transactions-table th {
@@ -159,31 +149,26 @@
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #8a8a8a;
+  color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
 .transactions-table__row {
-  border-bottom: 1px solid #2a2a2a;
   transition: background-color 0.15s ease;
 }
 
-.transactions-table__row:last-child {
-  border-bottom: none;
-}
-
 .transactions-table__row:hover {
-  background-color: #2a2a2a;
+  background-color: var(--color-bg-hover);
 }
 
 .transactions-table td {
   padding: 11px 14px;
-  color: rgba(255, 255, 255, 0.87);
+  color: var(--color-text-primary);
   vertical-align: middle;
 }
 
 .transactions-table__id {
-  color: #8a8a8a !important;
+  color: var(--color-text-secondary) !important;
   font-variant-numeric: tabular-nums;
   font-size: 0.8rem !important;
 }
@@ -199,19 +184,19 @@
 }
 
 .transactions-table__amount--deposit {
-  color: #2ecc71;
+  color: var(--color-positive);
 }
 
 .transactions-table__amount--withdraw {
-  color: #e74c3c;
+  color: var(--color-negative);
 }
 
 .transactions-table__amount--transfer {
-  color: #3498db;
+  color: var(--color-transfer);
 }
 
 .transactions-table__empty-cell {
-  color: #555;
+  color: var(--color-text-disabled);
 }
 
 .transactions-table__note {
@@ -229,123 +214,3 @@
   white-space: nowrap;
 }
 
-.transactions-table__btn-edit,
-.transactions-table__btn-delete {
-  padding: 0.3em 0.85em;
-  font-size: 0.78rem;
-  font-weight: 500;
-  border-radius: 6px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.transactions-table__btn-edit {
-  background-color: #2e2e2e;
-  color: rgba(255, 255, 255, 0.87);
-}
-
-.transactions-table__btn-edit:hover {
-  background-color: #3a3a3a;
-  border-color: #646cff;
-}
-
-.transactions-table__btn-delete {
-  background-color: transparent;
-  color: #e74c3c;
-  border-color: #e74c3c44;
-}
-
-.transactions-table__btn-delete:hover {
-  background-color: #e74c3c18;
-  border-color: #e74c3c;
-}
-
-/* Light mode */
-@media (prefers-color-scheme: light) {
-  .transactions-page__header h1 {
-    color: #213547;
-  }
-
-  .transactions-page__filters {
-    background-color: #f8f8f8;
-    border-color: #e0e0e0;
-  }
-
-  .transactions-page__filter-group label {
-    color: #666;
-  }
-
-  .transactions-page__filter-group input,
-  .transactions-page__filter-group select {
-    background-color: #fff;
-    border-color: #d0d0d0;
-    color: #213547;
-  }
-
-  .transactions-page__filter-group input[type='date']::-webkit-calendar-picker-indicator {
-    filter: none;
-  }
-
-  .transactions-page__filter-group select option {
-    background-color: #fff;
-  }
-
-  .transactions-page__clear-btn {
-    color: #666;
-    border-color: #d0d0d0;
-  }
-
-  .transactions-page__clear-btn:hover {
-    color: #213547;
-    border-color: #646cff;
-    background-color: #eef0ff;
-  }
-
-  .transactions-page__loading,
-  .transactions-page__empty {
-    color: #888;
-  }
-
-  .transactions-page__table-wrapper {
-    border-color: #e0e0e0;
-  }
-
-  .transactions-table thead tr {
-    background-color: #f5f5f5;
-    border-bottom-color: #e0e0e0;
-  }
-
-  .transactions-table th {
-    color: #666;
-  }
-
-  .transactions-table__row {
-    border-bottom-color: #efefef;
-  }
-
-  .transactions-table__row:hover {
-    background-color: #f9f9f9;
-  }
-
-  .transactions-table td {
-    color: #213547;
-  }
-
-  .transactions-table__id {
-    color: #999 !important;
-  }
-
-  .transactions-table__empty-cell {
-    color: #bbb;
-  }
-
-  .transactions-table__btn-edit {
-    background-color: #f0f0f0;
-    color: #213547;
-  }
-
-  .transactions-table__btn-edit:hover {
-    background-color: #e8e8e8;
-  }
-}

@@ -1,6 +1,7 @@
 .accounts-page {
   padding: 32px 36px;
-  max-width: 900px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .accounts-page__header {
@@ -15,35 +16,22 @@
   font-weight: 600;
   margin: 0;
   line-height: 1.2;
+  color: var(--color-text-heading);
 }
 
 .accounts-page__add-btn {
-  padding: 0.5em 1.2em;
-  font-size: 0.9rem;
-  font-weight: 600;
-  background-color: #646cff;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
   white-space: nowrap;
 }
 
-.accounts-page__add-btn:hover {
-  background-color: #535bf2;
-  border-color: transparent;
-}
-
 .accounts-page__error {
-  color: #e74c3c;
+  color: var(--color-error);
   margin-bottom: 16px;
   font-size: 0.9rem;
 }
 
 .accounts-page__loading,
 .accounts-page__empty {
-  color: #8a8a8a;
+  color: var(--color-text-secondary);
   font-size: 0.95rem;
   margin-top: 24px;
 }
@@ -51,7 +39,6 @@
 .accounts-page__table-wrapper {
   overflow-x: auto;
   border-radius: 10px;
-  border: 1px solid #2e2e2e;
 }
 
 .accounts-table {
@@ -61,8 +48,7 @@
 }
 
 .accounts-table thead tr {
-  background-color: #1e1e1e;
-  border-bottom: 1px solid #2e2e2e;
+  background-color: var(--color-bg-surface);
 }
 
 .accounts-table th {
@@ -72,12 +58,11 @@
   font-size: 0.8rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #8a8a8a;
+  color: var(--color-text-secondary);
   white-space: nowrap;
 }
 
 .accounts-table__row {
-  border-bottom: 1px solid #2a2a2a;
   transition: background-color 0.15s ease;
 }
 
@@ -85,17 +70,13 @@
   cursor: pointer;
 }
 
-.accounts-table__row:last-child {
-  border-bottom: none;
-}
-
 .accounts-table__row:hover {
-  background-color: #2a2a2a;
+  background-color: var(--color-bg-hover);
 }
 
 .accounts-table td {
   padding: 13px 16px;
-  color: rgba(255, 255, 255, 0.87);
+  color: var(--color-text-primary);
   vertical-align: middle;
 }
 
@@ -105,79 +86,3 @@
   align-items: center;
 }
 
-.accounts-table__btn-edit,
-.accounts-table__btn-delete {
-  padding: 0.3em 0.85em;
-  font-size: 0.8rem;
-  font-weight: 500;
-  border-radius: 6px;
-  cursor: pointer;
-  border: 1px solid transparent;
-  transition: background-color 0.15s ease, border-color 0.15s ease;
-}
-
-.accounts-table__btn-edit {
-  background-color: #2e2e2e;
-  color: rgba(255, 255, 255, 0.87);
-}
-
-.accounts-table__btn-edit:hover {
-  background-color: #3a3a3a;
-  border-color: #646cff;
-}
-
-.accounts-table__btn-delete {
-  background-color: transparent;
-  color: #e74c3c;
-  border-color: #e74c3c44;
-}
-
-.accounts-table__btn-delete:hover {
-  background-color: #e74c3c18;
-  border-color: #e74c3c;
-}
-
-@media (prefers-color-scheme: light) {
-  .accounts-page__header h1 {
-    color: #213547;
-  }
-
-  .accounts-page__loading,
-  .accounts-page__empty {
-    color: #888;
-  }
-
-  .accounts-page__table-wrapper {
-    border-color: #e0e0e0;
-  }
-
-  .accounts-table thead tr {
-    background-color: #f5f5f5;
-    border-bottom-color: #e0e0e0;
-  }
-
-  .accounts-table th {
-    color: #666;
-  }
-
-  .accounts-table__row {
-    border-bottom-color: #efefef;
-  }
-
-  .accounts-table__row:hover {
-    background-color: #f9f9f9;
-  }
-
-  .accounts-table td {
-    color: #213547;
-  }
-
-  .accounts-table__btn-edit {
-    background-color: #f0f0f0;
-    color: #213547;
-  }
-
-  .accounts-table__btn-edit:hover {
-    background-color: #e8e8e8;
-  }
-}

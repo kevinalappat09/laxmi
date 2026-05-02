@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Account } from '../../../src/types/account'
-import type { Page } from './layout/AppLayout'
+import type { Page } from '../types/navigation'
 import './CommandPalette.css'
 
 export type PaletteAction =

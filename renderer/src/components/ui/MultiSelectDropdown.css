@@ -1,0 +1,73 @@
+.ui-multi-select__container {
+  position: relative;
+}
+
+.ui-multi-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ui-multi-select__trigger:disabled {
+  cursor: not-allowed;
+}
+
+.ui-multi-select__trigger-text {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.ui-multi-select__chevron {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.ui-multi-select__trigger--open .ui-multi-select__chevron {
+  transform: rotate(180deg);
+}
+
+.ui-multi-select__menu {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 6px;
+  border-radius: var(--radius-input-sm);
+  border: 1px solid var(--color-border-input);
+  background-color: var(--color-bg-surface);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.35);
+}
+
+.ui-multi-select__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 8px;
+  border-radius: 6px;
+  color: var(--color-text-primary);
+  cursor: pointer;
+}
+
+.ui-multi-select__option:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.ui-multi-select__option input {
+  margin: 0;
+  accent-color: var(--color-accent);
+}
+
+.ui-multi-select__empty {
+  padding: 10px 8px;
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+}

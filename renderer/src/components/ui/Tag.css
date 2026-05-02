@@ -1,0 +1,27 @@
+.ui-tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-buttons-pill);
+  border: 1px solid currentColor;
+  padding: 2px 8px;
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  line-height: 1.2;
+  text-transform: capitalize;
+}
+
+.ui-tag--default {
+  color: var(--color-light-smoke);
+}
+
+.ui-tag--positive {
+  color: var(--color-positive);
+}
+
+.ui-tag--negative {
+  color: var(--color-negative);
+}
+
+.ui-tag--info {
+  color: var(--color-transfer);
+}
