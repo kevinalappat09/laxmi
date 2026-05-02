@@ -132,12 +132,16 @@
     "yn": "3.1.1"
   },
   "scripts": {
+    "build": "npm run build:renderer && npm run build:electron",
     "build:electron": "tsc",
+    "build:renderer": "npm --prefix renderer run build",
     "dev": "concurrently \"npm:dev:react\" \"npm:dev:electron\"",
     "rebuild:native": "electron-rebuild -f -w better-sqlite3",
     "dev:react": "npm --prefix renderer run dev",
     "predev:electron": "npm run rebuild:native",
     "dev:electron": "concurrently \"tsc -w\" \"wait-on http://localhost:5173 && electron dist/main.js\"",
+    "package:win": "npx @electron/packager . Laxmi --platform=win32 --arch=x64 --out=releases --overwrite",
+    "release:win": "npm run build && npm run package:win",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:run": "jest --runInBand",
