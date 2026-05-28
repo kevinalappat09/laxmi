@@ -4,6 +4,8 @@ import { HomePage } from './pages/home/HomePage'
 import { AccountsPage } from './pages/accounts/AccountsPage'
 import { AccountDetailPage } from './pages/accounts/AccountDetailPage'
 import { TransactionsPage } from './pages/transactions/TransactionsPage'
+import { RecurringPage } from './pages/recurring/RecurringPage'
+import { BudgetsPage } from './pages/budgets/BudgetsPage'
 import { ImportExportPage } from './pages/importexport/ImportExportPage'
 import { ReportsPage } from './pages/reports/ReportsPage'
 import { CommandPalette, type PaletteAction } from './components/CommandPalette'
@@ -160,6 +162,14 @@ function AppContent() {
           onAutoOpenHandled={() => setPendingAction(null)}
         />
       )
+    }
+
+    if (activePage === 'budgets') {
+      return <BudgetsPage />
+    }
+
+    if (activePage === 'recurring') {
+      return <RecurringPage />
     }
 
     if (activePage === 'reports') {

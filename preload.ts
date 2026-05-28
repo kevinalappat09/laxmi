@@ -16,6 +16,13 @@ import {
     CSVTemplateResult,
     CSVExportErrorRowsResult,
 } from "./src/types/csvImport"
+import { Budget, BudgetWithSpending, CreateBudgetRequest, UpdateBudgetRequest } from "./src/types/budget"
+import {
+    CreateRecurringTransactionRequest,
+    RecurringUpcomingNotification,
+    RecurringTransaction,
+    UpdateRecurringTransactionRequest,
+} from "./src/types/recurringTransaction"
 
 contextBridge.exposeInMainWorld("financeAPI", {
     // Profile management
@@ -76,6 +83,33 @@ contextBridge.exposeInMainWorld("financeAPI", {
         ipcRenderer.invoke("get-categories-by-parent", parentId),
     getRootCategories: (): Promise<Category[]> =>
         ipcRenderer.invoke("get-root-categories"),
+
+    // Budget operations
+    createBudget: (request: CreateBudgetRequest): Promise<Budget> =>
+        ipcRenderer.invoke("budget:create", request),
+    updateBudget: (budgetId: number, request: UpdateBudgetRequest): Promise<Budget> =>
+        ipcRenderer.invoke("budget:update", budgetId, request),
+    deleteBudget: (budgetId: number): Promise<void> =>
+        ipcRenderer.invoke("budget:delete", budgetId),
+    listBudgetsWithSpending: (referenceDate?: Date): Promise<BudgetWithSpending[]> =>
+        ipcRenderer.invoke("budget:list-with-spending", referenceDate),
+    getBudgetNotifications: (referenceDate?: Date): Promise<BudgetWithSpending[]> =>
+        ipcRenderer.invoke("budget:get-notifications", referenceDate),
+
+    // Recurring transaction operations
+    createRecurring: (request: CreateRecurringTransactionRequest): Promise<RecurringTransaction> =>
+        ipcRenderer.invoke("recurring:create", request),
+    updateRecurring: (
+        recurringId: number,
+        request: UpdateRecurringTransactionRequest
+    ): Promise<RecurringTransaction> =>
+        ipcRenderer.invoke("recurring:update", recurringId, request),
+    deleteRecurring: (recurringId: number): Promise<void> =>
+        ipcRenderer.invoke("recurring:delete", recurringId),
+    listRecurring: (): Promise<RecurringTransaction[]> =>
+        ipcRenderer.invoke("recurring:list"),
+    getUpcomingRecurring: (daysAhead?: number): Promise<RecurringUpcomingNotification[]> =>
+        ipcRenderer.invoke("recurring:get-upcoming", daysAhead),
 
     csvOpenAndPreview: (): Promise<CSVPreviewResult> =>
         ipcRenderer.invoke("csv-open-and-preview"),

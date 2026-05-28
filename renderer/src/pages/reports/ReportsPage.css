@@ -13,7 +13,7 @@
 
 .reports-page__header h1 {
   margin: 0;
-  font-size: 1.75rem;
+  font-size: var(--text-heading-lg);
   line-height: 1.2;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-heading);
@@ -76,23 +76,20 @@
   margin: 0 0 var(--spacing-14);
 }
 
-.reports-page__tab-btn {
+.reports-page__tab-button {
   border: 1px solid var(--color-border-soft);
   background: var(--color-bg-surface);
   color: var(--color-text-secondary);
   border-radius: var(--radius-pill);
-  padding: 8px 14px;
-  font: inherit;
-  cursor: pointer;
   transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
-.reports-page__tab-btn:hover {
+.reports-page__tab-button:hover {
   color: var(--color-text-heading);
   border-color: var(--color-border-strong);
 }
 
-.reports-page__tab-btn--active {
+.reports-page__tab-button--active {
   background: var(--color-accent-soft);
   color: var(--color-text-heading);
   border-color: var(--color-accent);

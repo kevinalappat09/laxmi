@@ -5,6 +5,8 @@ import { TransactionType } from '../../../../src/types/transaction'
 import { useNavigation } from '../../contexts/NavigationContext'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
+import { NotificationsPanel } from '../../components/home/NotificationsPanel'
+import { useNotifications } from '../../hooks/useNotifications'
 import { formatCurrency } from '../../utils/formatters'
 import './HomePage.css'
 
@@ -50,6 +52,11 @@ function getDateStarts(now: Date): { monthStart: Date; yearStart: Date } {
 
 export function HomePage({ currentProfile, onSwitchProfile }: HomePageProps) {
   const { selectAccount } = useNavigation()
+  const {
+    notifications,
+    isLoading: isLoadingNotifications,
+    error: notificationsError,
+  } = useNotifications(10)
   const [accountsWithBalance, setAccountsWithBalance] = useState<AccountWithBalance[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [isLoadingMetrics, setIsLoadingMetrics] = useState(true)
@@ -175,6 +182,12 @@ export function HomePage({ currentProfile, onSwitchProfile }: HomePageProps) {
           Switch Profile
         </Button>
       </div>
+
+      <NotificationsPanel
+        notifications={notifications}
+        isLoading={isLoadingNotifications}
+        error={notificationsError}
+      />
 
       <div className="home-page__metrics">
         <Card className="metric-tile">

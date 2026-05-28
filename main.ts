@@ -19,6 +19,13 @@ import {
     TransactionReportQuery,
 } from "./src/types/transaction"
 import { CreateCategoryRequest, UpdateCategoryRequest } from "./src/types/category"
+import { BudgetServiceImpl } from "./src/services/budget/budgetService"
+import { CreateBudgetRequest, UpdateBudgetRequest } from "./src/types/budget"
+import { RecurringTransactionServiceImpl } from "./src/services/recurringTransaction/recurringTransactionService"
+import {
+    CreateRecurringTransactionRequest,
+    UpdateRecurringTransactionRequest,
+} from "./src/types/recurringTransaction"
 
 const isDev = !app.isPackaged;
 
@@ -38,11 +45,14 @@ ipcMain.handle("create-profile", (_event, profileName: string) =>
 
 ipcMain.handle("open-profile", async (_event, profileName: string) => {
     await profileService.openProfile(profileName, migrationService)
+    recurringTransactionService.processRecurringTransactions()
 })
 
 const accountService = new AccountServiceImpl()
 const transactionService = new TransactionServiceImpl()
 const categoryService = new CategoryServiceImpl()
+const budgetService = new BudgetServiceImpl()
+const recurringTransactionService = new RecurringTransactionServiceImpl()
 const csvImportService = new TransactionImportServiceImpl()
 const csvExportService = new TransactionExportServiceImpl()
 const csvTemplateService = new CSVTemplateServiceImpl()
@@ -142,6 +152,60 @@ ipcMain.handle("get-categories-by-parent", (_event, parentId: number) => {
 
 ipcMain.handle("get-root-categories", () => {
     return categoryService.getRootCategories()
+})
+
+ipcMain.handle("budget:create", (_event, request: CreateBudgetRequest) => {
+    return budgetService.createBudget(request)
+})
+
+ipcMain.handle("budget:update", (_event, budgetId: number, request: UpdateBudgetRequest) => {
+    return budgetService.updateBudget(budgetId, request)
+})
+
+ipcMain.handle("budget:delete", (_event, budgetId: number) => {
+    return budgetService.deactivateBudget(budgetId)
+})
+
+ipcMain.handle("budget:list-with-spending", (_event, referenceDate?: Date | string) => {
+    const normalizedDate = referenceDate ? new Date(referenceDate) : undefined
+    return budgetService.getActiveBudgetsWithSpending(normalizedDate)
+})
+
+ipcMain.handle("budget:get-notifications", (_event, referenceDate?: Date | string) => {
+    const normalizedDate = referenceDate ? new Date(referenceDate) : undefined
+    return budgetService.getNotifications(normalizedDate)
+})
+
+ipcMain.handle("recurring:create", (_event, request: CreateRecurringTransactionRequest) => {
+    request.start_date = new Date(request.start_date)
+    return recurringTransactionService.createRecurringTransaction(request)
+})
+
+ipcMain.handle(
+    "recurring:update",
+    (_event, recurringId: number, request: UpdateRecurringTransactionRequest) => {
+        if (request.start_date) {
+            request.start_date = new Date(request.start_date)
+        }
+        return recurringTransactionService.updateRecurringTransaction(recurringId, request)
+    }
+)
+
+ipcMain.handle("recurring:delete", (_event, recurringId: number) => {
+    return recurringTransactionService.deactivateRecurringTransaction(recurringId)
+})
+
+ipcMain.handle("recurring:list", () => {
+    return recurringTransactionService.listRecurringTransactions()
+})
+
+ipcMain.handle("recurring:get-upcoming", (_event, daysAhead?: number) => {
+    return recurringTransactionService.getUpcomingNotifications(daysAhead)
+})
+
+ipcMain.handle("recurring:process", (_event, referenceDate?: Date | string) => {
+    const normalizedDate = referenceDate ? new Date(referenceDate) : undefined
+    return recurringTransactionService.processRecurringTransactions(normalizedDate)
 })
 
 ipcMain.handle("csv-open-and-preview", () => {

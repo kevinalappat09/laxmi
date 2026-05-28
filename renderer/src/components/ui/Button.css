@@ -84,25 +84,25 @@
 }
 
 .ui-button--variant-pill {
-  background-color: var(--color-light-smoke);
-  color: #000000;
+  background-color: var(--color-accent);
+  color: var(--color-accent-fg);
   border-radius: var(--radius-buttons-pill);
   padding: 7px 16px;
 }
 
 .ui-button--variant-pill:hover:not(:disabled) {
-  background-color: var(--color-pure-white);
+  background-color: var(--color-accent-hover);
 }
 
 .ui-button--variant-ghost {
   background-color: transparent;
-  color: var(--color-pure-white);
-  border: 1px solid var(--color-pure-white);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-input);
   border-radius: 999px;
 }
 
 .ui-button--variant-ghost:hover:not(:disabled) {
-  background-color: rgba(255, 255, 255, 0.08);
+  background-color: var(--color-bg-hover);
 }
 
 .ui-button--variant-square {

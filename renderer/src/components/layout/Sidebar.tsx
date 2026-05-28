@@ -30,6 +30,18 @@ export function Sidebar({ isOpen, activePage, onNavigate }: SidebarProps) {
           Transactions
         </button>
         <button
+          className={`sidebar__nav-item${activePage === 'recurring' ? ' sidebar__nav-item--active' : ''}`}
+          onClick={() => onNavigate('recurring')}
+        >
+          Recurring
+        </button>
+        <button
+          className={`sidebar__nav-item${activePage === 'budgets' ? ' sidebar__nav-item--active' : ''}`}
+          onClick={() => onNavigate('budgets')}
+        >
+          Budgets
+        </button>
+        <button
           className={`sidebar__nav-item${activePage === 'reports' ? ' sidebar__nav-item--active' : ''}`}
           onClick={() => onNavigate('reports')}
         >
