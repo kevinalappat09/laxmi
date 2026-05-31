@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import type { Account } from '../../../../src/types/account'
 import type { Category } from '../../../../src/types/category'
 import type { Transaction } from '../../../../src/types/transaction'
+import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Select } from '../../components/ui/Input'
 import { getDateRangeForPreset, type DateRangePreset } from '../../utils/chartUtils'
@@ -225,42 +226,54 @@ export function ReportsPage() {
       </Card>
 
       <div className="reports-page__tabs" role="tablist" aria-label="Report types">
-        <button
-          type="button"
+        <Button
           role="tab"
           aria-selected={activeTab === 'temporal'}
-          className={`reports-page__tab-btn ${activeTab === 'temporal' ? 'reports-page__tab-btn--active' : ''}`}
+          variant="subtle"
+          size="sm"
+          className={`reports-page__tab-button ${
+            activeTab === 'temporal' ? 'reports-page__tab-button--active' : ''
+          }`}
           onClick={() => setActiveTab('temporal')}
         >
           Temporal
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
           role="tab"
           aria-selected={activeTab === 'category'}
-          className={`reports-page__tab-btn ${activeTab === 'category' ? 'reports-page__tab-btn--active' : ''}`}
+          variant="subtle"
+          size="sm"
+          className={`reports-page__tab-button ${
+            activeTab === 'category' ? 'reports-page__tab-button--active' : ''
+          }`}
           onClick={() => setActiveTab('category')}
         >
           Category
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
           role="tab"
           aria-selected={activeTab === 'classification'}
-          className={`reports-page__tab-btn ${activeTab === 'classification' ? 'reports-page__tab-btn--active' : ''}`}
+          variant="subtle"
+          size="sm"
+          className={`reports-page__tab-button ${
+            activeTab === 'classification' ? 'reports-page__tab-button--active' : ''
+          }`}
           onClick={() => setActiveTab('classification')}
         >
           Classification
-        </button>
-        <button
-          type="button"
+        </Button>
+        <Button
           role="tab"
           aria-selected={activeTab === 'accounts'}
-          className={`reports-page__tab-btn ${activeTab === 'accounts' ? 'reports-page__tab-btn--active' : ''}`}
+          variant="subtle"
+          size="sm"
+          className={`reports-page__tab-button ${
+            activeTab === 'accounts' ? 'reports-page__tab-button--active' : ''
+          }`}
           onClick={() => setActiveTab('accounts')}
         >
           Accounts
-        </button>
+        </Button>
       </div>
 
       {error && <p className="reports-page__error">{error}</p>}

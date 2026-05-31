@@ -1,0 +1,127 @@
+.notifications-panel {
+  margin-bottom: var(--spacing-20);
+}
+
+.notifications-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-10);
+}
+
+.notifications-panel__title {
+  margin: 0;
+  font-size: var(--text-body);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.notifications-panel__error {
+  margin: 0 0 var(--spacing-10);
+  color: var(--color-negative);
+}
+
+.notifications-panel__loading {
+  color: var(--color-text-secondary);
+  font-size: var(--text-body);
+}
+
+.notifications-panel__table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-general);
+  background: var(--color-bg-card);
+}
+
+.notifications-panel__table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.notifications-panel__table th {
+  text-align: left;
+  font-size: var(--text-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  padding: var(--spacing-10) var(--spacing-14);
+  border-bottom: 1px solid var(--color-border-default);
+  background: var(--color-bg-elevated);
+}
+
+.notifications-panel__table td {
+  padding: var(--spacing-10) var(--spacing-14);
+  border-bottom: 1px solid var(--color-border-default);
+  vertical-align: middle;
+}
+
+.notifications-panel__table tr:last-child td {
+  border-bottom: 0;
+}
+
+.notifications-panel__badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: var(--spacing-4) var(--spacing-8);
+  font-size: var(--text-caption);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.notifications-panel__badge--budget-warning {
+  color: var(--color-negative);
+  background: rgba(var(--color-negative-rgb), 0.12);
+}
+
+.notifications-panel__badge--budget-over {
+  color: var(--color-negative);
+  background: rgba(var(--color-negative-rgb), 0.22);
+}
+
+.notifications-panel__badge--recurring-income {
+  color: var(--color-positive);
+  background: var(--color-bg-hover);
+}
+
+.notifications-panel__badge--recurring-expense {
+  color: var(--color-text-primary);
+  background: var(--color-bg-hover);
+}
+
+.notifications-panel__name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.notifications-panel__detail {
+  color: var(--color-text-secondary);
+  font-size: var(--text-body);
+}
+
+.notifications-panel__amount-head {
+  text-align: right !important;
+}
+
+.notifications-panel__amount {
+  text-align: right;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.notifications-panel__amount--income {
+  color: var(--color-positive);
+}
+
+.notifications-panel__amount--expense {
+  color: var(--color-negative);
+}
+
+.notifications-panel__row--budget-over {
+  background: rgba(var(--color-negative-rgb), 0.05);
+}
+
+.notifications-panel__row--recurring-today {
+  background: var(--color-bg-hover);
+}

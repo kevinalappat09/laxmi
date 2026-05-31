@@ -23,6 +23,18 @@ import {
     CSVTemplateResult,
     CSVExportErrorRowsResult,
 } from "../../../src/types/csvImport"
+import {
+    Budget,
+    BudgetWithSpending,
+    CreateBudgetRequest,
+    UpdateBudgetRequest,
+} from "../../../src/types/budget"
+import {
+    CreateRecurringTransactionRequest,
+    RecurringUpcomingNotification,
+    RecurringTransaction,
+    UpdateRecurringTransactionRequest,
+} from "../../../src/types/recurringTransaction"
 
 export {}
 
@@ -67,6 +79,25 @@ declare global {
         listActiveCategories: () => Promise<Category[]>
         getCategoriesByParent: (parentId: number) => Promise<Category[]>
         getRootCategories: () => Promise<Category[]>
+
+        // Budget operations
+        createBudget: (request: CreateBudgetRequest) => Promise<Budget>
+        updateBudget: (budgetId: number, request: UpdateBudgetRequest) => Promise<Budget>
+        deleteBudget: (budgetId: number) => Promise<void>
+        listBudgetsWithSpending: (referenceDate?: Date) => Promise<BudgetWithSpending[]>
+        getBudgetNotifications: (referenceDate?: Date) => Promise<BudgetWithSpending[]>
+
+        // Recurring transaction operations
+        createRecurring: (
+            request: CreateRecurringTransactionRequest
+        ) => Promise<RecurringTransaction>
+        updateRecurring: (
+            recurringId: number,
+            request: UpdateRecurringTransactionRequest
+        ) => Promise<RecurringTransaction>
+        deleteRecurring: (recurringId: number) => Promise<void>
+        listRecurring: () => Promise<RecurringTransaction[]>
+        getUpcomingRecurring: (daysAhead?: number) => Promise<RecurringUpcomingNotification[]>
 
         csvOpenAndPreview: () => Promise<CSVPreviewResult>
         csvImportConfirm: (request: CSVImportRequest) => Promise<CSVImportResult>

@@ -1,0 +1,107 @@
+.recurring-page {
+  padding: 32px 36px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.recurring-page__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.recurring-page__header h1 {
+  font-size: 1.75rem;
+  font-weight: 600;
+  margin: 0;
+  line-height: 1.2;
+  color: var(--color-text-heading);
+}
+
+.recurring-page__add-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.recurring-page__error {
+  color: var(--color-error);
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+}
+
+.recurring-page__loading,
+.recurring-page__empty {
+  color: var(--color-text-secondary);
+  font-size: 0.95rem;
+  margin-top: 24px;
+}
+
+.recurring-page__table-wrapper {
+  overflow-x: auto;
+  border-radius: 10px;
+}
+
+.recurring-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+
+.recurring-table thead tr {
+  background-color: var(--color-bg-surface);
+}
+
+.recurring-table th {
+  text-align: left;
+  padding: 11px 14px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}
+
+.recurring-table td {
+  padding: 11px 14px;
+  color: var(--color-text-primary);
+  vertical-align: middle;
+}
+
+.recurring-table__row {
+  transition: background-color 0.15s ease;
+}
+
+.recurring-table__row:hover {
+  background-color: var(--color-bg-hover);
+}
+
+.recurring-table__amount-col {
+  text-align: right;
+}
+
+.recurring-table__amount {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+
+.recurring-table__amount--deposit {
+  color: var(--color-positive);
+}
+
+.recurring-table__amount--withdraw {
+  color: var(--color-negative);
+}
+
+.recurring-table__empty-cell {
+  color: var(--color-text-disabled);
+}
+
+.recurring-table__actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  white-space: nowrap;
+}

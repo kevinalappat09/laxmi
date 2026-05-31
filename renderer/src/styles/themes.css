@@ -66,6 +66,7 @@
   --radius-general: 10px;
   --radius-input-sm: 6px;
   --radius-buttons-pill: 99px;
+  --radius-pill: var(--radius-buttons-pill);
   --radius-buttons-square: 6px;
 
   /* Shadows */
@@ -85,6 +86,9 @@
   --color-bg-card: var(--color-obsidian-deep);
 
   --color-border: #2a2a2a;
+  --color-border-default: var(--color-border);
+  --color-border-soft: rgba(255, 255, 255, 0.1);
+  --color-border-strong: rgba(255, 255, 255, 0.22);
   --color-border-subtle: rgba(255, 255, 255, 0.08);
   --color-border-input: rgba(255, 255, 255, 0.16);
 
@@ -99,6 +103,7 @@
   --color-accent-fg: #000000;
   --color-accent-rgb: 214, 254, 81;
   --color-accent-subtle: rgba(214, 254, 81, 0.12);
+  --color-accent-soft: var(--color-accent-subtle);
   --color-accent-subtle-hover: rgba(214, 254, 81, 0.2);
   --color-accent-muted: var(--color-vibrant-gradient-1);
   --color-accent-muted-hover: #e4ff7a;
@@ -129,6 +134,9 @@
   --color-bg-card: #ffffff;
 
   --color-border: #d9d9d9;
+  --color-border-default: var(--color-border);
+  --color-border-soft: #dddddd;
+  --color-border-strong: #bbbbbb;
   --color-border-subtle: #ececec;
   --color-border-input: #d0d0d0;
 
@@ -143,6 +151,7 @@
   --color-accent-fg: #ffffff;
   --color-accent-rgb: 46, 125, 216;
   --color-accent-subtle: #eaf3fe;
+  --color-accent-soft: var(--color-accent-subtle);
   --color-accent-subtle-hover: #ddeafc;
   --color-accent-muted: #2e7dd8;
   --color-accent-muted-hover: #1f6bc2;
