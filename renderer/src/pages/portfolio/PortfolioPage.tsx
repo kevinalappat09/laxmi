@@ -174,7 +174,7 @@ export function PortfolioPage() {
         <h1 className="portfolio-page__title">Portfolio</h1>
         <div className="portfolio-page__header-actions">
           <Button variant="pill" onClick={handleRefreshAll} disabled={isRefreshing}>
-            {isRefreshing ? '↻ Refreshing…' : '↻ Refresh'}
+            {isRefreshing ? '↻ Refreshing Prices…' : '↻ Refresh Prices'}
           </Button>
           <Button variant="pill" onClick={() => setTxnDialog({ defaultType: 'BUY' })}>+ Add Transaction</Button>
         </div>
@@ -554,9 +554,11 @@ function FundRow({ analytics: a, rawAsset, onRowClick, onBuy, onSell, onDelete }
       <td className="portfolio-page__col-right">{a ? fmtPctPlain(a.xirr != null ? a.xirr * 100 : null) : '—'}</td>
       <td className="portfolio-page__col-right" style={{ color: a ? dayColor : undefined }}>{a ? fmtChange(a.dayGainLoss) : '—'}</td>
       <td className="portfolio-page__col-actions" onClick={e => e.stopPropagation()}>
-        <button className="portfolio-page__action-btn" onClick={onBuy}>+ Buy</button>
-        {a && <button className="portfolio-page__action-btn portfolio-page__action-btn--sell" onClick={onSell}>− Sell</button>}
-        <button className="portfolio-page__action-btn portfolio-page__action-btn--delete" onClick={onDelete}>✕</button>
+        <div className="portfolio-page__action-group">
+          <button className="portfolio-page__action-btn" onClick={onBuy}>Buy More</button>
+          <button className="portfolio-page__action-btn portfolio-page__action-btn--sell" onClick={onSell}>Sell</button>
+          <button className="portfolio-page__action-btn portfolio-page__action-btn--delete" onClick={onDelete} aria-label="Delete asset">🗑</button>
+        </div>
       </td>
     </tr>
   )

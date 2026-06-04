@@ -1,11 +1,4 @@
 import { useEffect, useState, useCallback } from 'react'
-import ReactECharts from 'echarts-for-react'
-
-function readVar(token: string, fallback: string): string {
-  if (typeof window === 'undefined') return fallback
-  const v = getComputedStyle(document.documentElement).getPropertyValue(token).trim()
-  return v || fallback
-}
 import type { AssetAnalytics } from '../../../../src/types/portfolioAnalytics'
 import type { PortfolioAsset } from '../../../../src/types/portfolioAsset'
 import type { PortfolioTransaction } from '../../../../src/types/portfolioTransaction'
@@ -44,21 +37,6 @@ function fmtDate(iso: string): string {
 }
 
 /* ------------------------------------------------------------------ */
-/* NAV range helpers                                                   */
-/* ------------------------------------------------------------------ */
-
-type NavRange = '1M' | '3M' | '1Y' | 'All'
-
-function fromDateForRange(range: NavRange): string {
-  const d = new Date()
-  if (range === '1M') d.setMonth(d.getMonth() - 1)
-  else if (range === '3M') d.setMonth(d.getMonth() - 3)
-  else if (range === '1Y') d.setFullYear(d.getFullYear() - 1)
-  else return '1970-01-01'
-  return d.toISOString().split('T')[0]
-}
-
-/* ------------------------------------------------------------------ */
 /* Component                                                           */
 /* ------------------------------------------------------------------ */
 
@@ -72,13 +50,9 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
   const [analytics, setAnalytics] = useState<AssetAnalytics | null>(null)
   const [rawAsset, setRawAsset] = useState<PortfolioAsset | null>(null)
   const [transactions, setTransactions] = useState<PortfolioTransaction[]>([])
-  const [navHistory, setNavHistory] = useState<{ date: string; nav: number }[]>([])
-  const [navRange, setNavRange] = useState<NavRange>('1Y')
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [txnDialog, setTxnDialog] = useState<{ defaultType: 'BUY' | 'SELL' } | null>(null)
-
-  const toDate = new Date().toISOString().split('T')[0]
 
   const loadData = useCallback(async () => {
     setIsLoading(true)
@@ -105,18 +79,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
     }
   }, [assetId])
 
-  const loadNavHistory = useCallback(async (range: NavRange) => {
-    try {
-      const from = fromDateForRange(range)
-      const data = await window.financeAPI.portfolio.analytics.navHistory(assetId, from, toDate)
-      setNavHistory(data)
-    } catch (err) {
-      console.error('NAV history load failed:', err)
-    }
-  }, [assetId, toDate])
-
   useEffect(() => { loadData() }, [loadData])
-  useEffect(() => { loadNavHistory(navRange) }, [navRange, loadNavHistory])
 
   if (isLoading) {
     return <div className="asset-detail-page"><p className="asset-detail__loading">Loading…</p></div>
@@ -163,27 +126,6 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
           <MetricTile label="Realized P&L" value={fmtINR(analytics.realizedPl)} />
           <MetricTile label="XIRR" value={analytics.xirr != null ? fmtPct(analytics.xirr * 100) : '--'} />
           <MetricTile label="CAGR" value={analytics.cagr != null ? fmtPct(analytics.cagr * 100) : '--'} />
-        </div>
-      )}
-
-      {/* NAV history chart */}
-      {analytics && (
-        <div className="asset-detail__section">
-          <div className="asset-detail__section-header">
-            <h2 className="asset-detail__section-title">NAV History</h2>
-            <div className="asset-detail__range-btns">
-              {(['1M', '3M', '1Y', 'All'] as NavRange[]).map(r => (
-                <button
-                  key={r}
-                  className={`portfolio-range-btn${navRange === r ? ' portfolio-range-btn--active' : ''}`}
-                  onClick={() => setNavRange(r)}
-                >
-                  {r}
-                </button>
-              ))}
-            </div>
-          </div>
-          <NavChart data={navHistory} />
         </div>
       )}
 
@@ -256,54 +198,3 @@ function MetricTile({ label, value, color }: { label: string; value: string; col
   )
 }
 
-/* ------------------------------------------------------------------ */
-/* NAV chart                                                           */
-/* ------------------------------------------------------------------ */
-
-function NavChart({ data }: { data: { date: string; nav: number }[] }) {
-  if (data.length === 0) {
-    return <p className="asset-detail__empty">No price history available.</p>
-  }
-
-  const accent    = readVar('--color-accent', '#d6fe51')
-  const accentRgb = readVar('--color-accent-rgb', '214,254,81')
-  const textSec   = readVar('--color-text-secondary', '#868f97')
-  const gridLine  = readVar('--color-border-subtle', 'rgba(255,255,255,0.06)')
-  const bgInput   = readVar('--color-bg-input', '#191919')
-  const borderCol = readVar('--color-border', '#2a2a2a')
-  const textPri   = readVar('--color-text-primary', '#e6e6e6')
-
-  const option = {
-    tooltip: {
-      trigger: 'axis',
-      backgroundColor: bgInput,
-      borderColor: borderCol,
-      textStyle: { color: textPri },
-      formatter: (params: any) => `${params[0].name}: ₹${params[0].value.toFixed(4)}`,
-    },
-    xAxis: {
-      type: 'category',
-      data: data.map(d => d.date),
-      axisLabel: { fontSize: 11, rotate: 30, interval: Math.floor(data.length / 6), color: textSec },
-      axisLine: { lineStyle: { color: gridLine } },
-    },
-    yAxis: {
-      type: 'value',
-      scale: true,
-      axisLabel: { formatter: (v: number) => `₹${v.toFixed(2)}`, fontSize: 11, color: textSec },
-      splitLine: { lineStyle: { color: gridLine } },
-    },
-    series: [{
-      type: 'line',
-      data: data.map(d => d.nav),
-      smooth: true,
-      lineStyle: { color: accent, width: 2 },
-      itemStyle: { color: accent },
-      areaStyle: { color: `rgba(${accentRgb},0.08)` },
-      symbol: 'none',
-    }],
-    grid: { left: 65, right: 20, top: 20, bottom: 55 },
-  }
-
-  return <ReactECharts option={option} style={{ height: 200 }} />
-}
