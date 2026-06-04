@@ -24,7 +24,8 @@ describe("AccountRepositoryImpl", () => {
                 opened_on TEXT NOT NULL,
                 created_on TEXT NOT NULL,
                 modified_on TEXT NOT NULL,
-                is_active INTEGER NOT NULL DEFAULT 1
+                is_active INTEGER NOT NULL DEFAULT 1,
+                metadata TEXT
             );
 
             CREATE TABLE transactions (
@@ -54,6 +55,7 @@ describe("AccountRepositoryImpl", () => {
                 created_on: new Date("2024-03-01"),
                 modified_on: new Date("2024-03-01"),
                 is_active: true,
+                metadata: null,
             };
 
             const saved = repository.save(newAccount);
@@ -75,6 +77,7 @@ describe("AccountRepositoryImpl", () => {
                 created_on: new Date("2024-03-01"),
                 modified_on: new Date("2024-03-01"),
                 is_active: true,
+                metadata: null,
             };
 
             const saved = repository.save(account);
@@ -104,6 +107,7 @@ describe("AccountRepositoryImpl", () => {
                 created_on: new Date("2024-03-01"),
                 modified_on: new Date("2024-03-01"),
                 is_active: true,
+                metadata: null,
             };
 
             const saved = repository.save(account);
@@ -132,6 +136,7 @@ describe("AccountRepositoryImpl", () => {
                 created_on: new Date("2024-03-01T12:34:56.789Z"),
                 modified_on: new Date("2024-03-01T12:34:56.789Z"),
                 is_active: true,
+                metadata: null,
             };
 
             const saved = repository.save(account);
@@ -154,6 +159,7 @@ describe("AccountRepositoryImpl", () => {
                 created_on: new Date("2024-03-01"),
                 modified_on: new Date("2024-03-01"),
                 is_active: true,
+                metadata: null,
             };
 
             const account2: Account = {
@@ -167,6 +173,7 @@ describe("AccountRepositoryImpl", () => {
                 created_on: new Date("2024-03-01"),
                 modified_on: new Date("2024-03-01"),
                 is_active: false,
+                metadata: null,
             };
 
             const saved1 = repository.save(account1);
@@ -190,6 +197,7 @@ describe("AccountRepositoryImpl", () => {
                 created_on: new Date("2024-03-01"),
                 modified_on: new Date("2024-03-01"),
                 is_active: false,
+                metadata: null,
             };
 
             repository.save(account);
@@ -212,6 +220,7 @@ describe("AccountRepositoryImpl", () => {
                 created_on: new Date("2024-03-01"),
                 modified_on: new Date("2024-03-01"),
                 is_active: true,
+                metadata: null,
             };
 
             const liability1: Account = {
@@ -225,6 +234,7 @@ describe("AccountRepositoryImpl", () => {
                 created_on: new Date("2024-03-01"),
                 modified_on: new Date("2024-03-01"),
                 is_active: true,
+                metadata: null,
             };
 
             repository.save(asset1);
@@ -254,6 +264,7 @@ describe("AccountRepositoryImpl", () => {
                 created_on: new Date("2024-03-01"),
                 modified_on: new Date("2024-03-01"),
                 is_active: true,
+                metadata: null,
             };
 
             const saved = repository.save(account);

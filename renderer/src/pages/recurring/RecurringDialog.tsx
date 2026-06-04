@@ -1,6 +1,8 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { Account } from '../../../../src/types/account'
+import { AccountSubType } from '../../../../src/types/account'
 import type { Category } from '../../../../src/types/category'
+import type { PortfolioAsset } from '../../../../src/types/portfolioAsset'
 import {
   RecurringFrequency,
   type CreateRecurringTransactionRequest,
@@ -96,7 +98,26 @@ export function RecurringDialog({
   onClose,
   onSaved,
 }: RecurringDialogProps) {
-  const defaultAccountId = recurring?.account_id ?? accounts[0]?.account_id ?? 0
+  const isExistingSip = recurring?.portfolio_asset_id != null
+
+  // ── SIP toggle ────────────────────────────────────────────────────────────
+  const [isPortfolioSip, setIsPortfolioSip] = useState(isExistingSip)
+  const [portfolioAssets, setPortfolioAssets] = useState<PortfolioAsset[]>([])
+  const [portfolioAssetId, setPortfolioAssetId] = useState(
+    recurring?.portfolio_asset_id ? String(recurring.portfolio_asset_id) : ''
+  )
+  const [assetAccountId, setAssetAccountId] = useState(
+    recurring?.asset_account_id ? String(recurring.asset_account_id) : ''
+  )
+  // Source account for SIP (optional bank debit)
+  const [sipSourceAccountId, setSipSourceAccountId] = useState(
+    isExistingSip && recurring?.account_id ? String(recurring.account_id) : ''
+  )
+
+  // ── Regular fields ────────────────────────────────────────────────────────
+  const defaultAccountId = (!isExistingSip && recurring?.account_id)
+    ? recurring.account_id
+    : (accounts[0]?.account_id ?? 0)
   const [accountId, setAccountId] = useState(String(defaultAccountId))
   const [transactionType, setTransactionType] = useState<TransactionType.Withdraw | TransactionType.Deposit>(
     recurring?.transaction_type ?? TransactionType.Withdraw
@@ -129,20 +150,47 @@ export function RecurringDialog({
   const [saving, setSaving] = useState(false)
 
   const categoryPathMap = useMemo(() => createCategoryPathMap(categories), [categories])
+  const investmentAccounts = useMemo(
+    () => accounts.filter((a) => a.sub_type === AccountSubType.Investment),
+    [accounts]
+  )
+
+  useEffect(() => {
+    if (isPortfolioSip && portfolioAssets.length === 0) {
+      window.financeAPI.portfolio.asset.list()
+        .then(setPortfolioAssets)
+        .catch(console.error)
+    }
+  }, [isPortfolioSip])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
-    if (!accountId || !startDate || !amount) {
-      setError('Account, start date, and amount are required.')
+    const parsedAmount = Number(amount)
+    if (!amount || Number.isNaN(parsedAmount) || parsedAmount <= 0) {
+      setError('Amount must be greater than 0.')
+      return
+    }
+    if (!startDate) {
+      setError('Start date is required.')
       return
     }
 
-    const parsedAmount = Number(amount)
-    if (Number.isNaN(parsedAmount) || parsedAmount <= 0) {
-      setError('Amount must be greater than 0.')
-      return
+    if (isPortfolioSip) {
+      if (!portfolioAssetId) {
+        setError('Please select a fund.')
+        return
+      }
+      if (!assetAccountId) {
+        setError('Investment account is required for portfolio SIPs.')
+        return
+      }
+    } else {
+      if (!accountId) {
+        setError('Account is required.')
+        return
+      }
     }
 
     const recurrencePayload: {
@@ -181,32 +229,56 @@ export function RecurringDialog({
     setSaving(true)
     try {
       if (mode === 'create') {
-        const request: CreateRecurringTransactionRequest = {
-          account_id: Number(accountId),
-          transaction_type: transactionType,
-          amount: parsedAmount,
-          category_id: categoryId ? Number(categoryId) : undefined,
-          classification,
-          payee: payee.trim() || undefined,
-          note: note.trim() || undefined,
-          frequency,
-          start_date: new Date(startDate),
-          ...recurrencePayload,
-        }
+        const request: CreateRecurringTransactionRequest = isPortfolioSip
+          ? {
+              account_id: sipSourceAccountId ? Number(sipSourceAccountId) : null,
+              transaction_type: TransactionType.Withdraw,
+              amount: parsedAmount,
+              classification: null,
+              frequency,
+              start_date: new Date(startDate),
+              portfolio_asset_id: Number(portfolioAssetId),
+              asset_account_id: Number(assetAccountId),
+              ...recurrencePayload,
+            }
+          : {
+              account_id: Number(accountId),
+              transaction_type: transactionType,
+              amount: parsedAmount,
+              category_id: categoryId ? Number(categoryId) : undefined,
+              classification,
+              payee: payee.trim() || undefined,
+              note: note.trim() || undefined,
+              frequency,
+              start_date: new Date(startDate),
+              ...recurrencePayload,
+            }
         await window.financeAPI.createRecurring(request)
       } else if (mode === 'edit' && recurring?.recurring_id) {
-        const request: UpdateRecurringTransactionRequest = {
-          account_id: Number(accountId),
-          transaction_type: transactionType,
-          amount: parsedAmount,
-          category_id: categoryId ? Number(categoryId) : undefined,
-          classification,
-          payee: payee.trim() || undefined,
-          note: note.trim() || undefined,
-          frequency,
-          start_date: new Date(startDate),
-          ...recurrencePayload,
-        }
+        const request: UpdateRecurringTransactionRequest = isPortfolioSip
+          ? {
+              account_id: sipSourceAccountId ? Number(sipSourceAccountId) : null,
+              transaction_type: TransactionType.Withdraw,
+              amount: parsedAmount,
+              classification: null,
+              frequency,
+              start_date: new Date(startDate),
+              portfolio_asset_id: Number(portfolioAssetId),
+              asset_account_id: Number(assetAccountId),
+              ...recurrencePayload,
+            }
+          : {
+              account_id: Number(accountId),
+              transaction_type: transactionType,
+              amount: parsedAmount,
+              category_id: categoryId ? Number(categoryId) : undefined,
+              classification,
+              payee: payee.trim() || undefined,
+              note: note.trim() || undefined,
+              frequency,
+              start_date: new Date(startDate),
+              ...recurrencePayload,
+            }
         await window.financeAPI.updateRecurring(recurring.recurring_id, request)
       }
 
@@ -229,88 +301,169 @@ export function RecurringDialog({
       onClose={onClose}
     >
       <form className="recurring-dialog__form" onSubmit={handleSubmit}>
+        {/* ── Portfolio SIP toggle ─────────────────────────────────────── */}
+        <div className="recurring-dialog__sip-toggle">
+          <label className="recurring-dialog__sip-label">
+            <input
+              type="checkbox"
+              checked={isPortfolioSip}
+              onChange={(e) => setIsPortfolioSip(e.target.checked)}
+              className="recurring-dialog__sip-checkbox"
+            />
+            This is a mutual fund SIP
+          </label>
+        </div>
+
         <div className="recurring-dialog__grid">
-          <Select
-            id="recurring-account"
-            label="Account"
-            className="recurring-dialog__field"
-            value={accountId}
-            onChange={(e) => setAccountId(e.target.value)}
-            required
-          >
-            <option value="" disabled>Select account…</option>
-            {accounts.map((account) => (
-              <option key={account.account_id} value={account.account_id}>
-                {account.account_name}
-              </option>
-            ))}
-          </Select>
+          {isPortfolioSip ? (
+            <>
+              {/* ── SIP fields ──────────────────────────────────────────── */}
+              <Select
+                id="recurring-fund"
+                label="Fund"
+                className="recurring-dialog__field"
+                value={portfolioAssetId}
+                onChange={(e) => setPortfolioAssetId(e.target.value)}
+                required
+              >
+                <option value="" disabled>Select fund…</option>
+                {portfolioAssets.map((asset) => (
+                  <option key={asset.id} value={asset.id}>
+                    {asset.name}
+                  </option>
+                ))}
+              </Select>
 
-          <Input
-            id="recurring-payee"
-            label="Payee"
-            className="recurring-dialog__field"
-            type="text"
-            value={payee}
-            onChange={(e) => setPayee(e.target.value)}
-            placeholder="e.g. Rent, Salary"
-          />
+              <Select
+                id="recurring-asset-account"
+                label="Investment Account"
+                className="recurring-dialog__field"
+                value={assetAccountId}
+                onChange={(e) => setAssetAccountId(e.target.value)}
+                required
+              >
+                <option value="" disabled>Select investment account…</option>
+                {investmentAccounts.map((account) => (
+                  <option key={account.account_id} value={account.account_id}>
+                    {account.account_name}
+                  </option>
+                ))}
+              </Select>
 
-          <Select
-            id="recurring-type"
-            label="Type"
-            className="recurring-dialog__field"
-            value={transactionType}
-            onChange={(e) =>
-              setTransactionType(e.target.value as TransactionType.Withdraw | TransactionType.Deposit)
-            }
-          >
-            <option value={TransactionType.Withdraw}>Withdraw</option>
-            <option value={TransactionType.Deposit}>Deposit</option>
-          </Select>
+              <Select
+                id="recurring-sip-source"
+                label="Source Account (optional)"
+                className="recurring-dialog__field"
+                value={sipSourceAccountId}
+                onChange={(e) => setSipSourceAccountId(e.target.value)}
+              >
+                <option value="">None — no bank debit</option>
+                {accounts.map((account) => (
+                  <option key={account.account_id} value={account.account_id}>
+                    {account.account_name}
+                  </option>
+                ))}
+              </Select>
 
-          <Input
-            id="recurring-amount"
-            label="Amount"
-            className="recurring-dialog__field"
-            type="number"
-            min="0.01"
-            step="0.01"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            required
-          />
+              <Input
+                id="recurring-amount"
+                label="SIP Amount (₹)"
+                className="recurring-dialog__field"
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                required
+              />
+            </>
+          ) : (
+            <>
+              {/* ── Regular recurring fields ─────────────────────────────── */}
+              <Select
+                id="recurring-account"
+                label="Account"
+                className="recurring-dialog__field"
+                value={accountId}
+                onChange={(e) => setAccountId(e.target.value)}
+                required
+              >
+                <option value="" disabled>Select account…</option>
+                {accounts.map((account) => (
+                  <option key={account.account_id} value={account.account_id}>
+                    {account.account_name}
+                  </option>
+                ))}
+              </Select>
 
-          <Select
-            id="recurring-category"
-            label="Category"
-            className="recurring-dialog__field"
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-          >
-            <option value="">No category</option>
-            {categories.map((category) => (
-              <option key={category.category_id} value={category.category_id}>
-                {category.category_id
-                  ? categoryPathMap.get(category.category_id)
-                  : category.category_name}
-              </option>
-            ))}
-          </Select>
+              <Input
+                id="recurring-payee"
+                label="Payee"
+                className="recurring-dialog__field"
+                type="text"
+                value={payee}
+                onChange={(e) => setPayee(e.target.value)}
+                placeholder="e.g. Rent, Salary"
+              />
 
-          <Select
-            id="recurring-classification"
-            label="Classification"
-            className="recurring-dialog__field"
-            value={classification}
-            onChange={(e) => setClassification(e.target.value as Classification)}
-          >
-            <option value={Classification.Needs}>Needs</option>
-            <option value={Classification.Wants}>Wants</option>
-            <option value={Classification.Unnecessary}>Unnecessary</option>
-            <option value={Classification.Wasteful}>Wasteful</option>
-          </Select>
+              <Select
+                id="recurring-type"
+                label="Type"
+                className="recurring-dialog__field"
+                value={transactionType}
+                onChange={(e) =>
+                  setTransactionType(e.target.value as TransactionType.Withdraw | TransactionType.Deposit)
+                }
+              >
+                <option value={TransactionType.Withdraw}>Withdraw</option>
+                <option value={TransactionType.Deposit}>Deposit</option>
+              </Select>
 
+              <Input
+                id="recurring-amount"
+                label="Amount"
+                className="recurring-dialog__field"
+                type="number"
+                min="0.01"
+                step="0.01"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                required
+              />
+
+              <Select
+                id="recurring-category"
+                label="Category"
+                className="recurring-dialog__field"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+              >
+                <option value="">No category</option>
+                {categories.map((category) => (
+                  <option key={category.category_id} value={category.category_id}>
+                    {category.category_id
+                      ? categoryPathMap.get(category.category_id)
+                      : category.category_name}
+                  </option>
+                ))}
+              </Select>
+
+              <Select
+                id="recurring-classification"
+                label="Classification"
+                className="recurring-dialog__field"
+                value={classification}
+                onChange={(e) => setClassification(e.target.value as Classification)}
+              >
+                <option value={Classification.Needs}>Needs</option>
+                <option value={Classification.Wants}>Wants</option>
+                <option value={Classification.Unnecessary}>Unnecessary</option>
+                <option value={Classification.Wasteful}>Wasteful</option>
+              </Select>
+            </>
+          )}
+
+          {/* ── Shared: frequency + recurrence + start date ─────────────── */}
           <Select
             id="recurring-frequency"
             label="Frequency"
@@ -392,19 +545,30 @@ export function RecurringDialog({
             required
           />
 
-          <div className="recurring-dialog__field recurring-dialog__field--full">
-            <label htmlFor="recurring-note">
-              Note <span className="recurring-dialog__optional">(optional)</span>
-            </label>
-            <textarea
-              id="recurring-note"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              rows={2}
-              placeholder="Add a note…"
-            />
-          </div>
+          {!isPortfolioSip && (
+            <div className="recurring-dialog__field recurring-dialog__field--full">
+              <label htmlFor="recurring-note">
+                Note <span className="recurring-dialog__optional">(optional)</span>
+              </label>
+              <textarea
+                id="recurring-note"
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                rows={2}
+                placeholder="Add a note…"
+              />
+            </div>
+          )}
         </div>
+
+        {isPortfolioSip && (
+          <p className="recurring-dialog__sip-hint">
+            On each due date, ₹{amount || '—'} will be invested at the NAV of that date.
+            {sipSourceAccountId
+              ? ` The selected account will be debited.`
+              : ' No bank account will be debited.'}
+          </p>
+        )}
 
         {error && <p className="recurring-dialog__error">{error}</p>}
 

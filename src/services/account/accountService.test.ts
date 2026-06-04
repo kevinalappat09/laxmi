@@ -25,7 +25,8 @@ describe("AccountServiceImpl", () => {
                 opened_on TEXT NOT NULL,
                 created_on TEXT NOT NULL,
                 modified_on TEXT NOT NULL,
-                is_active INTEGER NOT NULL DEFAULT 1
+                is_active INTEGER NOT NULL DEFAULT 1,
+                metadata TEXT
             );
 
             CREATE TABLE transactions (

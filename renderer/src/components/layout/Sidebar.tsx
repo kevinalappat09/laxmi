@@ -48,6 +48,12 @@ export function Sidebar({ isOpen, activePage, onNavigate }: SidebarProps) {
           Reports
         </button>
         <button
+          className={`sidebar__nav-item${activePage === 'portfolio' ? ' sidebar__nav-item--active' : ''}`}
+          onClick={() => onNavigate('portfolio')}
+        >
+          Portfolio
+        </button>
+        <button
           className={`sidebar__nav-item${activePage === 'import-export' ? ' sidebar__nav-item--active' : ''}`}
           onClick={() => onNavigate('import-export')}
         >

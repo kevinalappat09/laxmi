@@ -187,6 +187,95 @@ describe("Migration Integration Tests", () => {
         migrationService.migrate(db);
 
         const version = getCurrentSchemaVersion(db);
-        expect(version).toBe(5);
+        expect(version).toBe(13);
+    });
+
+    describe("Migration 8 — relax recurring_transactions constraints", () => {
+        beforeEach(() => {
+            db = new Database(":memory:");
+            initializeSchema(db);
+            const migrationService = new MigrationService(migrationsDir);
+            migrationService.migrate(db);
+        });
+
+        it("account_id and classification should be nullable after migration", () => {
+            const tableInfo = db
+                .prepare("PRAGMA table_info(recurring_transactions)")
+                .all() as any[];
+
+            const accountIdCol = tableInfo.find((col) => col.name === "account_id");
+            const classificationCol = tableInfo.find((col) => col.name === "classification");
+
+            expect(accountIdCol).toBeDefined();
+            expect(accountIdCol.notnull).toBe(0);
+
+            expect(classificationCol).toBeDefined();
+            expect(classificationCol.notnull).toBe(0);
+        });
+
+        it("transactions.classification should remain NOT NULL after migration", () => {
+            const tableInfo = db
+                .prepare("PRAGMA table_info(transactions)")
+                .all() as any[];
+
+            const classificationCol = tableInfo.find((col) => col.name === "classification");
+
+            expect(classificationCol).toBeDefined();
+            expect(classificationCol.notnull).toBe(1);
+        });
+
+        it("existing recurring transactions are preserved after migration", () => {
+            db.prepare(`
+                INSERT INTO accounts (
+                    institution_name, account_name, account_type, sub_type,
+                    color, opened_on, created_on, modified_on, is_active
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).run("TestBank", "Savings", "Asset", "savings", "#000000",
+                   "2024-01-01", "2024-01-01T00:00:00Z", "2024-01-01T00:00:00Z", 1);
+
+            db.prepare(`
+                INSERT INTO recurring_transactions (
+                    account_id, transaction_type, amount, classification,
+                    frequency, day_of_month, start_date, is_active,
+                    created_on, modified_on
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).run(1, "withdraw", 5000, "needs", "monthly", 1,
+                   "2024-01-01", 1, "2024-01-01T00:00:00Z", "2024-01-01T00:00:00Z");
+
+            const rows = db
+                .prepare("SELECT * FROM recurring_transactions")
+                .all() as any[];
+
+            expect(rows).toHaveLength(1);
+            expect(rows[0].account_id).toBe(1);
+            expect(rows[0].amount).toBe(5000);
+            expect(rows[0].classification).toBe("needs");
+        });
+
+        it("can insert a recurring transaction with null account_id and null classification", () => {
+            const result = db.prepare(`
+                INSERT INTO recurring_transactions (
+                    account_id, transaction_type, amount, classification,
+                    frequency, day_of_month, start_date, is_active,
+                    created_on, modified_on
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            `).run(null, "deposit", 10000, null, "monthly", 15,
+                   "2024-01-01", 1, "2024-01-01T00:00:00Z", "2024-01-01T00:00:00Z");
+
+            expect(result.changes).toBe(1);
+        });
+
+        it("required indexes exist on recurring_transactions after migration", () => {
+            const indexes = db
+                .prepare("SELECT name FROM sqlite_master WHERE type='index' AND tbl_name='recurring_transactions'")
+                .all() as any[];
+
+            const indexNames = indexes.map((idx: any) => idx.name);
+
+            expect(indexNames).toContain("idx_recurring_transactions_active");
+            expect(indexNames).toContain("idx_recurring_transactions_frequency");
+            expect(indexNames).toContain("idx_recurring_transactions_account");
+            expect(indexNames).toContain("idx_recurring_transactions_category");
+        });
     });
 });

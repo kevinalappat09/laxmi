@@ -141,6 +141,38 @@
   margin: 0;
 }
 
+/* Type selector strip */
+.account-dialog__type-strip {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.account-dialog__type-btn {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1.5px solid var(--color-bg-input);
+  background: var(--color-bg-input);
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  font-family: inherit;
+}
+
+.account-dialog__type-btn:hover {
+  border-color: var(--color-accent);
+  color: var(--color-text-primary);
+}
+
+.account-dialog__type-btn--active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: #fff;
+}
+
 /* Footer actions */
 .account-dialog__actions {
   display: flex;

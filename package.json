@@ -1,21 +1,53 @@
 {
-  "devDependencies": {
-    "@electron/rebuild": "4.0.3",
-    "@types/better-sqlite3": "7.6.13",
-    "@types/jest": "30.0.0",
-    "@types/node": "25.3.3",
-    "concurrently": "9.2.1",
-    "electron": "40.6.1",
-    "jest": "29.7.0",
-    "ts-jest": "29.4.6",
-    "ts-node": "10.9.2",
-    "typescript": "5.9.3",
-    "wait-on": "9.0.4"
-  },
   "name": "laxmi",
+  "productName": "Laxmi",
   "version": "1.0.0",
-  "description": "",
+  "description": "Local-first, open-source, opinionated personal finance management software.",
   "main": "dist/main.js",
+  "type": "commonjs",
+  "author": "Kevin Alappat",
+  "license": "GPL-3.0-only",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/kevinalappat09/laxmi.git"
+  },
+  "homepage": "https://github.com/kevinalappat09/laxmi",
+  "bugs": {
+    "url": "https://github.com/kevinalappat09/laxmi/issues"
+  },
+  "keywords": [
+    "personal-finance",
+    "budgeting",
+    "finance",
+    "local-first",
+    "desktop",
+    "electron",
+    "accounting"
+  ],
+  "engines": {
+    "node": ">=22 <26"
+  },
+  "scripts": {
+    "dev": "concurrently \"npm:dev:renderer\" \"npm:dev:electron\"",
+    "dev:renderer": "npm --prefix renderer run dev",
+    "predev:electron": "npm run rebuild:native",
+    "dev:electron": "concurrently \"tsc -w\" \"wait-on http://localhost:5173 && electron dist/main.js\"",
+    "build": "npm run build:renderer && npm run build:electron",
+    "build:renderer": "npm --prefix renderer run build",
+    "build:electron": "tsc",
+    "rebuild:native": "electron-rebuild -f -w better-sqlite3",
+    "predist": "npm run build",
+    "dist": "electron-builder --publish never",
+    "predist:win": "npm run build",
+    "dist:win": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win --publish never",
+    "predist:linux": "npm run build",
+    "dist:linux": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --linux --publish never",
+    "verify": "npm run build && npm run test",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:run": "jest --runInBand",
+    "postinstall": "npm run rebuild:native"
+  },
   "dependencies": {
     "acorn": "8.16.0",
     "acorn-walk": "8.3.5",
@@ -125,30 +157,27 @@
     "v8-compile-cache-lib": "3.0.1",
     "wrap-ansi": "7.0.0",
     "wrappy": "1.0.2",
+    "xirr": "1.1.0",
     "y18n": "5.0.8",
+    "yahoo-finance2": "3.14.1",
     "yargs": "17.7.2",
     "yargs-parser": "21.1.1",
     "yauzl": "2.10.0",
     "yn": "3.1.1"
   },
-  "scripts": {
-    "build": "npm run build:renderer && npm run build:electron",
-    "build:electron": "tsc",
-    "build:renderer": "npm --prefix renderer run build",
-    "dev": "concurrently \"npm:dev:react\" \"npm:dev:electron\"",
-    "rebuild:native": "electron-rebuild -f -w better-sqlite3",
-    "dev:react": "npm --prefix renderer run dev",
-    "predev:electron": "npm run rebuild:native",
-    "dev:electron": "concurrently \"tsc -w\" \"wait-on http://localhost:5173 && electron dist/main.js\"",
-    "package:win": "npx @electron/packager . Laxmi --platform=win32 --arch=x64 --out=releases --overwrite",
-    "release:win": "npm run build && npm run package:win",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:run": "jest --runInBand",
-    "postinstall": "npm run rebuild:native"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs"
+  "devDependencies": {
+    "@electron/rebuild": "4.0.3",
+    "@types/better-sqlite3": "7.6.13",
+    "@types/jest": "30.0.0",
+    "@types/node": "25.3.3",
+    "concurrently": "9.2.1",
+    "cross-env": "10.1.0",
+    "electron": "40.6.1",
+    "electron-builder": "26.8.1",
+    "jest": "29.7.0",
+    "ts-jest": "29.4.6",
+    "ts-node": "10.9.2",
+    "typescript": "5.9.3",
+    "wait-on": "9.0.4"
+  }
 }
