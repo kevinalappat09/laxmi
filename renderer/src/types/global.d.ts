@@ -146,6 +146,7 @@ declare global {
                 asset: (assetId: number) => Promise<AssetAnalytics>
                 navHistory: (assetId: number, fromDate: string, toDate: string) => Promise<{ date: string; nav: number }[]>
                 valueHistory: (fromDate: string) => Promise<PortfolioValuePoint[]>
+                valueByAccount: (accountId: number) => Promise<number>
             }
         }
     }

@@ -41,6 +41,7 @@ export interface PortfolioTransactionRepository {
     listAll(): PortfolioTransaction[];
     getHoldings(): PortfolioHoldingRow[];
     getSummary(): PortfolioSummaryRow[];
+    getValueByAccount(accountId: number): number;
     getTotalUnitsHeld(portfolioAssetId: number): number;
 }
 
@@ -114,6 +115,33 @@ export class PortfolioTransactionRepositoryImpl implements PortfolioTransactionR
     getSummary(): PortfolioSummaryRow[] {
         const rows = this.db.prepare(`SELECT * FROM portfolio_summary`).all() as any[];
         return rows.map((r) => this.mapSummaryRow(r));
+    }
+
+    getValueByAccount(accountId: number): number {
+        const row = this.db.prepare(`
+            SELECT COALESCE(SUM(h.total_units * a.current_price), 0) AS total_value
+            FROM (
+                SELECT
+                    portfolio_asset_id,
+                    SUM(
+                        CASE
+                            WHEN transaction_type IN ('BUY', 'SIP') THEN quantity
+                            WHEN transaction_type = 'DIVIDEND' AND is_dividend_reinvestment = 1 THEN quantity
+                            WHEN transaction_type IN ('SELL', 'REDEMPTION') THEN -quantity
+                            ELSE 0
+                        END
+                    ) AS total_units
+                FROM portfolio_transactions
+                WHERE is_active = 1
+                  AND asset_account_id = ?
+                GROUP BY portfolio_asset_id
+                HAVING total_units > 0
+            ) h
+            JOIN portfolio_assets a ON a.id = h.portfolio_asset_id
+            WHERE a.is_active = 1
+        `).get(accountId) as { total_value: number } | undefined;
+
+        return row?.total_value ?? 0;
     }
 
     getTotalUnitsHeld(portfolioAssetId: number): number {

@@ -82,6 +82,7 @@ function buildPortfolioFlows(
 
 export interface PortfolioAnalyticsService {
     getPortfolioSummary(): PortfolioSummaryAnalytics
+    getValueByAccount(accountId: number): number
     getAssetAnalytics(assetId: number): AssetAnalytics
     getNavHistory(assetId: number, fromDate: string, toDate: string): { date: string; nav: number }[]
     getPortfolioValueHistory(fromDate: string): PortfolioValuePoint[]
@@ -214,6 +215,14 @@ export class PortfolioAnalyticsServiceImpl implements PortfolioAnalyticsService 
             portfolioValueHistory: [],  // fetched separately via portfolio:analytics:value-history
             asOfDate: now.toISOString(),
         }
+    }
+
+    getValueByAccount(accountId: number): number {
+        const db = profileSessionService.getDatabaseConnection()
+        if (!db) throw new Error('No active database connection. Open a profile first.')
+
+        const txnRepo = new PortfolioTransactionRepositoryImpl(db)
+        return txnRepo.getValueByAccount(accountId)
     }
 
     getAssetAnalytics(assetId: number): AssetAnalytics {

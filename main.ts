@@ -298,6 +298,10 @@ ipcMain.handle("portfolio:analytics:value-history",
     (_event, { fromDate }: { fromDate: string }) =>
         portfolioAnalyticsService.getPortfolioValueHistory(fromDate)
 )
+ipcMain.handle("portfolio:analytics:value-by-account",
+    (_event, { accountId }: { accountId: number }) =>
+        portfolioAnalyticsService.getValueByAccount(accountId)
+)
 
 // Portfolio — Prices
 ipcMain.handle("portfolio:prices:refresh-all",

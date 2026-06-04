@@ -165,6 +165,8 @@ contextBridge.exposeInMainWorld("financeAPI", {
                 ipcRenderer.invoke("portfolio:analytics:nav-history", { assetId, fromDate, toDate }),
             valueHistory: (fromDate: string): Promise<PortfolioValuePoint[]> =>
                 ipcRenderer.invoke("portfolio:analytics:value-history", { fromDate }),
+            valueByAccount: (accountId: number): Promise<number> =>
+                ipcRenderer.invoke("portfolio:analytics:value-by-account", { accountId }),
         },
     },
 })
