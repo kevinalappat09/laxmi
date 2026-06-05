@@ -3,7 +3,7 @@ import { AccountSubType, AccountType } from '../../../../src/types/account'
 import type { Account, CreateAccountRequest, UpdateAccountRequest } from '../../../../src/types/account'
 import { Button } from '../../components/ui/Button'
 import { Dialog } from '../../components/ui/Dialog'
-import { Input, Select } from '../../components/ui/Input'
+import { Input } from '../../components/ui/Input'
 import './AccountDialog.css'
 
 const PALETTE = [
@@ -15,6 +15,13 @@ const PALETTE = [
   { hex: '#3498DB', label: 'Blue' },
   { hex: '#9B59B6', label: 'Purple' },
   { hex: '#EC407A', label: 'Pink' },
+]
+
+const ACCOUNT_TYPES: { label: string; subType: AccountSubType }[] = [
+  { label: 'Checking',   subType: AccountSubType.Checking },
+  { label: 'Savings',    subType: AccountSubType.Savings },
+  { label: 'Credit',     subType: AccountSubType.Credit },
+  { label: 'Investment', subType: AccountSubType.Investment },
 ]
 
 function toDateInputValue(date: Date): string {
@@ -33,9 +40,15 @@ interface AccountDialogProps {
 }
 
 export function AccountDialog({ mode, account, onClose, onSaved }: AccountDialogProps) {
+  const initialSubType = account?.sub_type ?? AccountSubType.Checking
+  const [subType, setSubType] = useState<AccountSubType>(
+    initialSubType === AccountSubType.Salary ? AccountSubType.Checking : initialSubType
+  )
   const [institutionName, setInstitutionName] = useState(account?.institution_name ?? '')
   const [accountName, setAccountName] = useState(account?.account_name ?? '')
-  const [subType, setSubType] = useState<AccountSubType>(account?.sub_type ?? AccountSubType.Checking)
+  const [broker, setBroker] = useState(
+    account?.metadata?.brokerage ? String(account.metadata.brokerage) : ''
+  )
   const [color, setColor] = useState(account?.color ?? PALETTE[5].hex)
   const [openedOn, setOpenedOn] = useState(
     account?.opened_on ? toDateInputValue(new Date(account.opened_on)) : ''
@@ -43,35 +56,43 @@ export function AccountDialog({ mode, account, onClose, onSaved }: AccountDialog
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
+  const isInvestment = subType === AccountSubType.Investment
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
 
-    if (!institutionName.trim() || !accountName.trim() || !openedOn) {
+    const nameForValidation = isInvestment ? broker : institutionName
+    if (!nameForValidation.trim() || !accountName.trim() || !openedOn) {
       setError('All fields are required.')
       return
     }
 
     setSaving(true)
     try {
+      const resolvedInstitution = isInvestment ? broker.trim() : institutionName.trim()
+      const metadata = isInvestment ? { brokerage: broker.trim() } : undefined
+
       if (mode === 'create') {
         const request: CreateAccountRequest = {
-          institution_name: institutionName.trim(),
+          institution_name: resolvedInstitution,
           account_name: accountName.trim(),
           account_type: AccountType.Asset,
           sub_type: subType,
           color,
           opened_on: new Date(openedOn),
+          metadata,
         }
         await window.financeAPI.createAccount(request)
       } else if (mode === 'edit' && account) {
         const request: UpdateAccountRequest = {
-          institution_name: institutionName.trim(),
+          institution_name: resolvedInstitution,
           account_name: accountName.trim(),
           account_type: AccountType.Asset,
           sub_type: subType,
           color,
           opened_on: new Date(openedOn),
+          metadata,
         }
         await window.financeAPI.updateAccount(account.account_id, request)
       }
@@ -94,34 +115,52 @@ export function AccountDialog({ mode, account, onClose, onSaved }: AccountDialog
       onClose={onClose}
     >
       <form className="account-dialog__form" onSubmit={handleSubmit}>
-        <Input
-          id="institutionName"
-          label="Institution Name"
-          type="text"
-          value={institutionName}
-          onChange={(e) => setInstitutionName(e.target.value)}
-          placeholder="e.g. Chase, Wells Fargo"
-          required
-        />
+        {/* Type selector strip */}
+        <div className="account-dialog__type-strip">
+          {ACCOUNT_TYPES.map(({ label, subType: st }) => (
+            <button
+              key={st}
+              type="button"
+              className={`account-dialog__type-btn${subType === st ? ' account-dialog__type-btn--active' : ''}`}
+              onClick={() => setSubType(st)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {/* Fields based on selected type */}
+        {isInvestment ? (
+          <Input
+            id="broker"
+            label="Broker"
+            type="text"
+            value={broker}
+            onChange={(e) => setBroker(e.target.value)}
+            placeholder="e.g. Zerodha, Groww"
+            required
+          />
+        ) : (
+          <Input
+            id="institutionName"
+            label="Bank Name"
+            type="text"
+            value={institutionName}
+            onChange={(e) => setInstitutionName(e.target.value)}
+            placeholder="e.g. HDFC, SBI"
+            required
+          />
+        )}
 
         <Input
           id="accountName"
-          label="Account Name"
+          label={subType === AccountSubType.Credit ? 'Card Name' : 'Account Name'}
           type="text"
           value={accountName}
           onChange={(e) => setAccountName(e.target.value)}
-          placeholder="e.g. Main Checking"
+          placeholder={subType === AccountSubType.Credit ? 'e.g. HDFC Regalia' : 'e.g. Main Savings'}
           required
         />
-
-        <Select
-          id="subType"
-          label="Type"
-          value={subType}
-          onChange={(e) => setSubType(e.target.value as AccountSubType)}
-        >
-          <option value={AccountSubType.Checking}>Checking</option>
-        </Select>
 
         <div className="account-dialog__field">
           <label>Color</label>

@@ -6,6 +6,9 @@
 
 import { AccountRepositoryImpl } from "../../repository/account/accountRepository";
 import { CategoryRepositoryImpl } from "../../repository/category/categoryRepository";
+import { PortfolioAssetRepositoryImpl } from "../../repository/portfolioAsset/portfolioAssetRepository";
+import { PortfolioPriceRepositoryImpl } from "../../repository/portfolioPrice/portfolioPriceRepository";
+import { PortfolioTransactionRepositoryImpl } from "../../repository/portfolioTransaction/portfolioTransactionRepository";
 import {
     RecurringTransactionRepositoryImpl,
 } from "../../repository/recurringTransaction/recurringTransactionRepository";
@@ -16,8 +19,11 @@ import {
     RecurringTransaction,
     UpdateRecurringTransactionRequest,
 } from "../../types/recurringTransaction";
+import { Classification, TransactionType } from "../../types/transaction";
 import { profileSessionService } from "../profileSession/profileSessionService";
+import { MfapiProviderImpl } from "../priceUpdater/providers/mfapiProvider";
 import { TransactionServiceImpl } from "../transaction/transactionService";
+import { SQLiteDatabase } from "../../database/databaseService";
 
 export interface RecurringTransactionService {
     createRecurringTransaction(
@@ -30,7 +36,7 @@ export interface RecurringTransactionService {
     deactivateRecurringTransaction(recurringId: number): void;
     listRecurringTransactions(): RecurringTransaction[];
     getUpcomingNotifications(daysAhead?: number): RecurringUpcomingNotification[];
-    processRecurringTransactions(referenceDate?: Date): number;
+    processRecurringTransactions(referenceDate?: Date): Promise<number>;
 }
 
 type RecurrenceFields = {
@@ -38,6 +44,12 @@ type RecurrenceFields = {
     day_of_month?: number;
     month_of_year?: number;
 };
+
+interface SipError {
+    recurringId: number;
+    dueDate: Date;
+    error: string;
+}
 
 export class RecurringTransactionServiceImpl
     implements RecurringTransactionService
@@ -63,11 +75,11 @@ export class RecurringTransactionServiceImpl
         );
 
         const recurringTransaction: RecurringTransaction = {
-            account_id: request.account_id,
+            account_id: request.account_id ?? null,
             transaction_type: request.transaction_type,
             amount: request.amount,
             category_id: request.category_id,
-            classification: request.classification,
+            classification: request.classification ?? null,
             payee: request.payee?.trim() || undefined,
             note: request.note?.trim() || undefined,
             frequency: request.frequency,
@@ -76,6 +88,8 @@ export class RecurringTransactionServiceImpl
             is_active: true,
             created_on: now,
             modified_on: now,
+            portfolio_asset_id: request.portfolio_asset_id ?? null,
+            asset_account_id: request.asset_account_id ?? null,
         };
 
         const repository = new RecurringTransactionRepositoryImpl(db);
@@ -116,14 +130,16 @@ export class RecurringTransactionServiceImpl
 
         const updated: RecurringTransaction = {
             ...existing,
-            account_id: request.account_id ?? existing.account_id,
+            account_id: request.account_id !== undefined ? (request.account_id ?? null) : existing.account_id,
             transaction_type: request.transaction_type ?? existing.transaction_type,
             amount: request.amount ?? existing.amount,
             category_id:
                 request.category_id !== undefined
                     ? request.category_id
                     : existing.category_id,
-            classification: request.classification ?? existing.classification,
+            classification: request.classification !== undefined
+                ? (request.classification ?? null)
+                : existing.classification,
             payee:
                 request.payee !== undefined
                     ? request.payee.trim() || undefined
@@ -137,6 +153,12 @@ export class RecurringTransactionServiceImpl
             start_date: request.start_date ?? existing.start_date,
             is_active: request.is_active ?? existing.is_active,
             modified_on: new Date(),
+            portfolio_asset_id: request.portfolio_asset_id !== undefined
+                ? (request.portfolio_asset_id ?? null)
+                : existing.portfolio_asset_id,
+            asset_account_id: request.asset_account_id !== undefined
+                ? (request.asset_account_id ?? null)
+                : existing.asset_account_id,
         };
 
         this.validateEntity(updated, db);
@@ -217,7 +239,7 @@ export class RecurringTransactionServiceImpl
         });
     }
 
-    processRecurringTransactions(referenceDate: Date = new Date()): number {
+    async processRecurringTransactions(referenceDate: Date = new Date()): Promise<number> {
         const db = profileSessionService.getDatabaseConnection();
         if (!db) {
             throw new Error("No active database connection. Open a profile first.");
@@ -230,6 +252,7 @@ export class RecurringTransactionServiceImpl
             -1
         );
         let createdCount = 0;
+        const sipErrors: SipError[] = [];
 
         for (const recurring of recurringTransactions) {
             const startDate = this.toDateOnly(recurring.start_date);
@@ -248,28 +271,104 @@ export class RecurringTransactionServiceImpl
             );
 
             for (const dueDate of dueDates) {
-                this.transactionService.createTransaction({
-                    account_id: recurring.account_id,
-                    transaction_date: dueDate,
-                    transaction_type: recurring.transaction_type,
-                    amount: recurring.amount,
-                    category_id: recurring.category_id,
-                    classification: recurring.classification,
-                    payee: recurring.payee,
-                    note: recurring.note,
-                });
-            }
+                try {
+                    if (recurring.portfolio_asset_id != null) {
+                        await this.processSipEntry(recurring, dueDate, db);
+                    } else {
+                        this.transactionService.createTransaction({
+                            account_id: recurring.account_id!,
+                            transaction_date: dueDate,
+                            transaction_type: recurring.transaction_type,
+                            amount: recurring.amount,
+                            category_id: recurring.category_id,
+                            classification: recurring.classification!,
+                            payee: recurring.payee,
+                            note: recurring.note,
+                        });
+                    }
 
-            if (dueDates.length > 0 && recurring.recurring_id) {
-                repository.updateLastProcessedDate(
-                    recurring.recurring_id,
-                    dueDates[dueDates.length - 1]
-                );
-                createdCount += dueDates.length;
+                    repository.updateLastProcessedDate(recurring.recurring_id!, dueDate);
+                    createdCount++;
+
+                } catch (err) {
+                    console.warn(
+                        `SIP processing failed for recurring ${recurring.recurring_id} on ${dueDate.toISOString()}:`,
+                        err
+                    );
+                    sipErrors.push({
+                        recurringId: recurring.recurring_id!,
+                        dueDate,
+                        error: err instanceof Error ? err.message : String(err),
+                    });
+                }
             }
         }
 
         return createdCount;
+    }
+
+    private async processSipEntry(
+        recurring: RecurringTransaction,
+        dueDate: Date,
+        db: SQLiteDatabase
+    ): Promise<void> {
+        const dueDateISO = dueDate.toISOString().split("T")[0];
+
+        const assetRepo = new PortfolioAssetRepositoryImpl(db);
+        const asset = assetRepo.getById(recurring.portfolio_asset_id!);
+
+        if (!asset || !asset.isActive) {
+            throw new Error(`Portfolio asset ${recurring.portfolio_asset_id} not found or inactive`);
+        }
+        if (!asset.priceSourceId) {
+            throw new Error(`Asset ${asset.name} has no price source configured`);
+        }
+
+        // Check price history first; fall back to MFAPI
+        const priceRepo = new PortfolioPriceRepositoryImpl(db);
+        let navForDate = priceRepo.getNavForDate(asset.id, dueDateISO);
+
+        if (navForDate == null) {
+            const provider = new MfapiProviderImpl();
+            navForDate = await provider.getNavForDate(asset.priceSourceId, dueDateISO);
+            if (navForDate == null) {
+                throw new Error(`Could not find NAV for ${asset.name} on or after ${dueDateISO}`);
+            }
+            // Cache for future reference
+            priceRepo.upsertDailyPrice(asset.id, navForDate, asset.currency, dueDateISO);
+        }
+
+        const quantity = recurring.amount / navForDate;
+
+        db.transaction(() => {
+            const portfolioTxnRepo = new PortfolioTransactionRepositoryImpl(db);
+            portfolioTxnRepo.create({
+                portfolioAssetId:        asset.id,
+                transactionType:         "SIP",
+                quantity,
+                pricePerUnit:            navForDate!,
+                fees:                    0,
+                taxes:                   0,
+                currency:                asset.currency,
+                transactionDate:         dueDate,
+                isDividendReinvestment:  false,
+                assetAccountId:          recurring.asset_account_id!,
+                sourceAccountId:         recurring.account_id ?? null,
+                linkedRecurringId:       recurring.recurring_id!,
+            });
+
+            if (recurring.account_id != null) {
+                this.transactionService.createTransaction({
+                    account_id:       recurring.account_id,
+                    transaction_date: dueDate,
+                    transaction_type: TransactionType.Withdraw,
+                    amount:           recurring.amount,
+                    classification:   Classification.Needs,
+                    payee:            asset.name,
+                    note:             `SIP — ${asset.name}`,
+                });
+            }
+        })();
     }
 
     private computeDueDates(
@@ -396,8 +495,11 @@ export class RecurringTransactionServiceImpl
         request: CreateRecurringTransactionRequest,
         db: any
     ): void {
-        if (!request.account_id) {
-            throw new Error("account_id is required.");
+        if (!request.portfolio_asset_id && !request.account_id) {
+            throw new Error("account_id is required for non-portfolio recurring transactions.");
+        }
+        if (request.portfolio_asset_id && !request.asset_account_id) {
+            throw new Error("asset_account_id is required when portfolio_asset_id is set.");
         }
         if (!request.transaction_type) {
             throw new Error("transaction_type is required.");
@@ -408,8 +510,8 @@ export class RecurringTransactionServiceImpl
         if (request.amount <= 0) {
             throw new Error("amount must be greater than 0.");
         }
-        if (!request.classification) {
-            throw new Error("classification is required.");
+        if (!request.portfolio_asset_id && !request.classification) {
+            throw new Error("classification is required for non-portfolio recurring transactions.");
         }
         if (!request.frequency) {
             throw new Error("frequency is required.");
@@ -425,7 +527,12 @@ export class RecurringTransactionServiceImpl
             request.month_of_year
         );
 
-        this.validateAccountExists(request.account_id, db);
+        if (request.account_id) {
+            this.validateAccountExists(request.account_id, db);
+        }
+        if (request.asset_account_id) {
+            this.validateAccountExists(request.asset_account_id, db);
+        }
         if (request.category_id !== undefined && request.category_id !== null) {
             this.validateCategoryExists(request.category_id, db);
         }
@@ -443,6 +550,10 @@ export class RecurringTransactionServiceImpl
             this.validateAccountExists(request.account_id, db);
         }
 
+        if (request.asset_account_id !== undefined && request.asset_account_id !== null) {
+            this.validateAccountExists(request.asset_account_id, db);
+        }
+
         if (request.category_id !== undefined && request.category_id !== null) {
             this.validateCategoryExists(request.category_id, db);
         }
@@ -456,7 +567,12 @@ export class RecurringTransactionServiceImpl
             throw new Error("start_date is required.");
         }
 
-        this.validateAccountExists(entity.account_id, db);
+        if (entity.account_id) {
+            this.validateAccountExists(entity.account_id, db);
+        }
+        if (entity.asset_account_id) {
+            this.validateAccountExists(entity.asset_account_id, db);
+        }
         if (entity.category_id !== undefined && entity.category_id !== null) {
             this.validateCategoryExists(entity.category_id, db);
         }

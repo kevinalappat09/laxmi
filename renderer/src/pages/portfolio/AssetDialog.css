@@ -1,0 +1,145 @@
+.asset-dialog {
+  padding: 0;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+.asset-dialog::backdrop {
+  background-color: var(--color-overlay-strong);
+  backdrop-filter: blur(2px);
+}
+
+.asset-dialog__panel {
+  background-color: var(--color-bg-surface);
+  border-radius: 12px;
+  width: 480px;
+  max-width: 90vw;
+  box-shadow: 0 20px 60px var(--color-dialog-shadow);
+}
+
+.asset-dialog__body {
+  padding: 0 !important;
+}
+
+.asset-dialog__step {
+  padding: 20px 24px 24px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* Results list */
+.asset-dialog__results {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+}
+
+.asset-dialog__result-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  transition: background 0.12s;
+}
+
+.asset-dialog__result-item:hover {
+  background: var(--color-bg-input);
+}
+
+.asset-dialog__result-item--selected {
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+}
+
+/* Confirm step */
+.asset-dialog__confirm-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.asset-dialog__confirm-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.asset-dialog__confirm-value {
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+/* Category strip */
+.asset-dialog__category-strip {
+  display: flex;
+  gap: 8px;
+}
+
+.asset-dialog__cat-btn {
+  padding: 7px 20px;
+  border-radius: 8px;
+  border: 1.5px solid var(--color-bg-input);
+  background: var(--color-bg-input);
+  color: var(--color-text-secondary);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  font-family: inherit;
+}
+
+.asset-dialog__cat-btn--active {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-accent-fg);
+}
+
+/* Select */
+.asset-dialog__select {
+  background-color: var(--color-bg-input);
+  border: none;
+  border-radius: 8px;
+  color: var(--color-text-primary);
+  font-size: 0.9rem;
+  font-family: inherit;
+  padding: 9px 12px;
+  outline: none;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.asset-dialog__select:focus {
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+/* Hints and errors */
+.asset-dialog__hint {
+  font-size: 0.85rem;
+  color: var(--color-text-secondary);
+  margin: 0;
+}
+
+.asset-dialog__error {
+  font-size: 0.85rem;
+  color: var(--color-error);
+  margin: 0;
+}
+
+/* Actions */
+.asset-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}

@@ -35,6 +35,23 @@ import {
     RecurringTransaction,
     UpdateRecurringTransactionRequest,
 } from "../../../src/types/recurringTransaction"
+import {
+    PortfolioAsset,
+    CreatePortfolioAssetRequest,
+    UpdatePortfolioAssetRequest,
+} from "../../../src/types/portfolioAsset"
+import {
+    PortfolioTransaction,
+    CreatePortfolioTransactionRequest,
+} from "../../../src/types/portfolioTransaction"
+import {
+    MfSearchResult,
+    MfFundMeta,
+    PriceRefreshResult,
+    PortfolioSummaryAnalytics,
+    AssetAnalytics,
+    PortfolioValuePoint,
+} from "../../../src/types/portfolioAnalytics"
 
 export {}
 
@@ -104,6 +121,36 @@ declare global {
         csvGenerateTemplate: () => Promise<CSVTemplateResult>
         csvExportTransactions: (request: CSVExportRequest) => Promise<CSVExportResult>
         csvExportErrorRows: (rawLines: string[]) => Promise<CSVExportErrorRowsResult>
+
+        portfolio: {
+            asset: {
+                create: (req: CreatePortfolioAssetRequest) => Promise<PortfolioAsset>
+                update: (id: number, req: UpdatePortfolioAssetRequest) => Promise<PortfolioAsset>
+                deactivate: (id: number) => Promise<void>
+                list: () => Promise<PortfolioAsset[]>
+                get: (id: number) => Promise<PortfolioAsset>
+            }
+            mfapi: {
+                search: (query: string) => Promise<MfSearchResult[]>
+                getMeta: (schemeCode: string) => Promise<MfFundMeta>
+            }
+            transaction: {
+                create: (req: CreatePortfolioTransactionRequest) => Promise<PortfolioTransaction>
+                deactivate: (id: number) => Promise<void>
+                listByAsset: (portfolioAssetId: number) => Promise<PortfolioTransaction[]>
+            }
+            prices: {
+                refreshAll: () => Promise<PriceRefreshResult>
+                refreshAsset: (assetId: number) => Promise<PriceRefreshResult>
+            }
+            analytics: {
+                summary: () => Promise<PortfolioSummaryAnalytics>
+                asset: (assetId: number) => Promise<AssetAnalytics>
+                navHistory: (assetId: number, fromDate: string, toDate: string) => Promise<{ date: string; nav: number }[]>
+                valueHistory: (fromDate: string) => Promise<PortfolioValuePoint[]>
+                valueByAccount: (accountId: number) => Promise<number>
+            }
+        }
     }
 
     interface Window {

@@ -7,6 +7,9 @@ import {
 } from "./src/types/transaction"
 import { CreateCategoryRequest, UpdateCategoryRequest, Category } from "./src/types/category"
 import { Account } from "./src/types/account"
+import { CreatePortfolioAssetRequest, UpdatePortfolioAssetRequest } from "./src/types/portfolioAsset"
+import { CreatePortfolioTransactionRequest } from "./src/types/portfolioTransaction"
+import { PriceRefreshResult, PortfolioSummaryAnalytics, AssetAnalytics, PortfolioValuePoint, MfFundMeta } from "./src/types/portfolioAnalytics"
 import {
     CSVImportRequest,
     CSVImportResult,
@@ -121,6 +124,53 @@ contextBridge.exposeInMainWorld("financeAPI", {
         ipcRenderer.invoke("csv-export-transactions", request),
     csvExportErrorRows: (rawLines: string[]): Promise<CSVExportErrorRowsResult> =>
         ipcRenderer.invoke("csv-export-error-rows", rawLines),
+
+    portfolio: {
+        asset: {
+            create: (req: CreatePortfolioAssetRequest) =>
+                ipcRenderer.invoke("portfolio:asset:create", req),
+            update: (id: number, req: UpdatePortfolioAssetRequest) =>
+                ipcRenderer.invoke("portfolio:asset:update", { id, request: req }),
+            deactivate: (id: number) =>
+                ipcRenderer.invoke("portfolio:asset:deactivate", { id }),
+            list: () =>
+                ipcRenderer.invoke("portfolio:asset:list"),
+            get: (id: number) =>
+                ipcRenderer.invoke("portfolio:asset:get", { id }),
+        },
+        mfapi: {
+            search: (query: string) =>
+                ipcRenderer.invoke("portfolio:mfapi:search", { query }),
+            getMeta: (schemeCode: string): Promise<MfFundMeta> =>
+                ipcRenderer.invoke("portfolio:mfapi:getMeta", { schemeCode }),
+        },
+        transaction: {
+            create: (req: CreatePortfolioTransactionRequest) =>
+                ipcRenderer.invoke("portfolio:transaction:create", req),
+            deactivate: (id: number) =>
+                ipcRenderer.invoke("portfolio:transaction:deactivate", { id }),
+            listByAsset: (portfolioAssetId: number) =>
+                ipcRenderer.invoke("portfolio:transaction:list-by-asset", { portfolioAssetId }),
+        },
+        prices: {
+            refreshAll: (): Promise<PriceRefreshResult> =>
+                ipcRenderer.invoke("portfolio:prices:refresh-all"),
+            refreshAsset: (assetId: number): Promise<PriceRefreshResult> =>
+                ipcRenderer.invoke("portfolio:prices:refresh-asset", { assetId }),
+        },
+        analytics: {
+            summary: (): Promise<PortfolioSummaryAnalytics> =>
+                ipcRenderer.invoke("portfolio:analytics:summary"),
+            asset: (assetId: number): Promise<AssetAnalytics> =>
+                ipcRenderer.invoke("portfolio:analytics:asset", { assetId }),
+            navHistory: (assetId: number, fromDate: string, toDate: string): Promise<{ date: string; nav: number }[]> =>
+                ipcRenderer.invoke("portfolio:analytics:nav-history", { assetId, fromDate, toDate }),
+            valueHistory: (fromDate: string): Promise<PortfolioValuePoint[]> =>
+                ipcRenderer.invoke("portfolio:analytics:value-history", { fromDate }),
+            valueByAccount: (accountId: number): Promise<number> =>
+                ipcRenderer.invoke("portfolio:analytics:value-by-account", { accountId }),
+        },
+    },
 })
 
 contextBridge.exposeInMainWorld("environmentAPI", {

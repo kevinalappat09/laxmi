@@ -14,11 +14,13 @@ export enum RecurringFrequency {
 
 export interface RecurringTransaction {
     recurring_id?: number;
-    account_id: number;
+    /** Source bank account to debit. Nullable — not required for direct portfolio SIPs. */
+    account_id: number | null;
     transaction_type: TransactionType.Withdraw | TransactionType.Deposit;
     amount: number;
     category_id?: number;
-    classification: Classification;
+    /** Nullable — not required for portfolio SIPs. */
+    classification: Classification | null;
     payee?: string;
     note?: string;
     frequency: RecurringFrequency;
@@ -30,14 +32,20 @@ export interface RecurringTransaction {
     is_active: boolean;
     created_on: Date;
     modified_on: Date;
+    /** When set, this recurring transaction is a portfolio SIP. */
+    portfolio_asset_id?: number | null;
+    /** Required when portfolio_asset_id is set — the investment account (Zerodha, Groww). */
+    asset_account_id?: number | null;
 }
 
 export interface CreateRecurringTransactionRequest {
-    account_id: number;
+    /** Source bank account. Optional for portfolio SIPs. */
+    account_id?: number | null;
     transaction_type: TransactionType.Withdraw | TransactionType.Deposit;
     amount: number;
     category_id?: number;
-    classification: Classification;
+    /** Optional for portfolio SIPs. */
+    classification?: Classification | null;
     payee?: string;
     note?: string;
     frequency: RecurringFrequency;
@@ -45,14 +53,16 @@ export interface CreateRecurringTransactionRequest {
     day_of_month?: number;
     month_of_year?: number;
     start_date: Date;
+    portfolio_asset_id?: number | null;
+    asset_account_id?: number | null;
 }
 
 export interface UpdateRecurringTransactionRequest {
-    account_id?: number;
+    account_id?: number | null;
     transaction_type?: TransactionType.Withdraw | TransactionType.Deposit;
     amount?: number;
     category_id?: number;
-    classification?: Classification;
+    classification?: Classification | null;
     payee?: string;
     note?: string;
     frequency?: RecurringFrequency;
@@ -61,6 +71,8 @@ export interface UpdateRecurringTransactionRequest {
     month_of_year?: number;
     start_date?: Date;
     is_active?: boolean;
+    portfolio_asset_id?: number | null;
+    asset_account_id?: number | null;
 }
 
 export interface RecurringUpcomingNotification {

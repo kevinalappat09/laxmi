@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Account } from '../../../../src/types/account'
+import { AccountSubType, type Account } from '../../../../src/types/account'
 import type { Transaction } from '../../../../src/types/transaction'
 import { TransactionType } from '../../../../src/types/transaction'
 import { useNavigation } from '../../contexts/NavigationContext'
@@ -134,9 +134,13 @@ export function HomePage({ currentProfile, onSwitchProfile }: HomePageProps) {
         await Promise.all(
           accounts.map(async (account) => {
             try {
-              const txns = await window.financeAPI.getTransactionsByAccount(account.account_id)
+              const balance =
+                account.sub_type === AccountSubType.Investment
+                  ? await window.financeAPI.portfolio.analytics.valueByAccount(account.account_id)
+                  : computeBalance(
+                      await window.financeAPI.getTransactionsByAccount(account.account_id)
+                    )
               if (!isMounted) return
-              const balance = computeBalance(txns)
               setAccountsWithBalance((prev) =>
                 prev.map((item) =>
                   item.account.account_id === account.account_id

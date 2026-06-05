@@ -247,7 +247,7 @@ export function RecurringPage() {
                     <td>
                       <Tag>{row.transaction_type}</Tag>
                     </td>
-                    <td>{accountMap.get(row.account_id) ?? row.account_id}</td>
+                    <td>{row.account_id != null ? (accountMap.get(row.account_id) ?? row.account_id) : <span className="recurring-table__empty-cell">—</span>}</td>
                     <td className={amountClass}>
                       {amountPrefix}
                       {formatCurrency(row.amount)}
@@ -259,7 +259,7 @@ export function RecurringPage() {
                         <span className="recurring-table__empty-cell">—</span>
                       )}
                     </td>
-                    <td>{capitalize(row.classification)}</td>
+                    <td>{row.classification != null ? capitalize(row.classification) : <span className="recurring-table__empty-cell">—</span>}</td>
                     <td>{getFrequencyLabel(row)}</td>
                     <td>{formatDate(row.start_date)}</td>
                     <td>{nextDue ? formatDate(nextDue) : '—'}</td>

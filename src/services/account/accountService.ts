@@ -47,6 +47,7 @@ export class AccountServiceImpl implements AccountService {
             created_on: now,
             modified_on: now,
             is_active: true,
+            metadata: request.metadata ?? null,
         };
 
         const repository = new AccountRepositoryImpl(db);
@@ -83,6 +84,7 @@ export class AccountServiceImpl implements AccountService {
             opened_on: request.opened_on ?? existing.opened_on,
             modified_on: new Date(),
             is_active: request.is_active ?? existing.is_active,
+            metadata: request.metadata !== undefined ? request.metadata : existing.metadata,
         };
 
         return repository.save(updated);

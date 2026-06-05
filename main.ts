@@ -26,6 +26,13 @@ import {
     CreateRecurringTransactionRequest,
     UpdateRecurringTransactionRequest,
 } from "./src/types/recurringTransaction"
+import { PortfolioAssetServiceImpl } from "./src/services/portfolio/portfolioAssetService"
+import { PortfolioTransactionServiceImpl } from "./src/services/portfolio/portfolioTransactionService"
+import { MfapiSearchServiceImpl } from "./src/services/portfolio/mfapiSearchService"
+import { PriceUpdaterServiceImpl } from "./src/services/priceUpdater/priceUpdaterService"
+import { PortfolioAnalyticsServiceImpl } from "./src/services/portfolioAnalytics/portfolioAnalyticsService"
+import { CreatePortfolioAssetRequest, UpdatePortfolioAssetRequest } from "./src/types/portfolioAsset"
+import { CreatePortfolioTransactionRequest } from "./src/types/portfolioTransaction"
 
 const isDev = !app.isPackaged;
 
@@ -46,6 +53,15 @@ ipcMain.handle("create-profile", (_event, profileName: string) =>
 ipcMain.handle("open-profile", async (_event, profileName: string) => {
     await profileService.openProfile(profileName, migrationService)
     recurringTransactionService.processRecurringTransactions()
+        .catch(err => console.error('Background recurring processing error:', err))
+    // Fire and forget — profile open must not block on network
+    priceUpdaterService.refreshStaleAssets()
+        .then(result => {
+            if (result.failedAssets.length > 0) {
+                console.warn('Price refresh partial failure:', result.failedAssets)
+            }
+        })
+        .catch(err => console.error('Background price refresh error:', err))
 })
 
 const accountService = new AccountServiceImpl()
@@ -57,6 +73,11 @@ const csvImportService = new TransactionImportServiceImpl()
 const csvExportService = new TransactionExportServiceImpl()
 const csvTemplateService = new CSVTemplateServiceImpl()
 const csvErrorExportService = new CSVErrorExportServiceImpl()
+const portfolioAssetService = new PortfolioAssetServiceImpl()
+const portfolioTransactionService = new PortfolioTransactionServiceImpl()
+const mfapiSearchService = new MfapiSearchServiceImpl()
+const priceUpdaterService = new PriceUpdaterServiceImpl()
+const portfolioAnalyticsService = new PortfolioAnalyticsServiceImpl()
 
 ipcMain.handle("create-account", (_event, request: CreateAccountRequest) => {
     request.opened_on = new Date(request.opened_on)
@@ -227,6 +248,71 @@ ipcMain.handle("csv-export-transactions", (_event, request: CSVExportRequest) =>
 ipcMain.handle("csv-export-error-rows", (_event, rawLines: string[]) => {
     return csvErrorExportService.exportErrorRows(rawLines)
 })
+
+// Portfolio — Assets
+ipcMain.handle("portfolio:asset:create", (_event, req: CreatePortfolioAssetRequest) =>
+    portfolioAssetService.create(req)
+)
+ipcMain.handle("portfolio:asset:update", (_event, { id, request }: { id: number; request: UpdatePortfolioAssetRequest }) =>
+    portfolioAssetService.update(id, request)
+)
+ipcMain.handle("portfolio:asset:deactivate", (_event, { id }: { id: number }) =>
+    portfolioAssetService.deactivate(id)
+)
+ipcMain.handle("portfolio:asset:list", () =>
+    portfolioAssetService.listActive()
+)
+ipcMain.handle("portfolio:asset:get", (_event, { id }: { id: number }) =>
+    portfolioAssetService.getById(id)
+)
+
+// Portfolio — Fund discovery
+ipcMain.handle("portfolio:mfapi:search", (_event, { query }: { query: string }) =>
+    mfapiSearchService.search(query)
+)
+ipcMain.handle("portfolio:mfapi:getMeta", (_event, { schemeCode }: { schemeCode: string }) =>
+    mfapiSearchService.getMeta(schemeCode)
+)
+
+// Portfolio — Transactions
+ipcMain.handle("portfolio:transaction:create", (_event, req: CreatePortfolioTransactionRequest) => {
+    req.transactionDate = new Date(req.transactionDate)
+    return portfolioTransactionService.create(req)
+})
+ipcMain.handle("portfolio:transaction:deactivate", (_event, { id }: { id: number }) =>
+    portfolioTransactionService.deactivate(id)
+)
+ipcMain.handle("portfolio:transaction:list-by-asset", (_event, { portfolioAssetId }: { portfolioAssetId: number }) =>
+    portfolioTransactionService.listByAsset(portfolioAssetId)
+)
+
+// Portfolio — Analytics
+ipcMain.handle("portfolio:analytics:summary",
+    () => portfolioAnalyticsService.getPortfolioSummary()
+)
+ipcMain.handle("portfolio:analytics:asset",
+    (_event, { assetId }: { assetId: number }) => portfolioAnalyticsService.getAssetAnalytics(assetId)
+)
+ipcMain.handle("portfolio:analytics:nav-history",
+    (_event, { assetId, fromDate, toDate }: { assetId: number; fromDate: string; toDate: string }) =>
+        portfolioAnalyticsService.getNavHistory(assetId, fromDate, toDate)
+)
+ipcMain.handle("portfolio:analytics:value-history",
+    (_event, { fromDate }: { fromDate: string }) =>
+        portfolioAnalyticsService.getPortfolioValueHistory(fromDate)
+)
+ipcMain.handle("portfolio:analytics:value-by-account",
+    (_event, { accountId }: { accountId: number }) =>
+        portfolioAnalyticsService.getValueByAccount(accountId)
+)
+
+// Portfolio — Prices
+ipcMain.handle("portfolio:prices:refresh-all",
+    () => priceUpdaterService.refreshAll()
+)
+ipcMain.handle("portfolio:prices:refresh-asset",
+    (_event, { assetId }: { assetId: number }) => priceUpdaterService.refreshAsset(assetId)
+)
 
 function createWindow(): void {
     const win = new BrowserWindow({

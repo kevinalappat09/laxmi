@@ -7,3 +7,5 @@ export type Page =
   | 'budgets'
   | 'import-export'
   | 'reports'
+  | 'portfolio'
+  | 'portfolio-asset-detail'

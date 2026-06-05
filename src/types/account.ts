@@ -36,6 +36,7 @@ export interface Account {
     created_on: Date;
     modified_on: Date;
     is_active: boolean;
+    metadata: Record<string, unknown> | null;
 }
 
 export interface CreateAccountRequest {
@@ -45,6 +46,7 @@ export interface CreateAccountRequest {
     sub_type: AccountSubType;
     color: string;
     opened_on: Date;
+    metadata?: Record<string, unknown>;
 }
 
 export interface UpdateAccountRequest {
@@ -55,4 +57,5 @@ export interface UpdateAccountRequest {
     color?: string;
     opened_on?: Date;
     is_active?: boolean;
+    metadata?: Record<string, unknown>;
 }

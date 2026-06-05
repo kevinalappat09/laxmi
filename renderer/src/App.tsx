@@ -8,6 +8,8 @@ import { RecurringPage } from './pages/recurring/RecurringPage'
 import { BudgetsPage } from './pages/budgets/BudgetsPage'
 import { ImportExportPage } from './pages/importexport/ImportExportPage'
 import { ReportsPage } from './pages/reports/ReportsPage'
+import { PortfolioPage } from './pages/portfolio/PortfolioPage'
+import { AssetDetailPage } from './pages/portfolio/AssetDetailPage'
 import { CommandPalette, type PaletteAction } from './components/CommandPalette'
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext'
 import { ProfileSelectionPage } from './pages/profile/ProfileSelectionPage'
@@ -16,7 +18,7 @@ import './App.css'
 type PendingAction = 'addAccount' | 'addTransaction' | null
 
 function AppContent() {
-  const { activePage, selectedAccountId, navigate, selectAccount } = useNavigation()
+  const { activePage, selectedAccountId, selectedAssetId, navigate, selectAccount } = useNavigation()
   const [currentProfile, setCurrentProfile] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [showSelectionDialog, setShowSelectionDialog] = useState(false)
@@ -174,6 +176,14 @@ function AppContent() {
 
     if (activePage === 'reports') {
       return <ReportsPage />
+    }
+
+    if (activePage === 'portfolio') {
+      return <PortfolioPage />
+    }
+
+    if (activePage === 'portfolio-asset-detail' && selectedAssetId !== null) {
+      return <AssetDetailPage assetId={selectedAssetId} />
     }
 
     return <ImportExportPage />

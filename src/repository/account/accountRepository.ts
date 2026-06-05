@@ -43,11 +43,13 @@ export class AccountRepositoryImpl implements AccountRepository {
             created_on,
             modified_on,
             is_active,
+            metadata,
         } = account;
 
         const openedOnStr = this.dateToISOString(opened_on, "date");
         const createdOnStr = this.dateToISOString(created_on, "timestamp");
         const modifiedOnStr = this.dateToISOString(modified_on, "timestamp");
+        const metadataStr = metadata != null ? JSON.stringify(metadata) : null;
 
         if (account_id) {
             // Update existing
@@ -60,7 +62,8 @@ export class AccountRepositoryImpl implements AccountRepository {
                     color = ?,
                     opened_on = ?,
                     modified_on = ?,
-                    is_active = ?
+                    is_active = ?,
+                    metadata = ?
                 WHERE account_id = ?
             `);
 
@@ -73,6 +76,7 @@ export class AccountRepositoryImpl implements AccountRepository {
                 openedOnStr,
                 modifiedOnStr,
                 is_active ? 1 : 0,
+                metadataStr,
                 account_id
             );
 
@@ -89,8 +93,9 @@ export class AccountRepositoryImpl implements AccountRepository {
                     opened_on,
                     created_on,
                     modified_on,
-                    is_active
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    is_active,
+                    metadata
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `);
 
             const result = stmt.run(
@@ -102,7 +107,8 @@ export class AccountRepositoryImpl implements AccountRepository {
                 openedOnStr,
                 createdOnStr,
                 modifiedOnStr,
-                is_active ? 1 : 0
+                is_active ? 1 : 0,
+                metadataStr
             );
 
             return {
@@ -198,6 +204,7 @@ export class AccountRepositoryImpl implements AccountRepository {
             created_on: new Date(row.created_on),
             modified_on: new Date(row.modified_on),
             is_active: row.is_active === 1,
+            metadata: row.metadata != null ? JSON.parse(row.metadata) : null,
         };
     }
 

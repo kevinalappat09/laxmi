@@ -47,6 +47,8 @@ export class RecurringTransactionRepositoryImpl
             is_active,
             created_on,
             modified_on,
+            portfolio_asset_id,
+            asset_account_id,
         } = recurringTransaction;
 
         const startDateStr = this.dateToISOString(start_date, "date");
@@ -73,16 +75,18 @@ export class RecurringTransactionRepositoryImpl
                     start_date = ?,
                     last_processed_date = ?,
                     is_active = ?,
-                    modified_on = ?
+                    modified_on = ?,
+                    portfolio_asset_id = ?,
+                    asset_account_id = ?
                 WHERE recurring_id = ?
             `);
 
             stmt.run(
-                account_id,
+                account_id ?? null,
                 transaction_type,
                 amount,
                 category_id ?? null,
-                classification,
+                classification ?? null,
                 payee ?? null,
                 note ?? null,
                 frequency,
@@ -93,6 +97,8 @@ export class RecurringTransactionRepositoryImpl
                 lastProcessedDateStr,
                 is_active ? 1 : 0,
                 modifiedOnStr,
+                portfolio_asset_id ?? null,
+                asset_account_id ?? null,
                 recurring_id
             );
 
@@ -116,16 +122,18 @@ export class RecurringTransactionRepositoryImpl
                 last_processed_date,
                 is_active,
                 created_on,
-                modified_on
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                modified_on,
+                portfolio_asset_id,
+                asset_account_id
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `);
 
         const result = stmt.run(
-            account_id,
+            account_id ?? null,
             transaction_type,
             amount,
             category_id ?? null,
-            classification,
+            classification ?? null,
             payee ?? null,
             note ?? null,
             frequency,
@@ -136,7 +144,9 @@ export class RecurringTransactionRepositoryImpl
             lastProcessedDateStr,
             is_active ? 1 : 0,
             createdOnStr,
-            modifiedOnStr
+            modifiedOnStr,
+            portfolio_asset_id ?? null,
+            asset_account_id ?? null
         );
 
         return {
@@ -209,13 +219,13 @@ export class RecurringTransactionRepositoryImpl
     private mapRowToRecurringTransaction(row: any): RecurringTransaction {
         return {
             recurring_id: row.recurring_id,
-            account_id: row.account_id,
+            account_id: row.account_id ?? null,
             transaction_type: row.transaction_type as
                 | TransactionType.Withdraw
                 | TransactionType.Deposit,
             amount: row.amount,
             category_id: row.category_id ?? undefined,
-            classification: row.classification as Classification,
+            classification: (row.classification as Classification) ?? null,
             payee: row.payee ?? undefined,
             note: row.note ?? undefined,
             frequency: row.frequency as RecurringFrequency,
@@ -229,6 +239,8 @@ export class RecurringTransactionRepositoryImpl
             is_active: row.is_active === 1,
             created_on: new Date(row.created_on),
             modified_on: new Date(row.modified_on),
+            portfolio_asset_id: row.portfolio_asset_id ?? null,
+            asset_account_id: row.asset_account_id ?? null,
         };
     }
 

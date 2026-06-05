@@ -1,0 +1,55 @@
+appId: com.kevinalappat.laxmi
+productName: Laxmi
+
+# Icons: place files in the build/ directory
+#   build/icon.ico   — Windows
+#   build/icon.png   — Linux (512x512 recommended)
+# electron-builder will use the default Electron icon until these are provided.
+directories:
+  output: releases
+  buildResources: build
+
+files:
+  - dist/**
+  - renderer/dist/**
+  - package.json
+  - "!**/*.ts"
+  - "!src/**"
+  - "!renderer/src/**"
+  - "!renderer/node_modules/**"
+  - "!docs/**"
+  - "!releases/**"
+  - "!*.md"
+  - "!jest.config.js"
+  - "!tsconfig.json"
+
+# better-sqlite3 is a native module and cannot run inside an asar archive.
+asarUnpack:
+  - node_modules/better-sqlite3/**/*
+  - node_modules/bindings/**/*
+  - node_modules/node-gyp-build/**/*
+
+win:
+  target:
+    - target: nsis
+      arch:
+        - x64
+  artifactName: "${productName}-Setup-${version}.${ext}"
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: Laxmi
+
+linux:
+  target:
+    - target: AppImage
+      arch:
+        - x64
+    - target: deb
+      arch:
+        - x64
+  category: Office
+  artifactName: "${productName}-${version}-${arch}.${ext}"
