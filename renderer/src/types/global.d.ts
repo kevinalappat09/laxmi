@@ -46,6 +46,7 @@ import {
 } from "../../../src/types/portfolioTransaction"
 import {
     MfSearchResult,
+    MfFundMeta,
     PriceRefreshResult,
     PortfolioSummaryAnalytics,
     AssetAnalytics,
@@ -131,6 +132,7 @@ declare global {
             }
             mfapi: {
                 search: (query: string) => Promise<MfSearchResult[]>
+                getMeta: (schemeCode: string) => Promise<MfFundMeta>
             }
             transaction: {
                 create: (req: CreatePortfolioTransactionRequest) => Promise<PortfolioTransaction>

@@ -57,7 +57,7 @@
 .txn-dialog__type-btn--active {
   background: var(--color-accent);
   border-color: var(--color-accent);
-  color: #fff;
+  color: var(--color-accent-fg);
 }
 
 /* Fund picker section */
@@ -263,6 +263,12 @@
 
 .txn-dialog__error--oversell {
   font-weight: 500;
+}
+
+.txn-dialog__warn {
+  font-size: 0.85rem;
+  color: var(--color-warning, #c98a00);
+  margin: 0;
 }
 
 /* Actions */

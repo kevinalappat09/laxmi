@@ -79,6 +79,13 @@ export interface MfSearchResult {
     schemeName: string
 }
 
+export interface MfFundMeta {
+    category: AssetCategory
+    subCategory: AssetSubCategory | null
+    schemeType: string
+    schemeCategory: string
+}
+
 export interface PriceRefreshResult {
     refreshedCount: number
     skippedCount: number

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Account } from '../../../../src/types/account'
 import type { PortfolioAsset, AssetCategory, AssetSubCategory } from '../../../../src/types/portfolioAsset'
-import type { MfSearchResult } from '../../../../src/types/portfolioAnalytics'
+import type { MfSearchResult, MfFundMeta } from '../../../../src/types/portfolioAnalytics'
 import type { PortfolioTransactionType } from '../../../../src/types/portfolioTransaction'
 import { AccountSubType } from '../../../../src/types/account'
 import { Button } from '../../components/ui/Button'
@@ -55,6 +55,8 @@ export function TransactionDialog({ asset: preselectedAsset, defaultType = 'BUY'
   const [mfSearching, setMfSearching] = useState(false)
   const [mfError, setMfError]         = useState<string | null>(null)
   const [selectedMf, setSelectedMf]   = useState<MfSearchResult | null>(null)
+  const [duplicateAsset, setDuplicateAsset] = useState<PortfolioAsset | null>(null)
+  const [mfMeta, setMfMeta] = useState<MfFundMeta | null>(null)
   const [newCategory, setNewCategory] = useState<AssetCategory>('EQUITY')
   const [newSubCat, setNewSubCat]     = useState<AssetSubCategory | ''>('')
 
@@ -154,17 +156,26 @@ export function TransactionDialog({ asset: preselectedAsset, defaultType = 'BUY'
       } else if (fundMode === 'existing') {
         assetId = selectedAssetId as number
       } else {
-        // Create the new asset first
-        const created = await window.financeAPI.portfolio.asset.create({
-          name: selectedMf!.schemeName,
-          category: newCategory,
-          type: newCategory === 'DEBT' ? 'LIQUID_FUND' : 'EQUITY_MUTUAL_FUND',
-          subCategory: newSubCat || null,
-          priceSource: 'MFAPI',
-          priceSourceId: selectedMf!.schemeCode,
-          metadata: { schemeCode: selectedMf!.schemeCode, schemeName: selectedMf!.schemeName },
-        })
-        assetId = created.id
+        if (duplicateAsset) {
+          // Reuse existing fund so duplicate portfolio entries are not created.
+          assetId = duplicateAsset.id
+        } else {
+          const created = await window.financeAPI.portfolio.asset.create({
+            name: selectedMf!.schemeName,
+            category: newCategory,
+            type: newCategory === 'DEBT' ? 'LIQUID_FUND' : 'EQUITY_MUTUAL_FUND',
+            subCategory: newSubCat || null,
+            priceSource: 'MFAPI',
+            priceSourceId: selectedMf!.schemeCode,
+            metadata: {
+              schemeCode: selectedMf!.schemeCode,
+              schemeName: selectedMf!.schemeName,
+              schemeType: mfMeta?.schemeType,
+              schemeCategory: mfMeta?.schemeCategory,
+            },
+          })
+          assetId = created.id
+        }
       }
 
       const req: any = {
@@ -220,14 +231,14 @@ export function TransactionDialog({ asset: preselectedAsset, defaultType = 'BUY'
                 <button
                   type="button"
                   className={`txn-dialog__type-btn${fundMode === 'existing' ? ' txn-dialog__type-btn--active' : ''}`}
-                  onClick={() => setFundMode('existing')}
+                  onClick={() => { setFundMode('existing'); setDuplicateAsset(null); setMfMeta(null) }}
                 >
                   Existing fund
                 </button>
                 <button
                   type="button"
                   className={`txn-dialog__type-btn${fundMode === 'new' ? ' txn-dialog__type-btn--active' : ''}`}
-                  onClick={() => { setFundMode('new'); setSelectedAssetId('') }}
+                  onClick={() => { setFundMode('new'); setSelectedAssetId(''); setDuplicateAsset(null); setMfMeta(null) }}
                 >
                   Add new fund
                 </button>
@@ -256,7 +267,7 @@ export function TransactionDialog({ asset: preselectedAsset, defaultType = 'BUY'
                   label="Search fund name"
                   type="text"
                   value={mfQuery}
-                  onChange={e => { setMfQuery(e.target.value); setSelectedMf(null) }}
+                  onChange={e => { setMfQuery(e.target.value); setSelectedMf(null); setDuplicateAsset(null); setMfMeta(null) }}
                   placeholder="e.g. Parag Parikh, HDFC Top 100"
                   autoFocus={allAssets.length === 0}
                 />
@@ -267,8 +278,14 @@ export function TransactionDialog({ asset: preselectedAsset, defaultType = 'BUY'
                 {selectedMf && (
                   <div className="txn-dialog__selected-fund">
                     <span className="txn-dialog__selected-fund-name">{selectedMf.schemeName}</span>
-                    <button type="button" className="txn-dialog__clear-fund" onClick={() => { setSelectedMf(null); setMfQuery('') }}>✕</button>
+                    <button type="button" className="txn-dialog__clear-fund" onClick={() => { setSelectedMf(null); setMfQuery(''); setDuplicateAsset(null); setMfMeta(null) }}>✕</button>
                   </div>
+                )}
+
+                {selectedMf && duplicateAsset && (
+                  <p className="txn-dialog__warn">
+                    This fund already exists in your portfolio. The transaction will be added to <strong>{duplicateAsset.name}</strong> instead of creating a new entry.
+                  </p>
                 )}
 
                 {!selectedMf && mfResults.length > 0 && (
@@ -277,7 +294,25 @@ export function TransactionDialog({ asset: preselectedAsset, defaultType = 'BUY'
                       <li
                         key={r.schemeCode}
                         className="txn-dialog__mf-result-item"
-                        onClick={() => { setSelectedMf(r); setMfQuery(r.schemeName); setMfResults([]) }}
+                        onClick={() => {
+                          const existing = allAssets.find(a => a.priceSourceId === r.schemeCode)
+                          setDuplicateAsset(existing ?? null)
+                          setSelectedMf(r)
+                          setMfQuery(r.schemeName)
+                          setMfResults([])
+                          setMfMeta(null)
+                          if (!existing) {
+                            window.financeAPI.portfolio.mfapi.getMeta(r.schemeCode)
+                              .then(meta => {
+                                setMfMeta(meta)
+                                setNewCategory(meta.category)
+                                setNewSubCat(meta.subCategory ?? '')
+                              })
+                              .catch(() => {
+                                // Leave current defaults if metadata fetch fails.
+                              })
+                          }
+                        }}
                       >
                         {r.schemeName}
                       </li>
@@ -285,7 +320,7 @@ export function TransactionDialog({ asset: preselectedAsset, defaultType = 'BUY'
                   </ul>
                 )}
 
-                {selectedMf && (
+                {selectedMf && !duplicateAsset && (
                   <div className="txn-dialog__category-row">
                     <div className="txn-dialog__field">
                       <label className="txn-dialog__label">Category</label>

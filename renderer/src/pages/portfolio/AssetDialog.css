@@ -56,7 +56,7 @@
 
 .asset-dialog__result-item--selected {
   background: var(--color-accent);
-  color: #fff;
+  color: var(--color-accent-fg);
 }
 
 /* Confirm step */
@@ -102,7 +102,7 @@
 .asset-dialog__cat-btn--active {
   background: var(--color-accent);
   border-color: var(--color-accent);
-  color: #fff;
+  color: var(--color-accent-fg);
 }
 
 /* Select */

@@ -270,6 +270,9 @@ ipcMain.handle("portfolio:asset:get", (_event, { id }: { id: number }) =>
 ipcMain.handle("portfolio:mfapi:search", (_event, { query }: { query: string }) =>
     mfapiSearchService.search(query)
 )
+ipcMain.handle("portfolio:mfapi:getMeta", (_event, { schemeCode }: { schemeCode: string }) =>
+    mfapiSearchService.getMeta(schemeCode)
+)
 
 // Portfolio — Transactions
 ipcMain.handle("portfolio:transaction:create", (_event, req: CreatePortfolioTransactionRequest) => {

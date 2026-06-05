@@ -9,7 +9,7 @@ import { CreateCategoryRequest, UpdateCategoryRequest, Category } from "./src/ty
 import { Account } from "./src/types/account"
 import { CreatePortfolioAssetRequest, UpdatePortfolioAssetRequest } from "./src/types/portfolioAsset"
 import { CreatePortfolioTransactionRequest } from "./src/types/portfolioTransaction"
-import { PriceRefreshResult, PortfolioSummaryAnalytics, AssetAnalytics, PortfolioValuePoint } from "./src/types/portfolioAnalytics"
+import { PriceRefreshResult, PortfolioSummaryAnalytics, AssetAnalytics, PortfolioValuePoint, MfFundMeta } from "./src/types/portfolioAnalytics"
 import {
     CSVImportRequest,
     CSVImportResult,
@@ -141,6 +141,8 @@ contextBridge.exposeInMainWorld("financeAPI", {
         mfapi: {
             search: (query: string) =>
                 ipcRenderer.invoke("portfolio:mfapi:search", { query }),
+            getMeta: (schemeCode: string): Promise<MfFundMeta> =>
+                ipcRenderer.invoke("portfolio:mfapi:getMeta", { schemeCode }),
         },
         transaction: {
             create: (req: CreatePortfolioTransactionRequest) =>
