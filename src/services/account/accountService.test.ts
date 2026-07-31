@@ -43,6 +43,18 @@ describe("AccountServiceImpl", () => {
                 created_on TEXT NOT NULL,
                 modified_on TEXT NOT NULL
             );
+
+            CREATE TABLE credit_cards (
+                account_id INTEGER PRIMARY KEY REFERENCES accounts(account_id),
+                credit_limit REAL NOT NULL,
+                statement_day INTEGER NOT NULL,
+                payment_due_day INTEGER NOT NULL,
+                utilization_alert_threshold REAL NOT NULL DEFAULT 0.10,
+                statement_reminder_lead_days INTEGER NOT NULL DEFAULT 5,
+                payment_reminder_lead_days INTEGER NOT NULL DEFAULT 5,
+                created_on TEXT NOT NULL,
+                modified_on TEXT NOT NULL
+            );
         `);
 
         // Mock the profileSessionService to return our test database

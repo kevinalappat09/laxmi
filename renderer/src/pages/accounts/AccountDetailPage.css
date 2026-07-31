@@ -93,6 +93,42 @@
   text-transform: capitalize;
 }
 
+/* Credit card summary */
+.account-detail__credit {
+  background-color: var(--color-bg-surface);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 32px;
+  box-shadow: 0 1px 4px var(--color-dialog-shadow);
+}
+
+.account-detail__credit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 18px 24px;
+}
+
+.account-detail__credit-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.account-detail__credit-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-secondary);
+}
+
+.account-detail__credit-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--color-text-heading);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Section heading */
 .account-detail__section-title {
   font-size: 1rem;

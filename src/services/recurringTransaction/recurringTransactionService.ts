@@ -24,6 +24,7 @@ import { profileSessionService } from "../profileSession/profileSessionService";
 import { MfapiProviderImpl } from "../priceUpdater/providers/mfapiProvider";
 import { TransactionServiceImpl } from "../transaction/transactionService";
 import { SQLiteDatabase } from "../../database/databaseService";
+import { addDays, createDateWithClampedDay, toDateOnly } from "../../utils/dateUtils";
 
 export interface RecurringTransactionService {
     createRecurringTransaction(
@@ -201,16 +202,16 @@ export class RecurringTransactionServiceImpl
             : 10;
         const repository = new RecurringTransactionRepositoryImpl(db);
         const recurringTransactions = repository.findAllActive();
-        const today = this.toDateOnly(new Date());
-        const fromDate = this.addDays(today, -1);
-        const toDate = this.addDays(today, normalizedDaysAhead);
+        const today = toDateOnly(new Date());
+        const fromDate = addDays(today, -1);
+        const toDate = addDays(today, normalizedDaysAhead);
         const upcoming: RecurringUpcomingNotification[] = [];
 
         for (const recurring of recurringTransactions) {
-            const startDate = this.toDateOnly(recurring.start_date);
+            const startDate = toDateOnly(recurring.start_date);
             const effectiveFromDate =
                 startDate.getTime() > fromDate.getTime()
-                    ? this.addDays(startDate, -1)
+                    ? addDays(startDate, -1)
                     : fromDate;
             const dueDates = this.computeDueDates(recurring, effectiveFromDate, toDate);
             if (dueDates.length === 0) {
@@ -247,22 +248,22 @@ export class RecurringTransactionServiceImpl
 
         const repository = new RecurringTransactionRepositoryImpl(db);
         const recurringTransactions = repository.findAllActive();
-        const processingCutoff = this.addDays(
-            this.toDateOnly(referenceDate),
+        const processingCutoff = addDays(
+            toDateOnly(referenceDate),
             -1
         );
         let createdCount = 0;
         const sipErrors: SipError[] = [];
 
         for (const recurring of recurringTransactions) {
-            const startDate = this.toDateOnly(recurring.start_date);
+            const startDate = toDateOnly(recurring.start_date);
             if (startDate.getTime() > processingCutoff.getTime()) {
                 continue;
             }
 
             const fromDate = recurring.last_processed_date
-                ? this.toDateOnly(recurring.last_processed_date)
-                : this.addDays(startDate, -1);
+                ? toDateOnly(recurring.last_processed_date)
+                : addDays(startDate, -1);
 
             const dueDates = this.computeDueDates(
                 recurring,
@@ -410,13 +411,13 @@ export class RecurringTransactionServiceImpl
         toDate: Date
     ): Date[] {
         const dueDates: Date[] = [];
-        let cursor = this.addDays(fromDate, 1);
+        let cursor = addDays(fromDate, 1);
 
         while (cursor.getTime() <= toDate.getTime()) {
             if (cursor.getUTCDay() === dayOfWeek) {
                 dueDates.push(cursor);
             }
-            cursor = this.addDays(cursor, 1);
+            cursor = addDays(cursor, 1);
         }
 
         return dueDates;
@@ -435,7 +436,7 @@ export class RecurringTransactionServiceImpl
             year < toDate.getUTCFullYear() ||
             (year === toDate.getUTCFullYear() && month <= toDate.getUTCMonth())
         ) {
-            const candidate = this.createDateWithClampedDay(year, month, dayOfMonth);
+            const candidate = createDateWithClampedDay(year, month, dayOfMonth);
             if (
                 candidate.getTime() > fromDate.getTime() &&
                 candidate.getTime() <= toDate.getTime()
@@ -465,7 +466,7 @@ export class RecurringTransactionServiceImpl
             year <= toDate.getUTCFullYear();
             year += 1
         ) {
-            const candidate = this.createDateWithClampedDay(
+            const candidate = createDateWithClampedDay(
                 year,
                 monthOfYear - 1,
                 dayOfMonth
@@ -479,16 +480,6 @@ export class RecurringTransactionServiceImpl
         }
 
         return dueDates;
-    }
-
-    private createDateWithClampedDay(
-        year: number,
-        monthZeroBased: number,
-        dayOfMonth: number
-    ): Date {
-        const maxDay = new Date(Date.UTC(year, monthZeroBased + 1, 0)).getUTCDate();
-        const clampedDay = Math.min(dayOfMonth, maxDay);
-        return new Date(Date.UTC(year, monthZeroBased, clampedDay));
     }
 
     private validateCreateRequest(
@@ -642,15 +633,4 @@ export class RecurringTransactionServiceImpl
         }
     }
 
-    private addDays(date: Date, days: number): Date {
-        const next = new Date(date);
-        next.setUTCDate(next.getUTCDate() + days);
-        return next;
-    }
-
-    private toDateOnly(date: Date): Date {
-        return new Date(
-            Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate())
-        );
-    }
 }

@@ -42,6 +42,9 @@ export function TransactionDialog({
   const [transactionType, setTransactionType] = useState<TransactionType>(
     transaction?.transaction_type ?? TransactionType.Withdraw
   )
+  const [transferAccountId, setTransferAccountId] = useState(
+    transaction?.transfer_account_id ? String(transaction.transfer_account_id) : ''
+  )
   const [amount, setAmount] = useState(transaction?.amount ? String(transaction.amount) : '')
   const [categoryId, setCategoryId] = useState(
     transaction?.category_id ? String(transaction.category_id) : ''
@@ -68,6 +71,20 @@ export function TransactionDialog({
       return
     }
 
+    const isTransfer = transactionType === TransactionType.Transfer
+    if (isTransfer) {
+      if (!transferAccountId) {
+        setError('Select a destination account for the transfer.')
+        return
+      }
+      if (transferAccountId === accountId) {
+        setError('Transfer destination must differ from the source account.')
+        return
+      }
+    }
+
+    const transferAccount = isTransfer ? Number(transferAccountId) : undefined
+
     setSaving(true)
     try {
       if (mode === 'create') {
@@ -77,9 +94,10 @@ export function TransactionDialog({
           transaction_date: new Date(transactionDate),
           transaction_type: transactionType,
           amount: parsedAmount,
-          category_id: categoryId ? Number(categoryId) : undefined,
+          category_id: isTransfer ? undefined : categoryId ? Number(categoryId) : undefined,
           classification,
           note: note.trim() || undefined,
+          transfer_account_id: transferAccount,
         }
         await window.financeAPI.createTransaction(request)
       } else if (mode === 'edit' && transaction?.transaction_id) {
@@ -88,9 +106,10 @@ export function TransactionDialog({
           transaction_date: new Date(transactionDate),
           transaction_type: transactionType,
           amount: parsedAmount,
-          category_id: categoryId ? Number(categoryId) : undefined,
+          category_id: isTransfer ? undefined : categoryId ? Number(categoryId) : undefined,
           classification,
           note: note.trim() || undefined,
+          transfer_account_id: transferAccount,
         }
         await window.financeAPI.updateTransaction(transaction.transaction_id, request)
       }
@@ -163,6 +182,26 @@ export function TransactionDialog({
             <option value={TransactionType.Transfer}>Transfer</option>
           </Select>
 
+          {transactionType === TransactionType.Transfer && (
+            <Select
+              id="tx-transfer-account"
+              label="To Account"
+              className="transaction-dialog__field"
+              value={transferAccountId}
+              onChange={(e) => setTransferAccountId(e.target.value)}
+              required
+            >
+              <option value="" disabled>Select destination…</option>
+              {accounts
+                .filter((a) => String(a.account_id) !== accountId)
+                .map((a) => (
+                  <option key={a.account_id} value={a.account_id}>
+                    {a.account_name}
+                  </option>
+                ))}
+            </Select>
+          )}
+
           <Input
             id="tx-amount"
             label="Amount"
@@ -176,33 +215,37 @@ export function TransactionDialog({
             required
           />
 
-          <Select
-            id="tx-category"
-            label="Category"
-            className="transaction-dialog__field"
-            value={categoryId}
-            onChange={(e) => setCategoryId(e.target.value)}
-          >
-            <option value="">No category</option>
-            {categories.map((c) => (
-              <option key={c.category_id} value={c.category_id}>
-                {c.category_name}
-              </option>
-            ))}
-          </Select>
+          {transactionType !== TransactionType.Transfer && (
+            <>
+              <Select
+                id="tx-category"
+                label="Category"
+                className="transaction-dialog__field"
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+              >
+                <option value="">No category</option>
+                {categories.map((c) => (
+                  <option key={c.category_id} value={c.category_id}>
+                    {c.category_name}
+                  </option>
+                ))}
+              </Select>
 
-          <Select
-            id="tx-classification"
-            label="Classification"
-            className="transaction-dialog__field"
-            value={classification}
-            onChange={(e) => setClassification(e.target.value as Classification)}
-          >
-            <option value={Classification.Needs}>Needs</option>
-            <option value={Classification.Wants}>Wants</option>
-            <option value={Classification.Unnecessary}>Unnecessary</option>
-            <option value={Classification.Wasteful}>Wasteful</option>
-          </Select>
+              <Select
+                id="tx-classification"
+                label="Classification"
+                className="transaction-dialog__field"
+                value={classification}
+                onChange={(e) => setClassification(e.target.value as Classification)}
+              >
+                <option value={Classification.Needs}>Needs</option>
+                <option value={Classification.Wants}>Wants</option>
+                <option value={Classification.Unnecessary}>Unnecessary</option>
+                <option value={Classification.Wasteful}>Wasteful</option>
+              </Select>
+            </>
+          )}
 
           <div className="transaction-dialog__field transaction-dialog__field--full">
             <label htmlFor="tx-note">Note <span className="transaction-dialog__optional">(optional)</span></label>

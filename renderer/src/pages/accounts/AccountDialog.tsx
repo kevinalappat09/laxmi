@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AccountSubType, AccountType } from '../../../../src/types/account'
 import type { Account, CreateAccountRequest, UpdateAccountRequest } from '../../../../src/types/account'
 import { Button } from '../../components/ui/Button'
@@ -53,10 +53,32 @@ export function AccountDialog({ mode, account, onClose, onSaved }: AccountDialog
   const [openedOn, setOpenedOn] = useState(
     account?.opened_on ? toDateInputValue(new Date(account.opened_on)) : ''
   )
+  const [creditLimit, setCreditLimit] = useState('')
+  const [statementDay, setStatementDay] = useState('')
+  const [paymentDueDay, setPaymentDueDay] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
   const isInvestment = subType === AccountSubType.Investment
+  const isCredit = subType === AccountSubType.Credit
+
+  useEffect(() => {
+    let isMounted = true
+    if (mode === 'edit' && account && account.sub_type === AccountSubType.Credit) {
+      window.financeAPI
+        .getCreditCard(account.account_id)
+        .then((details) => {
+          if (!isMounted || !details) return
+          setCreditLimit(String(details.credit_limit))
+          setStatementDay(String(details.statement_day))
+          setPaymentDueDay(String(details.payment_due_day))
+        })
+        .catch((err) => console.error(err))
+    }
+    return () => {
+      isMounted = false
+    }
+  }, [mode, account])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -68,27 +90,50 @@ export function AccountDialog({ mode, account, onClose, onSaved }: AccountDialog
       return
     }
 
+    let creditValues: { limit: number; statementDay: number; dueDay: number } | null = null
+    if (isCredit) {
+      const limit = parseFloat(creditLimit)
+      const stmtDay = parseInt(statementDay, 10)
+      const dueDay = parseInt(paymentDueDay, 10)
+      if (isNaN(limit) || limit <= 0) {
+        setError('Credit limit must be a positive number.')
+        return
+      }
+      if (isNaN(stmtDay) || stmtDay < 1 || stmtDay > 31) {
+        setError('Statement day must be between 1 and 31.')
+        return
+      }
+      if (isNaN(dueDay) || dueDay < 1 || dueDay > 31) {
+        setError('Payment due day must be between 1 and 31.')
+        return
+      }
+      creditValues = { limit, statementDay: stmtDay, dueDay }
+    }
+
     setSaving(true)
     try {
       const resolvedInstitution = isInvestment ? broker.trim() : institutionName.trim()
       const metadata = isInvestment ? { brokerage: broker.trim() } : undefined
+      const accountType = isCredit ? AccountType.Liability : AccountType.Asset
 
+      let accountId = account?.account_id
       if (mode === 'create') {
         const request: CreateAccountRequest = {
           institution_name: resolvedInstitution,
           account_name: accountName.trim(),
-          account_type: AccountType.Asset,
+          account_type: accountType,
           sub_type: subType,
           color,
           opened_on: new Date(openedOn),
           metadata,
         }
-        await window.financeAPI.createAccount(request)
+        const created = await window.financeAPI.createAccount(request)
+        accountId = created.account_id
       } else if (mode === 'edit' && account) {
         const request: UpdateAccountRequest = {
           institution_name: resolvedInstitution,
           account_name: accountName.trim(),
-          account_type: AccountType.Asset,
+          account_type: accountType,
           sub_type: subType,
           color,
           opened_on: new Date(openedOn),
@@ -96,6 +141,15 @@ export function AccountDialog({ mode, account, onClose, onSaved }: AccountDialog
         }
         await window.financeAPI.updateAccount(account.account_id, request)
       }
+
+      if (isCredit && creditValues && accountId) {
+        await window.financeAPI.upsertCreditCard(accountId, {
+          credit_limit: creditValues.limit,
+          statement_day: creditValues.statementDay,
+          payment_due_day: creditValues.dueDay,
+        })
+      }
+
       onSaved()
     } catch (err) {
       console.error(err)
@@ -191,6 +245,46 @@ export function AccountDialog({ mode, account, onClose, onSaved }: AccountDialog
           onChange={(e) => setOpenedOn(e.target.value)}
           required
         />
+
+        {isCredit && (
+          <>
+            <Input
+              id="creditLimit"
+              label="Credit Limit"
+              type="number"
+              min="0.01"
+              step="0.01"
+              placeholder="e.g. 5000"
+              value={creditLimit}
+              onChange={(e) => setCreditLimit(e.target.value)}
+              required
+            />
+            <Input
+              id="statementDay"
+              label="Statement Day (1-31)"
+              type="number"
+              min="1"
+              max="31"
+              step="1"
+              placeholder="e.g. 5"
+              value={statementDay}
+              onChange={(e) => setStatementDay(e.target.value)}
+              required
+            />
+            <Input
+              id="paymentDueDay"
+              label="Payment Due Day (1-31)"
+              type="number"
+              min="1"
+              max="31"
+              step="1"
+              placeholder="e.g. 23"
+              value={paymentDueDay}
+              onChange={(e) => setPaymentDueDay(e.target.value)}
+              required
+            />
+          </>
+        )}
 
         {error && <p className="account-dialog__error">{error}</p>}
 

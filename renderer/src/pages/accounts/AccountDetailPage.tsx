@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import type { Account } from '../../../../src/types/account'
+import { AccountSubType } from '../../../../src/types/account'
 import type { Transaction } from '../../../../src/types/transaction'
 import { TransactionType } from '../../../../src/types/transaction'
+import type { CreditCardSummary } from '../../../../src/types/creditCard'
+import { computeAccountBalance } from '../../../../src/utils/balanceUtils'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Tag } from '../../components/ui/Tag'
@@ -13,14 +16,6 @@ function formatSubType(subType: string): string {
   return subType.charAt(0).toUpperCase() + subType.slice(1)
 }
 
-function computeBalance(transactions: Transaction[]): number {
-  return transactions.reduce((sum, tx) => {
-    if (tx.transaction_type === TransactionType.Deposit) return sum + tx.amount
-    if (tx.transaction_type === TransactionType.Withdraw) return sum - tx.amount
-    return sum
-  }, 0)
-}
-
 interface AccountDetailPageProps {
   accountId: number
 }
@@ -29,6 +24,7 @@ export function AccountDetailPage({ accountId }: AccountDetailPageProps) {
   const { goBackToAccounts } = useNavigation()
   const [account, setAccount] = useState<Account | null>(null)
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [creditSummary, setCreditSummary] = useState<CreditCardSummary | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -41,7 +37,7 @@ export function AccountDetailPage({ accountId }: AccountDetailPageProps) {
       try {
         const [acct, txns] = await Promise.all([
           window.financeAPI.getAccount(accountId),
-          window.financeAPI.getTransactionsByAccount(accountId),
+          window.financeAPI.getTransactionsAffectingAccount(accountId),
         ])
         if (!isMounted) return
         setAccount(acct)
@@ -50,6 +46,16 @@ export function AccountDetailPage({ accountId }: AccountDetailPageProps) {
             new Date(b.transaction_date).getTime() - new Date(a.transaction_date).getTime()
         )
         setTransactions(sorted)
+
+        if (acct.sub_type === AccountSubType.Credit) {
+          const summaries = await window.financeAPI.listCreditCardSummaries()
+          if (!isMounted) return
+          setCreditSummary(
+            summaries.find((s) => s.account.account_id === accountId) ?? null
+          )
+        } else {
+          setCreditSummary(null)
+        }
       } catch (err) {
         console.error(err)
         if (!isMounted) return
@@ -88,7 +94,7 @@ export function AccountDetailPage({ accountId }: AccountDetailPageProps) {
     )
   }
 
-  const balance = computeBalance(transactions)
+  const balance = computeAccountBalance(transactions, accountId)
   const balanceClass =
     balance >= 0
       ? 'account-detail__balance account-detail__balance--positive'
@@ -117,6 +123,49 @@ export function AccountDetailPage({ accountId }: AccountDetailPageProps) {
         </div>
       </Card>
 
+      {creditSummary && (
+        <Card className="account-detail__credit">
+          <div className="account-detail__credit-grid">
+            <div className="account-detail__credit-stat">
+              <span className="account-detail__credit-label">Credit Limit</span>
+              <span className="account-detail__credit-value">
+                {formatCurrency(creditSummary.details.credit_limit)}
+              </span>
+            </div>
+            <div className="account-detail__credit-stat">
+              <span className="account-detail__credit-label">Outstanding</span>
+              <span className="account-detail__credit-value">
+                {formatCurrency(creditSummary.outstanding)}
+              </span>
+            </div>
+            <div className="account-detail__credit-stat">
+              <span className="account-detail__credit-label">Available</span>
+              <span className="account-detail__credit-value">
+                {formatCurrency(creditSummary.available)}
+              </span>
+            </div>
+            <div className="account-detail__credit-stat">
+              <span className="account-detail__credit-label">Utilization</span>
+              <span className="account-detail__credit-value">
+                {(creditSummary.utilization * 100).toFixed(1)}%
+              </span>
+            </div>
+            <div className="account-detail__credit-stat">
+              <span className="account-detail__credit-label">Next Statement</span>
+              <span className="account-detail__credit-value">
+                {formatDate(creditSummary.next_statement_date)}
+              </span>
+            </div>
+            <div className="account-detail__credit-stat">
+              <span className="account-detail__credit-label">Payment Due</span>
+              <span className="account-detail__credit-value">
+                {formatDate(creditSummary.next_due_date)}
+              </span>
+            </div>
+          </div>
+        </Card>
+      )}
+
       <h2 className="account-detail__section-title">Transactions</h2>
 
       {transactions.length === 0 ? (
@@ -137,12 +186,21 @@ export function AccountDetailPage({ accountId }: AccountDetailPageProps) {
               {transactions.map((tx) => {
                 const isDeposit = tx.transaction_type === TransactionType.Deposit
                 const isWithdraw = tx.transaction_type === TransactionType.Withdraw
+                const isTransfer = tx.transaction_type === TransactionType.Transfer
+                const isIncomingTransfer = isTransfer && tx.transfer_account_id === accountId
+                const isInflow = isDeposit || isIncomingTransfer
+
                 const amountClass = isDeposit
                   ? 'transactions-table__amount transactions-table__amount--deposit'
                   : isWithdraw
                     ? 'transactions-table__amount transactions-table__amount--withdraw'
                     : 'transactions-table__amount transactions-table__amount--transfer'
-                const amountPrefix = isDeposit ? '+' : isWithdraw ? '-' : ''
+                const amountPrefix = isInflow ? '+' : '-'
+                const typeLabel = isTransfer
+                  ? isIncomingTransfer
+                    ? 'transfer in'
+                    : 'transfer out'
+                  : tx.transaction_type
 
                 return (
                   <tr key={tx.transaction_id} className="transactions-table__row">
@@ -154,8 +212,10 @@ export function AccountDetailPage({ accountId }: AccountDetailPageProps) {
                         <span className="transactions-table__payee--empty">—</span>
                       )}
                     </td>
-                    <td style={{ textTransform: 'capitalize' }}>{tx.transaction_type}</td>
-                    <td style={{ textTransform: 'capitalize' }}>{tx.classification}</td>
+                    <td style={{ textTransform: 'capitalize' }}>{typeLabel}</td>
+                    <td style={{ textTransform: 'capitalize' }}>
+                      {isTransfer ? '—' : tx.classification}
+                    </td>
                     <td className={amountClass}>
                       {amountPrefix}
                       {formatCurrency(tx.amount)}

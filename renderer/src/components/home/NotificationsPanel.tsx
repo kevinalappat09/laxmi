@@ -16,53 +16,108 @@ function getFrequencyLabel(frequency: RecurringFrequency): string {
   return 'Yearly'
 }
 
+function getDueLabel(daysUntilDue: number, nextDueDate: Date): string {
+  if (daysUntilDue <= 0) return 'Due today'
+  if (daysUntilDue === 1) return 'Due tomorrow'
+  return `Due in ${daysUntilDue} days - ${formatDate(nextDueDate)}`
+}
+
+function getNotificationKey(notification: AppNotification): string {
+  switch (notification.kind) {
+    case 'budget_over':
+    case 'budget_warning':
+      return `${notification.kind}-${notification.budgetId}`
+    case 'recurring_upcoming':
+      return `${notification.kind}-${notification.recurringId}`
+    case 'credit_utilization':
+    case 'credit_payment_due':
+      return `${notification.kind}-${notification.accountId}`
+  }
+}
+
 function getTypeLabel(notification: AppNotification): string {
-  if (notification.kind === 'budget_over') return 'Budget Over'
-  if (notification.kind === 'budget_warning') return 'Budget Warning'
-  return notification.transactionType === TransactionType.Deposit
-    ? 'Upcoming Income'
-    : 'Upcoming Expense'
+  switch (notification.kind) {
+    case 'budget_over':
+      return 'Budget Over'
+    case 'budget_warning':
+      return 'Budget Warning'
+    case 'recurring_upcoming':
+      return notification.transactionType === TransactionType.Deposit
+        ? 'Upcoming Income'
+        : 'Upcoming Expense'
+    case 'credit_utilization':
+      return 'High Utilization'
+    case 'credit_payment_due':
+      return 'Payment Due'
+  }
 }
 
 function getDetailText(notification: AppNotification): string {
-  if (notification.kind === 'budget_over') {
-    return `Over by ${formatCurrency(notification.overBy)} - ${notification.periodLabel}`
+  switch (notification.kind) {
+    case 'budget_over':
+      return `Over by ${formatCurrency(notification.overBy)} - ${notification.periodLabel}`
+    case 'budget_warning':
+      return `${notification.percentage.toFixed(1)}% used - ${notification.periodLabel}`
+    case 'recurring_upcoming':
+      return notification.daysUntilDue <= 1
+        ? `${getDueLabel(notification.daysUntilDue, notification.nextDueDate)} - ${getFrequencyLabel(notification.frequency)}`
+        : `Due in ${notification.daysUntilDue} days - ${formatDate(notification.nextDueDate)}`
+    case 'credit_utilization':
+      return `${notification.utilizationPercent.toFixed(1)}% used - reduce below ${notification.targetPercent.toFixed(0)}% before statement on ${formatDate(notification.statementDate)}`
+    case 'credit_payment_due':
+      return `${getDueLabel(notification.daysUntilDue, notification.dueDate)}`
   }
-
-  if (notification.kind === 'budget_warning') {
-    return `${notification.percentage.toFixed(1)}% used - ${notification.periodLabel}`
-  }
-
-  if (notification.daysUntilDue === 0) {
-    return `Due today - ${getFrequencyLabel(notification.frequency)}`
-  }
-  if (notification.daysUntilDue === 1) {
-    return `Due tomorrow - ${getFrequencyLabel(notification.frequency)}`
-  }
-
-  return `Due in ${notification.daysUntilDue} days - ${formatDate(notification.nextDueDate)}`
 }
 
 function getRowClassName(notification: AppNotification): string {
-  if (notification.kind === 'budget_over') return 'notifications-panel__row--budget-over'
-  if (notification.kind === 'budget_warning') return 'notifications-panel__row--budget-warning'
-  if (notification.daysUntilDue === 0) return 'notifications-panel__row--recurring-today'
-  return 'notifications-panel__row--recurring-soon'
+  switch (notification.kind) {
+    case 'budget_over':
+      return 'notifications-panel__row--budget-over'
+    case 'budget_warning':
+      return 'notifications-panel__row--budget-warning'
+    case 'recurring_upcoming':
+      return notification.daysUntilDue <= 0
+        ? 'notifications-panel__row--recurring-today'
+        : 'notifications-panel__row--recurring-soon'
+    case 'credit_utilization':
+      return 'notifications-panel__row--budget-warning'
+    case 'credit_payment_due':
+      return notification.daysUntilDue <= 0
+        ? 'notifications-panel__row--recurring-today'
+        : 'notifications-panel__row--recurring-soon'
+  }
 }
 
 function getBadgeClassName(notification: AppNotification): string {
-  if (notification.kind === 'budget_over') return 'notifications-panel__badge--budget-over'
-  if (notification.kind === 'budget_warning') return 'notifications-panel__badge--budget-warning'
-  if (notification.transactionType === TransactionType.Deposit) {
-    return 'notifications-panel__badge--recurring-income'
+  switch (notification.kind) {
+    case 'budget_over':
+      return 'notifications-panel__badge--budget-over'
+    case 'budget_warning':
+      return 'notifications-panel__badge--budget-warning'
+    case 'recurring_upcoming':
+      return notification.transactionType === TransactionType.Deposit
+        ? 'notifications-panel__badge--recurring-income'
+        : 'notifications-panel__badge--recurring-expense'
+    case 'credit_utilization':
+      return 'notifications-panel__badge--budget-warning'
+    case 'credit_payment_due':
+      return 'notifications-panel__badge--recurring-expense'
   }
-  return 'notifications-panel__badge--recurring-expense'
 }
 
 function getAmountValue(notification: AppNotification): number {
-  if (notification.kind === 'budget_over') return notification.overBy
-  if (notification.kind === 'budget_warning') return notification.amount
-  return notification.amount
+  switch (notification.kind) {
+    case 'budget_over':
+      return notification.overBy
+    case 'budget_warning':
+      return notification.amount
+    case 'recurring_upcoming':
+      return notification.amount
+    case 'credit_utilization':
+      return notification.outstanding
+    case 'credit_payment_due':
+      return notification.amountDue
+  }
 }
 
 function getAmountClassName(notification: AppNotification): string {
@@ -101,7 +156,7 @@ export function NotificationsPanel({ notifications, isLoading = false, error = n
             <tbody>
               {notifications.map((notification) => (
                 <tr
-                  key={`${notification.kind}-${notification.kind === 'recurring_upcoming' ? notification.recurringId : notification.budgetId}`}
+                  key={getNotificationKey(notification)}
                   className={`notifications-panel__row ${getRowClassName(notification)}`}
                 >
                   <td>

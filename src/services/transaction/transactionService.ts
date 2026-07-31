@@ -24,6 +24,7 @@ export interface TransactionService {
     deleteTransaction(transactionId: number): void;
     getTransaction(transactionId: number): Transaction;
     getTransactionsByAccount(accountId: number): Transaction[];
+    getTransactionsAffectingAccount(accountId: number): Transaction[];
     findWithFilter(query: TransactionReportQuery): Transaction[];
     aggregate(query: TransactionReportQuery): ReportRow[];
 }
@@ -130,6 +131,16 @@ export class TransactionServiceImpl implements TransactionService {
 
         const repository = new TransactionRepositoryImpl(db);
         return repository.findByAccountId(accountId);
+    }
+
+    getTransactionsAffectingAccount(accountId: number): Transaction[] {
+        const db = profileSessionService.getDatabaseConnection();
+        if (!db) {
+            throw new Error("No active database connection. Open a profile first.");
+        }
+
+        const repository = new TransactionRepositoryImpl(db);
+        return repository.findAffectingAccount(accountId);
     }
 
     findWithFilter(query: TransactionReportQuery): Transaction[] {

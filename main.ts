@@ -21,6 +21,8 @@ import {
 import { CreateCategoryRequest, UpdateCategoryRequest } from "./src/types/category"
 import { BudgetServiceImpl } from "./src/services/budget/budgetService"
 import { CreateBudgetRequest, UpdateBudgetRequest } from "./src/types/budget"
+import { CreditCardServiceImpl } from "./src/services/creditCard/creditCardService"
+import { CreateCreditCardRequest, UpdateCreditCardRequest } from "./src/types/creditCard"
 import { RecurringTransactionServiceImpl } from "./src/services/recurringTransaction/recurringTransactionService"
 import {
     CreateRecurringTransactionRequest,
@@ -68,6 +70,7 @@ const accountService = new AccountServiceImpl()
 const transactionService = new TransactionServiceImpl()
 const categoryService = new CategoryServiceImpl()
 const budgetService = new BudgetServiceImpl()
+const creditCardService = new CreditCardServiceImpl()
 const recurringTransactionService = new RecurringTransactionServiceImpl()
 const csvImportService = new TransactionImportServiceImpl()
 const csvExportService = new TransactionExportServiceImpl()
@@ -125,6 +128,10 @@ ipcMain.handle("get-transaction", (_event, transactionId: number) => {
 
 ipcMain.handle("get-transactions-by-account", (_event, accountId: number) => {
     return transactionService.getTransactionsByAccount(accountId)
+})
+
+ipcMain.handle("get-transactions-affecting-account", (_event, accountId: number) => {
+    return transactionService.getTransactionsAffectingAccount(accountId)
 })
 
 ipcMain.handle("find-transactions-with-filter", (_event, query: TransactionReportQuery) => {
@@ -195,6 +202,24 @@ ipcMain.handle("budget:list-with-spending", (_event, referenceDate?: Date | stri
 ipcMain.handle("budget:get-notifications", (_event, referenceDate?: Date | string) => {
     const normalizedDate = referenceDate ? new Date(referenceDate) : undefined
     return budgetService.getNotifications(normalizedDate)
+})
+
+ipcMain.handle("creditcard:upsert", (_event, accountId: number, request: CreateCreditCardRequest | UpdateCreditCardRequest) => {
+    return creditCardService.upsertCreditCardDetails(accountId, request)
+})
+
+ipcMain.handle("creditcard:get", (_event, accountId: number) => {
+    return creditCardService.getCreditCardDetails(accountId)
+})
+
+ipcMain.handle("creditcard:list-summaries", (_event, referenceDate?: Date | string) => {
+    const normalizedDate = referenceDate ? new Date(referenceDate) : undefined
+    return creditCardService.listCreditCardSummaries(normalizedDate)
+})
+
+ipcMain.handle("creditcard:get-notifications", (_event, referenceDate?: Date | string) => {
+    const normalizedDate = referenceDate ? new Date(referenceDate) : undefined
+    return creditCardService.getNotifications(normalizedDate)
 })
 
 ipcMain.handle("recurring:create", (_event, request: CreateRecurringTransactionRequest) => {

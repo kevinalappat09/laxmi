@@ -187,7 +187,7 @@ describe("Migration Integration Tests", () => {
         migrationService.migrate(db);
 
         const version = getCurrentSchemaVersion(db);
-        expect(version).toBe(13);
+        expect(version).toBe(14);
     });
 
     describe("Migration 8 — relax recurring_transactions constraints", () => {
