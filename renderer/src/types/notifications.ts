@@ -30,3 +30,30 @@ export type AppNotification =
       nextDueDate: Date
       frequency: RecurringFrequency
     }
+  | {
+      kind: 'credit_utilization'
+      accountId: number
+      name: string
+      utilizationPercent: number
+      targetPercent: number
+      outstanding: number
+      statementDate: Date
+      daysUntilStatement: number
+    }
+  | {
+      kind: 'credit_limit_approaching'
+      accountId: number
+      name: string
+      utilizationPercent: number
+      outstanding: number
+      available: number
+      creditLimit: number
+    }
+  | {
+      kind: 'credit_payment_due'
+      accountId: number
+      name: string
+      amountDue: number
+      dueDate: Date
+      daysUntilDue: number
+    }

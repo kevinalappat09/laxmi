@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { BudgetStatus } from '../../../src/types/budget'
 import type { BudgetWithSpending } from '../../../src/types/budget'
 import type { RecurringUpcomingNotification } from '../../../src/types/recurringTransaction'
+import type { CreditCardNotification } from '../../../src/types/creditCard'
 import type { AppNotification } from '../types/notifications'
 
 interface UseNotificationsResult {
@@ -12,9 +13,12 @@ interface UseNotificationsResult {
 
 function sortNotifications(notifications: AppNotification[]): AppNotification[] {
   const kindRank: Record<AppNotification['kind'], number> = {
-    budget_over: 0,
-    budget_warning: 1,
-    recurring_upcoming: 2,
+    credit_limit_approaching: 0,
+    budget_over: 1,
+    credit_payment_due: 2,
+    budget_warning: 3,
+    credit_utilization: 4,
+    recurring_upcoming: 5,
   }
 
   return [...notifications].sort((left, right) => {
@@ -89,6 +93,42 @@ function mapRecurringNotification(recurringRow: RecurringUpcomingNotification): 
   }
 }
 
+function mapCreditNotification(notification: CreditCardNotification): AppNotification {
+  if (notification.kind === 'credit_utilization') {
+    return {
+      kind: 'credit_utilization',
+      accountId: notification.account_id,
+      name: notification.account_name,
+      utilizationPercent: notification.utilization * 100,
+      targetPercent: notification.target * 100,
+      outstanding: notification.outstanding,
+      statementDate: new Date(notification.statement_date),
+      daysUntilStatement: notification.days_until_statement,
+    }
+  }
+
+  if (notification.kind === 'credit_limit_approaching') {
+    return {
+      kind: 'credit_limit_approaching',
+      accountId: notification.account_id,
+      name: notification.account_name,
+      utilizationPercent: notification.utilization * 100,
+      outstanding: notification.outstanding,
+      available: notification.available,
+      creditLimit: notification.credit_limit,
+    }
+  }
+
+  return {
+    kind: 'credit_payment_due',
+    accountId: notification.account_id,
+    name: notification.account_name,
+    amountDue: notification.amount_due,
+    dueDate: new Date(notification.due_date),
+    daysUntilDue: notification.days_until_due,
+  }
+}
+
 export function useNotifications(daysAhead = 10): UseNotificationsResult {
   const [notifications, setNotifications] = useState<AppNotification[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -101,9 +141,10 @@ export function useNotifications(daysAhead = 10): UseNotificationsResult {
       setIsLoading(true)
       setError(null)
 
-      const [budgetResult, recurringResult] = await Promise.allSettled([
+      const [budgetResult, recurringResult, creditResult] = await Promise.allSettled([
         window.financeAPI.getBudgetNotifications(),
         window.financeAPI.getUpcomingRecurring(daysAhead),
+        window.financeAPI.getCreditCardNotifications(),
       ])
       if (!isMounted) return
 
@@ -129,6 +170,15 @@ export function useNotifications(daysAhead = 10): UseNotificationsResult {
         )
       } else {
         console.error(recurringResult.reason)
+        nextError = 'Some alerts could not be loaded.'
+      }
+
+      if (creditResult.status === 'fulfilled') {
+        nextNotifications.push(
+          ...creditResult.value.map((row) => mapCreditNotification(row))
+        )
+      } else {
+        console.error(creditResult.reason)
         nextError = 'Some alerts could not be loaded.'
       }
 

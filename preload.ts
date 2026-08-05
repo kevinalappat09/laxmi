@@ -21,6 +21,13 @@ import {
 } from "./src/types/csvImport"
 import { Budget, BudgetWithSpending, CreateBudgetRequest, UpdateBudgetRequest } from "./src/types/budget"
 import {
+    CreateCreditCardRequest,
+    UpdateCreditCardRequest,
+    CreditCardDetails,
+    CreditCardSummary,
+    CreditCardNotification,
+} from "./src/types/creditCard"
+import {
     CreateRecurringTransactionRequest,
     RecurringUpcomingNotification,
     RecurringTransaction,
@@ -63,6 +70,8 @@ contextBridge.exposeInMainWorld("financeAPI", {
         ipcRenderer.invoke("get-transaction", transactionId),
     getTransactionsByAccount: (accountId: number): Promise<Transaction[]> =>
         ipcRenderer.invoke("get-transactions-by-account", accountId),
+    getTransactionsAffectingAccount: (accountId: number): Promise<Transaction[]> =>
+        ipcRenderer.invoke("get-transactions-affecting-account", accountId),
     findTransactionsWithFilter: (query: TransactionReportQuery): Promise<Transaction[]> =>
         ipcRenderer.invoke("find-transactions-with-filter", query),
     aggregateTransactions: (query: TransactionReportQuery): Promise<any[]> =>
@@ -98,6 +107,19 @@ contextBridge.exposeInMainWorld("financeAPI", {
         ipcRenderer.invoke("budget:list-with-spending", referenceDate),
     getBudgetNotifications: (referenceDate?: Date): Promise<BudgetWithSpending[]> =>
         ipcRenderer.invoke("budget:get-notifications", referenceDate),
+
+    // Credit card operations
+    upsertCreditCard: (
+        accountId: number,
+        request: CreateCreditCardRequest | UpdateCreditCardRequest
+    ): Promise<CreditCardDetails> =>
+        ipcRenderer.invoke("creditcard:upsert", accountId, request),
+    getCreditCard: (accountId: number): Promise<CreditCardDetails | null> =>
+        ipcRenderer.invoke("creditcard:get", accountId),
+    listCreditCardSummaries: (referenceDate?: Date): Promise<CreditCardSummary[]> =>
+        ipcRenderer.invoke("creditcard:list-summaries", referenceDate),
+    getCreditCardNotifications: (referenceDate?: Date): Promise<CreditCardNotification[]> =>
+        ipcRenderer.invoke("creditcard:get-notifications", referenceDate),
 
     // Recurring transaction operations
     createRecurring: (request: CreateRecurringTransactionRequest): Promise<RecurringTransaction> =>

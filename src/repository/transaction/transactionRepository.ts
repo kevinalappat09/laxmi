@@ -17,6 +17,7 @@ export interface TransactionRepository {
     save(transaction: Transaction): Transaction;
     findById(transactionId: number): Transaction | null;
     findByAccountId(accountId: number): Transaction[];
+    findAffectingAccount(accountId: number): Transaction[];
     delete(transactionId: number): void;
     deleteByAccountId(accountId: number): void;
     findWithFilter(query: TransactionReportQuery): Transaction[];
@@ -150,6 +151,21 @@ export class TransactionRepositoryImpl implements TransactionRepository {
         `);
 
         const rows = stmt.all(accountId) as any[];
+        return rows.map((row) => this.mapRowToTransaction(row));
+    }
+
+    findAffectingAccount(accountId: number): Transaction[] {
+        if (!this.db) {
+            throw new Error("No active database connection. Open a profile first.");
+        }
+
+        const stmt = this.db.prepare(`
+            SELECT * FROM transactions
+            WHERE (account_id = ? OR transfer_account_id = ?) AND is_active = 1
+            ORDER BY transaction_date DESC, transaction_id DESC
+        `);
+
+        const rows = stmt.all(accountId, accountId) as any[];
         return rows.map((row) => this.mapRowToTransaction(row));
     }
 

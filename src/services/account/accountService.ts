@@ -7,6 +7,7 @@
 import { Account, AccountType, CreateAccountRequest, UpdateAccountRequest } from "../../types/account";
 import { AccountRepositoryImpl } from "../../repository/account/accountRepository";
 import { TransactionRepositoryImpl } from "../../repository/transaction/transactionRepository";
+import { CreditCardRepositoryImpl } from "../../repository/creditCard/creditCardRepository";
 import { profileSessionService } from "../profileSession/profileSessionService";
 
 /**
@@ -108,6 +109,10 @@ export class AccountServiceImpl implements AccountService {
 
         const transactionRepository = new TransactionRepositoryImpl(db);
         transactionRepository.deleteByAccountId(accountId);
+
+        const creditCardRepository = new CreditCardRepositoryImpl(db);
+        creditCardRepository.deleteByAccountId(accountId);
+
         repository.deactivate(accountId);
     }
 

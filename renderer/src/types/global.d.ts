@@ -30,6 +30,13 @@ import {
     UpdateBudgetRequest,
 } from "../../../src/types/budget"
 import {
+    CreateCreditCardRequest,
+    UpdateCreditCardRequest,
+    CreditCardDetails,
+    CreditCardSummary,
+    CreditCardNotification,
+} from "../../../src/types/creditCard"
+import {
     CreateRecurringTransactionRequest,
     RecurringUpcomingNotification,
     RecurringTransaction,
@@ -82,6 +89,7 @@ declare global {
         deleteTransaction: (transactionId: number) => Promise<void>
         getTransaction: (transactionId: number) => Promise<Transaction>
         getTransactionsByAccount: (accountId: number) => Promise<Transaction[]>
+        getTransactionsAffectingAccount: (accountId: number) => Promise<Transaction[]>
         findTransactionsWithFilter: (query: TransactionReportQuery) => Promise<Transaction[]>
         aggregateTransactions: (query: TransactionReportQuery) => Promise<any[]>
 
@@ -103,6 +111,15 @@ declare global {
         deleteBudget: (budgetId: number) => Promise<void>
         listBudgetsWithSpending: (referenceDate?: Date) => Promise<BudgetWithSpending[]>
         getBudgetNotifications: (referenceDate?: Date) => Promise<BudgetWithSpending[]>
+
+        // Credit card operations
+        upsertCreditCard: (
+            accountId: number,
+            request: CreateCreditCardRequest | UpdateCreditCardRequest
+        ) => Promise<CreditCardDetails>
+        getCreditCard: (accountId: number) => Promise<CreditCardDetails | null>
+        listCreditCardSummaries: (referenceDate?: Date) => Promise<CreditCardSummary[]>
+        getCreditCardNotifications: (referenceDate?: Date) => Promise<CreditCardNotification[]>
 
         // Recurring transaction operations
         createRecurring: (
