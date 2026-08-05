@@ -12,33 +12,14 @@ import type { PriceRefreshResult, PortfolioSummaryAnalytics, AssetAnalytics, Por
 import { Button } from '../../components/ui/Button'
 import { TransactionDialog } from './TransactionDialog'
 import { useNavigation } from '../../contexts/NavigationContext'
+import {
+  formatCurrency,
+  formatCurrencyCompact,
+  formatPercent,
+  formatSignedCurrency,
+  formatSignedPercent,
+} from '../../utils/formatters'
 import './PortfolioPage.css'
-
-/* ------------------------------------------------------------------ */
-/* Formatters                                                          */
-/* ------------------------------------------------------------------ */
-
-function fmtINR(v: number | null | undefined, decimals = 0): string {
-  if (v == null) return '--'
-  return '₹' + v.toLocaleString('en-IN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
-}
-
-function fmtPct(v: number | null | undefined): string {
-  if (v == null) return '--'
-  const sign = v >= 0 ? '+' : ''
-  return `${sign}${v.toFixed(2)}%`
-}
-
-function fmtPctPlain(v: number | null | undefined): string {
-  if (v == null) return '--'
-  return v.toFixed(2) + '%'
-}
-
-function fmtChange(v: number | null | undefined): string {
-  if (v == null) return '--'
-  const sign = v >= 0 ? '+' : ''
-  return `${sign}${fmtINR(v, 2)}`
-}
 
 function getStalenessLabel(asset: PortfolioAsset): { label: string; state: 'fresh' | 'stale' | 'never' } {
   if (!asset.lastPriceUpdatedAt) return { label: 'Never updated', state: 'never' }
@@ -314,18 +295,18 @@ function SummaryBar({ summary }: { summary: PortfolioSummaryAnalytics }) {
 
   return (
     <div className="portfolio-summary-bar">
-      <SummaryTile label="Total Value" value={fmtINR(summary.totalCurrentValue, 0)} />
+      <SummaryTile label="Total Value" value={formatCurrency(summary.totalCurrentValue, 0)} />
       <SummaryTile
         label="Day Gain/Loss"
-        value={`${fmtChange(summary.dayGainLoss)} (${fmtPct(summary.dayGainLossPct)})`}
+        value={`${formatSignedCurrency(summary.dayGainLoss)} (${formatSignedPercent(summary.dayGainLossPct)})`}
         color={dayColor}
       />
       <SummaryTile
         label="Total Return"
-        value={`${fmtChange(summary.totalPl)} (${fmtPct(summary.totalUnrealizedPlPct)})`}
+        value={`${formatSignedCurrency(summary.totalPl)} (${formatSignedPercent(summary.totalUnrealizedPlPct)})`}
         color={plColor}
       />
-      <SummaryTile label="XIRR" value={fmtPctPlain(summary.xirr != null ? summary.xirr * 100 : null)} />
+      <SummaryTile label="XIRR" value={formatPercent(summary.xirr != null ? summary.xirr * 100 : null)} />
     </div>
   )
 }
@@ -407,13 +388,13 @@ function MonthlyChart({ summary }: { summary: PortfolioSummaryAnalytics }) {
   const option = {
     tooltip: {
       trigger: 'axis',
-      formatter: (p: any) => `${p[0].name}: ₹${p[0].value.toLocaleString('en-IN')}`,
+      formatter: (p: any) => `${p[0].name}: ${formatCurrency(p[0].value, 0)}`,
       backgroundColor: bgInput,
       borderColor: border,
       textStyle: { color: textPri },
     },
     xAxis: { type: 'category', data: months, axisLabel: { fontSize: 11, color: textSec }, axisLine: { lineStyle: { color: grid } } },
-    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => v >= 1000 ? `₹${(v/1000).toFixed(0)}k` : `₹${v}`, fontSize: 11, color: textSec }, splitLine: { lineStyle: { color: grid } } },
+    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatCurrencyCompact(v), fontSize: 11, color: textSec }, splitLine: { lineStyle: { color: grid } } },
     series: [{ type: 'bar', data: amounts, itemStyle: { color: accent, borderRadius: [3, 3, 0, 0] } }],
     grid: { left: 50, right: 10, top: 20, bottom: 35 },
   }
@@ -474,12 +455,12 @@ function ValueHistoryChart({ data, range, onRangeChange }: {
         const d = params[0].name
         const inv = params.find((p: any) => p.seriesName === 'Invested')?.value ?? 0
         const val = params.find((p: any) => p.seriesName === 'Current Value')?.value ?? 0
-        return `${d}<br/>Invested: ₹${inv.toLocaleString('en-IN')}<br/>Current: ₹${val.toLocaleString('en-IN')}`
+        return `${d}<br/>Invested: ${formatCurrency(inv, 0)}<br/>Current: ${formatCurrency(val, 0)}`
       },
     },
     legend: { bottom: 0, data: ['Invested', 'Current Value'], textStyle: { color: textSec } },
     xAxis: { type: 'category', data: dates, axisLabel: { fontSize: 11, rotate: 30, color: textSec }, axisLine: { lineStyle: { color: grid } } },
-    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => v >= 100000 ? `₹${(v/100000).toFixed(1)}L` : v >= 1000 ? `₹${(v/1000).toFixed(0)}k` : `₹${v}`, fontSize: 11, color: textSec }, splitLine: { lineStyle: { color: grid } } },
+    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatCurrencyCompact(v), fontSize: 11, color: textSec }, splitLine: { lineStyle: { color: grid } } },
     series: [
       { name: 'Invested', type: 'line', data: invested, step: 'end', lineStyle: { color: textSec }, itemStyle: { color: textSec }, areaStyle: { color: 'rgba(134,143,151,0.08)' }, symbol: 'none' },
       { name: 'Current Value', type: 'line', data: values, smooth: true, lineStyle: { color: accent }, itemStyle: { color: accent }, areaStyle: { color: `rgba(${readVar('--color-accent-rgb', '214,254,81')},0.08)` }, symbol: 'none' },
@@ -534,11 +515,11 @@ function FundRow({ analytics: a, rawAsset, onRowClick, onBuy, onSell, onDelete }
           )
         }
       </td>
-      <td className="portfolio-page__col-right">{a ? fmtINR(a.totalInvested) : '—'}</td>
+      <td className="portfolio-page__col-right">{a ? formatCurrency(a.totalInvested, 0) : '—'}</td>
       <td className="portfolio-page__col-right">
         {a ? (
           <>
-            <div>{fmtINR(a.currentValue)}</div>
+            <div>{formatCurrency(a.currentValue, 0)}</div>
             <div style={{ fontSize: '0.72rem', color: 'var(--color-text-secondary)' }}>{a.totalUnits.toFixed(3)} units</div>
           </>
         ) : '—'}
@@ -546,13 +527,13 @@ function FundRow({ analytics: a, rawAsset, onRowClick, onBuy, onSell, onDelete }
       <td className="portfolio-page__col-right" style={{ color: a ? plColor : undefined }}>
         {a ? (
           <>
-            <div>{fmtChange(a.unrealizedPl)}</div>
-            <div style={{ fontSize: '0.72rem' }}>{fmtPct(a.unrealizedPlPct)}</div>
+            <div>{formatSignedCurrency(a.unrealizedPl)}</div>
+            <div style={{ fontSize: '0.72rem' }}>{formatSignedPercent(a.unrealizedPlPct)}</div>
           </>
         ) : '—'}
       </td>
-      <td className="portfolio-page__col-right">{a ? fmtPctPlain(a.xirr != null ? a.xirr * 100 : null) : '—'}</td>
-      <td className="portfolio-page__col-right" style={{ color: a ? dayColor : undefined }}>{a ? fmtChange(a.dayGainLoss) : '—'}</td>
+      <td className="portfolio-page__col-right">{a ? formatPercent(a.xirr != null ? a.xirr * 100 : null) : '—'}</td>
+      <td className="portfolio-page__col-right" style={{ color: a ? dayColor : undefined }}>{a ? formatSignedCurrency(a.dayGainLoss) : '—'}</td>
       <td className="portfolio-page__col-actions" onClick={e => e.stopPropagation()}>
         <div className="portfolio-page__action-group">
           <button className="portfolio-page__action-btn" onClick={onBuy}>Buy More</button>
@@ -577,9 +558,9 @@ function SubtotalRow({ assets }: { assets: AssetAnalytics[] }) {
   return (
     <tr className="portfolio-page__subtotal-row">
       <td><span className="portfolio-page__subtotal-label">Subtotal</span></td>
-      <td className="portfolio-page__col-right">{fmtINR(totalInvested)}</td>
-      <td className="portfolio-page__col-right">{fmtINR(totalCurrent)}</td>
-      <td className="portfolio-page__col-right" style={{ color: plColor }}>{fmtChange(totalPl)}</td>
+      <td className="portfolio-page__col-right">{formatCurrency(totalInvested, 0)}</td>
+      <td className="portfolio-page__col-right">{formatCurrency(totalCurrent, 0)}</td>
+      <td className="portfolio-page__col-right" style={{ color: plColor }}>{formatSignedCurrency(totalPl)}</td>
       <td className="portfolio-page__col-right"></td>
       <td className="portfolio-page__col-right"></td>
       <td></td>

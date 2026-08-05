@@ -5,28 +5,8 @@ import type { PortfolioTransaction } from '../../../../src/types/portfolioTransa
 import { Button } from '../../components/ui/Button'
 import { TransactionDialog } from './TransactionDialog'
 import { useNavigation } from '../../contexts/NavigationContext'
+import { formatCurrency, formatSignedCurrency, formatSignedPercent } from '../../utils/formatters'
 import './AssetDetailPage.css'
-
-/* ------------------------------------------------------------------ */
-/* Formatters                                                          */
-/* ------------------------------------------------------------------ */
-
-function fmtINR(v: number | null | undefined, decimals = 2): string {
-  if (v == null) return '--'
-  return '₹' + v.toLocaleString('en-IN', { minimumFractionDigits: decimals, maximumFractionDigits: decimals })
-}
-
-function fmtPct(v: number | null | undefined): string {
-  if (v == null) return '--'
-  const sign = v >= 0 ? '+' : ''
-  return `${sign}${v.toFixed(2)}%`
-}
-
-function fmtChange(v: number | null | undefined): string {
-  if (v == null) return '--'
-  const sign = v >= 0 ? '+' : ''
-  return `${sign}${fmtINR(v)}`
-}
 
 function fmtDate(iso: string): string {
   try {
@@ -108,24 +88,24 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
       {/* Metrics grid — only shown once there are holdings */}
       {analytics && (
         <div className="asset-detail__metrics">
-          <MetricTile label="Current NAV" value={fmtINR(analytics.currentNav)} />
+          <MetricTile label="Current NAV" value={formatCurrency(analytics.currentNav)} />
           <MetricTile
             label="Day Gain/Loss"
-            value={`${fmtChange(analytics.dayGainLoss)} (${fmtPct(analytics.dayGainLossPct)})`}
+            value={`${formatSignedCurrency(analytics.dayGainLoss)} (${formatSignedPercent(analytics.dayGainLossPct)})`}
             color={dayColor}
           />
           <MetricTile label="Units" value={analytics.totalUnits.toFixed(3)} />
-          <MetricTile label="AVCO" value={`${fmtINR(analytics.avco)}/unit`} />
-          <MetricTile label="Invested" value={fmtINR(analytics.totalInvested, 0)} />
-          <MetricTile label="Current Value" value={fmtINR(analytics.currentValue, 0)} />
+          <MetricTile label="AVCO" value={`${formatCurrency(analytics.avco)}/unit`} />
+          <MetricTile label="Invested" value={formatCurrency(analytics.totalInvested, 0)} />
+          <MetricTile label="Current Value" value={formatCurrency(analytics.currentValue, 0)} />
           <MetricTile
             label="Unrealized P&L"
-            value={`${fmtChange(analytics.unrealizedPl)} (${fmtPct(analytics.unrealizedPlPct)})`}
+            value={`${formatSignedCurrency(analytics.unrealizedPl)} (${formatSignedPercent(analytics.unrealizedPlPct)})`}
             color={plColor}
           />
-          <MetricTile label="Realized P&L" value={fmtINR(analytics.realizedPl)} />
-          <MetricTile label="XIRR" value={analytics.xirr != null ? fmtPct(analytics.xirr * 100) : '--'} />
-          <MetricTile label="CAGR" value={analytics.cagr != null ? fmtPct(analytics.cagr * 100) : '--'} />
+          <MetricTile label="Realized P&L" value={formatCurrency(analytics.realizedPl)} />
+          <MetricTile label="XIRR" value={formatSignedPercent(analytics.xirr != null ? analytics.xirr * 100 : null)} />
+          <MetricTile label="CAGR" value={formatSignedPercent(analytics.cagr != null ? analytics.cagr * 100 : null)} />
         </div>
       )}
 
@@ -162,9 +142,9 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
                       {t.transactionType}
                     </span>
                   </td>
-                  <td className="asset-detail__col-right">{fmtINR(t.pricePerUnit)}</td>
+                  <td className="asset-detail__col-right">{formatCurrency(t.pricePerUnit)}</td>
                   <td className="asset-detail__col-right">{t.quantity.toFixed(3)}</td>
-                  <td className="asset-detail__col-right">{fmtINR(t.quantity * t.pricePerUnit, 0)}</td>
+                  <td className="asset-detail__col-right">{formatCurrency(t.quantity * t.pricePerUnit, 0)}</td>
                   <td className="asset-detail__txn-note">{t.note ?? ''}</td>
                 </tr>
               ))}

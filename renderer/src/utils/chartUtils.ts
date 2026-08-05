@@ -356,6 +356,54 @@ export function aggregateByKey(
     .sort((a, b) => b.value - a.value)
 }
 
+export const OTHER_SERIES_KEY = 'Other'
+export const TOP_N_SLICES = 8
+export const TOP_N_SERIES = 8
+
+function sumRowValue(row: Record<string, number | string>, key: string): number {
+  const value = row[key]
+  return typeof value === 'number' ? value : 0
+}
+
+export function collapseToTopN(points: AggregatePoint[], limit: number = TOP_N_SLICES): AggregatePoint[] {
+  if (points.length <= limit) return points
+
+  const ranked = [...points].sort((a, b) => b.value - a.value)
+  const kept = ranked.slice(0, limit)
+  const otherTotal = ranked.slice(limit).reduce((sum, point) => sum + point.value, 0)
+
+  if (otherTotal === 0) return kept
+
+  return [...kept, { name: OTHER_SERIES_KEY, value: Number(otherTotal.toFixed(2)) }]
+}
+
+export function collapsePivotToTopN(pivot: PivotResult, limit: number = TOP_N_SERIES): PivotResult {
+  if (pivot.seriesKeys.length <= limit) return pivot
+
+  const totalsByKey = new Map(
+    pivot.seriesKeys.map((key) => [key, pivot.data.reduce((sum, row) => sum + sumRowValue(row, key), 0)])
+  )
+
+  const ranked = [...pivot.seriesKeys].sort((a, b) => (totalsByKey.get(b) ?? 0) - (totalsByKey.get(a) ?? 0))
+  const keptKeys = ranked.slice(0, limit).sort((a, b) => a.localeCompare(b))
+  const collapsedKeys = ranked.slice(limit)
+
+  const data = pivot.data.map((row) => {
+    const next = { label: row.label } as { label: string } & Record<string, number | string>
+
+    keptKeys.forEach((key) => {
+      next[key] = sumRowValue(row, key)
+    })
+
+    const otherTotal = collapsedKeys.reduce((sum, key) => sum + sumRowValue(row, key), 0)
+    next[OTHER_SERIES_KEY] = Number(otherTotal.toFixed(2))
+
+    return next
+  })
+
+  return { data, seriesKeys: [...keptKeys, OTHER_SERIES_KEY] }
+}
+
 export const CLASSIFICATION_OPTIONS: Classification[] = [
   Classification.Needs,
   Classification.Wants,

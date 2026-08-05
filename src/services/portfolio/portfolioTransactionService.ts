@@ -19,6 +19,7 @@ export interface PortfolioTransactionService {
     create(request: CreatePortfolioTransactionRequest): PortfolioTransaction;
     deactivate(id: number): void;
     listByAsset(portfolioAssetId: number): PortfolioTransaction[];
+    listAll(): PortfolioTransaction[];
 }
 
 export class PortfolioTransactionServiceImpl implements PortfolioTransactionService {
@@ -114,6 +115,14 @@ export class PortfolioTransactionServiceImpl implements PortfolioTransactionServ
 
         const repo = new PortfolioTransactionRepositoryImpl(db);
         return repo.listByAsset(portfolioAssetId);
+    }
+
+    listAll(): PortfolioTransaction[] {
+        const db = profileSessionService.getDatabaseConnection();
+        if (!db) throw new Error("No active database connection. Open a profile first.");
+
+        const repo = new PortfolioTransactionRepositoryImpl(db);
+        return repo.listAll();
     }
 
     private resolveQuantity(request: CreatePortfolioTransactionRequest): number {
