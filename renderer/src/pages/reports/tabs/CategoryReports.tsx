@@ -1,14 +1,29 @@
 import { useMemo, useState } from 'react'
 import type { Category } from '../../../../../src/types/category'
 import { TransactionType, type Transaction } from '../../../../../src/types/transaction'
+import { Button } from '../../../components/ui/Button'
 import { Select } from '../../../components/ui/Input'
-import { aggregateByKey } from '../../../utils/chartUtils'
-import { buildPieOption } from '../../../utils/reportOptions'
+import { MultiSelectDropdown } from '../../../components/ui/MultiSelectDropdown'
+import {
+  aggregateByKey,
+  collapsePivotToTopN,
+  collapseToTopN,
+  getAutoAggregateBuckets,
+  pivotByKey,
+} from '../../../utils/chartUtils'
+import {
+  assignSeriesColors,
+  buildMultiLineOption,
+  buildPieOption,
+  mergeSeriesKeys,
+} from '../../../utils/reportOptions'
 import { ReportChartCard } from '../components/ReportChartCard'
 
 interface CategoryReportsProps {
   transactions: Transaction[]
   categories: Category[]
+  fromDate: Date
+  toDate: Date
 }
 
 function buildDescendantIdSet(
@@ -30,8 +45,9 @@ function buildDescendantIdSet(
   return descendantIds
 }
 
-export function CategoryReports({ transactions, categories }: CategoryReportsProps) {
+export function CategoryReports({ transactions, categories, fromDate, toDate }: CategoryReportsProps) {
   const [selectedParentId, setSelectedParentId] = useState<'all' | number>('all')
+  const [selectedLeafIds, setSelectedLeafIds] = useState<Set<number> | null>(null)
 
   const categoriesWithId = useMemo(
     () => categories.filter((category): category is Category & { category_id: number } => category.category_id !== undefined),
@@ -66,52 +82,86 @@ export function CategoryReports({ transactions, categories }: CategoryReportsPro
     [categoriesWithId, childrenByParent]
   )
 
-  const allowedLeafIdSet = useMemo(() => {
-    if (selectedParentId === 'all') {
-      return new Set(leafCategories.map((category) => category.category_id))
-    }
+  const scopedLeafCategories = useMemo(() => {
+    if (selectedParentId === 'all') return leafCategories
 
     const descendants = buildDescendantIdSet(selectedParentId, childrenByParent)
-    const leafIds = leafCategories
-      .map((category) => category.category_id)
-      .filter((leafId) => descendants.has(leafId))
-
-    return new Set(leafIds)
+    return leafCategories.filter((category) => descendants.has(category.category_id))
   }, [selectedParentId, leafCategories, childrenByParent])
+
+  const leafOptions = useMemo(
+    () =>
+      scopedLeafCategories.map((category) => ({
+        value: String(category.category_id),
+        label: category.category_name,
+      })),
+    [scopedLeafCategories]
+  )
+
+  const allowedLeafIdSet = useMemo(() => {
+    const scopedIds = scopedLeafCategories.map((category) => category.category_id)
+    if (!selectedLeafIds) return new Set(scopedIds)
+    return new Set(scopedIds.filter((id) => selectedLeafIds.has(id)))
+  }, [scopedLeafCategories, selectedLeafIds])
 
   const leafNameById = useMemo(
     () => new Map(leafCategories.map((category) => [category.category_id, category.category_name])),
     [leafCategories]
   )
 
+  const resolveLeafName = useMemo(
+    () => (transaction: Transaction) => {
+      if (!transaction.category_id || !allowedLeafIdSet.has(transaction.category_id)) return null
+      return leafNameById.get(transaction.category_id) ?? null
+    },
+    [allowedLeafIdSet, leafNameById]
+  )
+
+  const buckets = useMemo(() => getAutoAggregateBuckets(fromDate, toDate), [fromDate, toDate])
+
   const expenseData = useMemo(
-    () =>
-      aggregateByKey(
-        transactions,
-        (tx) => {
-          if (!tx.category_id || !allowedLeafIdSet.has(tx.category_id)) return null
-          return leafNameById.get(tx.category_id) ?? null
-        },
-        TransactionType.Withdraw
-      ),
-    [transactions, allowedLeafIdSet, leafNameById]
+    () => collapseToTopN(aggregateByKey(transactions, resolveLeafName, TransactionType.Withdraw)),
+    [transactions, resolveLeafName]
   )
 
   const incomeData = useMemo(
-    () =>
-      aggregateByKey(
-        transactions,
-        (tx) => {
-          if (!tx.category_id || !allowedLeafIdSet.has(tx.category_id)) return null
-          return leafNameById.get(tx.category_id) ?? null
-        },
-        TransactionType.Deposit
-      ),
-    [transactions, allowedLeafIdSet, leafNameById]
+    () => collapseToTopN(aggregateByKey(transactions, resolveLeafName, TransactionType.Deposit)),
+    [transactions, resolveLeafName]
   )
 
-  const expenseOption = useMemo(() => buildPieOption(expenseData), [expenseData])
-  const incomeOption = useMemo(() => buildPieOption(incomeData), [incomeData])
+  const expensePivot = useMemo(
+    () => collapsePivotToTopN(pivotByKey(transactions, buckets, resolveLeafName, TransactionType.Withdraw)),
+    [transactions, buckets, resolveLeafName]
+  )
+
+  const incomePivot = useMemo(
+    () => collapsePivotToTopN(pivotByKey(transactions, buckets, resolveLeafName, TransactionType.Deposit)),
+    [transactions, buckets, resolveLeafName]
+  )
+
+  const colorMap = useMemo(
+    () =>
+      assignSeriesColors(
+        mergeSeriesKeys(
+          expenseData.map((point) => point.name),
+          expensePivot.seriesKeys,
+          incomeData.map((point) => point.name),
+          incomePivot.seriesKeys
+        )
+      ),
+    [expenseData, expensePivot, incomeData, incomePivot]
+  )
+
+  const expenseOption = useMemo(() => buildPieOption(expenseData, colorMap), [expenseData, colorMap])
+  const incomeOption = useMemo(() => buildPieOption(incomeData, colorMap), [incomeData, colorMap])
+  const expenseTrendOption = useMemo(
+    () => buildMultiLineOption(expensePivot.data, expensePivot.seriesKeys, colorMap),
+    [expensePivot, colorMap]
+  )
+  const incomeTrendOption = useMemo(
+    () => buildMultiLineOption(incomePivot.data, incomePivot.seriesKeys, colorMap),
+    [incomePivot, colorMap]
+  )
 
   return (
     <>
@@ -124,6 +174,7 @@ export function CategoryReports({ transactions, categories }: CategoryReportsPro
           onChange={(e) => {
             const value = e.target.value
             setSelectedParentId(value === 'all' ? 'all' : Number(value))
+            setSelectedLeafIds(null)
           }}
         >
           <option value="all">All parents</option>
@@ -133,6 +184,45 @@ export function CategoryReports({ transactions, categories }: CategoryReportsPro
             </option>
           ))}
         </Select>
+
+        <div className="reports-page__field-actions">
+          <MultiSelectDropdown
+            id="reports-category-leaf-filter"
+            label="Categories"
+            className="reports-page__field reports-page__field-actions-control"
+            options={leafOptions}
+            selectedValues={
+              selectedLeafIds
+                ? leafOptions.map((option) => option.value).filter((value) => selectedLeafIds.has(Number(value)))
+                : leafOptions.map((option) => option.value)
+            }
+            onChange={(values) => {
+              const next = new Set(values.map(Number))
+              setSelectedLeafIds(next.size === leafOptions.length ? null : next)
+            }}
+            placeholder="No categories"
+            allSelectedLabel="All categories"
+            disabled={leafOptions.length === 0}
+          />
+          <div className="reports-page__field-actions-buttons">
+            <Button
+              variant="subtle"
+              size="sm"
+              onClick={() => setSelectedLeafIds(null)}
+              disabled={leafOptions.length === 0}
+            >
+              All
+            </Button>
+            <Button
+              variant="subtle"
+              size="sm"
+              onClick={() => setSelectedLeafIds(new Set())}
+              disabled={leafOptions.length === 0}
+            >
+              None
+            </Button>
+          </div>
+        </div>
       </div>
 
       <div className="reports-page__charts">
@@ -147,6 +237,18 @@ export function CategoryReports({ transactions, categories }: CategoryReportsPro
           subtitle="Income distribution by leaf category"
           option={incomeOption}
           hasData={incomeData.length > 0}
+        />
+        <ReportChartCard
+          title="Category Expense Trend"
+          subtitle="Expense lines grouped by category"
+          option={expenseTrendOption}
+          hasData={expensePivot.seriesKeys.length > 0}
+        />
+        <ReportChartCard
+          title="Category Income Trend"
+          subtitle="Income lines grouped by category"
+          option={incomeTrendOption}
+          hasData={incomePivot.seriesKeys.length > 0}
         />
       </div>
     </>

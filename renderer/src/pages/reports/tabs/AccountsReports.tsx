@@ -1,8 +1,8 @@
 import { useMemo } from 'react'
 import type { Account } from '../../../../../src/types/account'
 import { TransactionType, type Transaction } from '../../../../../src/types/transaction'
-import { aggregateByKey } from '../../../utils/chartUtils'
-import { buildPieOption } from '../../../utils/reportOptions'
+import { aggregateByKey, collapseToTopN } from '../../../utils/chartUtils'
+import { assignSeriesColors, buildPieOption, mergeSeriesKeys } from '../../../utils/reportOptions'
 import { ReportChartCard } from '../components/ReportChartCard'
 
 interface AccountsReportsProps {
@@ -16,28 +16,35 @@ export function AccountsReports({ transactions, accounts }: AccountsReportsProps
     [accounts]
   )
 
+  const resolveAccountName = useMemo(
+    () => (transaction: Transaction) =>
+      accountNameById.get(transaction.account_id) ?? `Account ${transaction.account_id}`,
+    [accountNameById]
+  )
+
   const expenseData = useMemo(
-    () =>
-      aggregateByKey(
-        transactions,
-        (tx) => accountNameById.get(tx.account_id) ?? `Account ${tx.account_id}`,
-        TransactionType.Withdraw
-      ),
-    [transactions, accountNameById]
+    () => collapseToTopN(aggregateByKey(transactions, resolveAccountName, TransactionType.Withdraw)),
+    [transactions, resolveAccountName]
   )
 
   const incomeData = useMemo(
-    () =>
-      aggregateByKey(
-        transactions,
-        (tx) => accountNameById.get(tx.account_id) ?? `Account ${tx.account_id}`,
-        TransactionType.Deposit
-      ),
-    [transactions, accountNameById]
+    () => collapseToTopN(aggregateByKey(transactions, resolveAccountName, TransactionType.Deposit)),
+    [transactions, resolveAccountName]
   )
 
-  const expenseOption = useMemo(() => buildPieOption(expenseData), [expenseData])
-  const incomeOption = useMemo(() => buildPieOption(incomeData), [incomeData])
+  const colorMap = useMemo(
+    () =>
+      assignSeriesColors(
+        mergeSeriesKeys(
+          expenseData.map((point) => point.name),
+          incomeData.map((point) => point.name)
+        )
+      ),
+    [expenseData, incomeData]
+  )
+
+  const expenseOption = useMemo(() => buildPieOption(expenseData, colorMap), [expenseData, colorMap])
+  const incomeOption = useMemo(() => buildPieOption(incomeData, colorMap), [incomeData, colorMap])
 
   return (
     <div className="reports-page__charts">

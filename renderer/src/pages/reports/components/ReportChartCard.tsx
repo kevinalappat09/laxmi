@@ -1,6 +1,7 @@
 import type { EChartsOption } from 'echarts'
 import ReactECharts from 'echarts-for-react'
 import { Card } from '../../../components/ui/Card'
+import { CHART_HEIGHT } from '../../../utils/reportOptions'
 
 interface ReportChartCardProps {
   title: string
@@ -17,9 +18,16 @@ export function ReportChartCard({ title, subtitle, option, hasData }: ReportChar
         <p>{subtitle}</p>
       </div>
       {hasData ? (
-        <ReactECharts option={option} style={{ height: 280, width: '100%' }} />
+        <ReactECharts
+          option={option}
+          notMerge
+          style={{ height: CHART_HEIGHT, width: '100%' }}
+          opts={{ renderer: 'canvas' }}
+        />
       ) : (
-        <div className="reports-page__chart-empty">No data for selected filters.</div>
+        <div className="reports-page__chart-empty" style={{ height: CHART_HEIGHT }}>
+          No data for selected filters.
+        </div>
       )}
     </Card>
   )

@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Account } from '../../../../src/types/account'
 import type { Category } from '../../../../src/types/category'
-import type { Transaction } from '../../../../src/types/transaction'
+import { Classification, type Transaction } from '../../../../src/types/transaction'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Select } from '../../components/ui/Input'
-import { getDateRangeForPreset, type DateRangePreset } from '../../utils/chartUtils'
+import { MultiSelectDropdown } from '../../components/ui/MultiSelectDropdown'
+import { CLASSIFICATION_OPTIONS, getDateRangeForPreset, type DateRangePreset } from '../../utils/chartUtils'
 import { AccountsReports } from './tabs/AccountsReports'
 import { CategoryReports } from './tabs/CategoryReports'
 import { ClassificationReports } from './tabs/ClassificationReports'
@@ -13,6 +14,10 @@ import { TemporalReports } from './tabs/TemporalReports'
 import './ReportsPage.css'
 
 type ReportTab = 'temporal' | 'category' | 'classification' | 'accounts'
+
+function capitalize(value: string): string {
+  return value.charAt(0).toUpperCase() + value.slice(1)
+}
 
 function toDateInputValue(date: Date): string {
   return date.toISOString().split('T')[0]
@@ -53,6 +58,8 @@ export function ReportsPage() {
   const [datePreset, setDatePreset] = useState<DateRangePreset>('current-month')
   const [customFrom, setCustomFrom] = useState('')
   const [customTo, setCustomTo] = useState('')
+  const [selectedAccountIds, setSelectedAccountIds] = useState<Set<number> | null>(null)
+  const [selectedClassifications, setSelectedClassifications] = useState<Set<Classification> | null>(null)
 
   useEffect(() => {
     const defaultRange = getDateRangeForPreset('current-month')
@@ -146,24 +153,66 @@ export function ReportsPage() {
     }
   }, [accounts, activeRange.from, activeRange.to])
 
+  const accountOptions = useMemo(
+    () =>
+      accounts.map((account) => ({
+        value: String(account.account_id),
+        label: account.account_name,
+      })),
+    [accounts]
+  )
+
+  const classificationOptions = useMemo(
+    () =>
+      CLASSIFICATION_OPTIONS.map((classification) => ({
+        value: classification,
+        label: capitalize(classification),
+      })),
+    []
+  )
+
+  const filteredTransactions = useMemo(() => {
+    const activeAccountIds = selectedAccountIds ?? new Set(accounts.map((account) => account.account_id))
+    const activeClassifications = selectedClassifications ?? new Set(CLASSIFICATION_OPTIONS)
+
+    if (activeAccountIds.size === 0 || activeClassifications.size === 0) {
+      return []
+    }
+
+    return transactions.filter(
+      (tx) => activeAccountIds.has(tx.account_id) && activeClassifications.has(tx.classification)
+    )
+  }, [transactions, accounts, selectedAccountIds, selectedClassifications])
+
   function renderActiveTab() {
     switch (activeTab) {
       case 'temporal':
         return (
           <TemporalReports
-            transactions={transactions}
-            accounts={accounts}
-            categories={categories}
+            transactions={filteredTransactions}
             fromDate={activeRange.from}
             toDate={activeRange.to}
           />
         )
       case 'category':
-        return <CategoryReports transactions={transactions} categories={categories} />
+        return (
+          <CategoryReports
+            transactions={filteredTransactions}
+            categories={categories}
+            fromDate={activeRange.from}
+            toDate={activeRange.to}
+          />
+        )
       case 'classification':
-        return <ClassificationReports transactions={transactions} />
+        return (
+          <ClassificationReports
+            transactions={filteredTransactions}
+            fromDate={activeRange.from}
+            toDate={activeRange.to}
+          />
+        )
       case 'accounts':
-        return <AccountsReports transactions={transactions} accounts={accounts} />
+        return <AccountsReports transactions={filteredTransactions} accounts={accounts} />
       default:
         return null
     }
@@ -222,6 +271,73 @@ export function ReportsPage() {
               </div>
             </>
           )}
+
+          <div className="reports-page__field-actions">
+            <MultiSelectDropdown
+              id="reports-account-filter"
+              label="Account"
+              className="reports-page__field reports-page__field-actions-control"
+              options={accountOptions}
+              selectedValues={
+                selectedAccountIds
+                  ? Array.from(selectedAccountIds, String)
+                  : accountOptions.map((option) => option.value)
+              }
+              onChange={(values) => {
+                const next = new Set(values.map(Number))
+                setSelectedAccountIds(next.size === accountOptions.length ? null : next)
+              }}
+              placeholder="No accounts"
+              allSelectedLabel="All accounts"
+              disabled={accountOptions.length === 0}
+            />
+            <div className="reports-page__field-actions-buttons">
+              <Button
+                variant="subtle"
+                size="sm"
+                onClick={() => setSelectedAccountIds(null)}
+                disabled={accountOptions.length === 0}
+              >
+                All
+              </Button>
+              <Button
+                variant="subtle"
+                size="sm"
+                onClick={() => setSelectedAccountIds(new Set())}
+                disabled={accountOptions.length === 0}
+              >
+                None
+              </Button>
+            </div>
+          </div>
+
+          <div className="reports-page__field-actions">
+            <MultiSelectDropdown
+              id="reports-classification-filter"
+              label="Classification"
+              className="reports-page__field reports-page__field-actions-control"
+              options={classificationOptions}
+              selectedValues={
+                selectedClassifications
+                  ? Array.from(selectedClassifications)
+                  : classificationOptions.map((option) => option.value)
+              }
+              onChange={(values) => {
+                const next = new Set(values as Classification[])
+                setSelectedClassifications(next.size === classificationOptions.length ? null : next)
+              }}
+              placeholder="No classifications"
+              allSelectedLabel="All classifications"
+            />
+            <div className="reports-page__field-actions-buttons">
+              <Button variant="subtle" size="sm" onClick={() => setSelectedClassifications(null)}>
+                All
+              </Button>
+              <Button variant="subtle" size="sm" onClick={() => setSelectedClassifications(new Set())}>
+                None
+              </Button>
+            </div>
+          </div>
         </div>
       </Card>
 
