@@ -30,6 +30,7 @@ function getNotificationKey(notification: AppNotification): string {
     case 'recurring_upcoming':
       return `${notification.kind}-${notification.recurringId}`
     case 'credit_utilization':
+    case 'credit_limit_approaching':
     case 'credit_payment_due':
       return `${notification.kind}-${notification.accountId}`
   }
@@ -47,6 +48,8 @@ function getTypeLabel(notification: AppNotification): string {
         : 'Upcoming Expense'
     case 'credit_utilization':
       return 'High Utilization'
+    case 'credit_limit_approaching':
+      return 'Limit Approaching'
     case 'credit_payment_due':
       return 'Payment Due'
   }
@@ -64,6 +67,8 @@ function getDetailText(notification: AppNotification): string {
         : `Due in ${notification.daysUntilDue} days - ${formatDate(notification.nextDueDate)}`
     case 'credit_utilization':
       return `${notification.utilizationPercent.toFixed(1)}% used - reduce below ${notification.targetPercent.toFixed(0)}% before statement on ${formatDate(notification.statementDate)}`
+    case 'credit_limit_approaching':
+      return `${notification.utilizationPercent.toFixed(1)}% of limit used - only ${formatCurrency(notification.available)} available`
     case 'credit_payment_due':
       return `${getDueLabel(notification.daysUntilDue, notification.dueDate)}`
   }
@@ -81,6 +86,8 @@ function getRowClassName(notification: AppNotification): string {
         : 'notifications-panel__row--recurring-soon'
     case 'credit_utilization':
       return 'notifications-panel__row--budget-warning'
+    case 'credit_limit_approaching':
+      return 'notifications-panel__row--budget-over'
     case 'credit_payment_due':
       return notification.daysUntilDue <= 0
         ? 'notifications-panel__row--recurring-today'
@@ -100,6 +107,8 @@ function getBadgeClassName(notification: AppNotification): string {
         : 'notifications-panel__badge--recurring-expense'
     case 'credit_utilization':
       return 'notifications-panel__badge--budget-warning'
+    case 'credit_limit_approaching':
+      return 'notifications-panel__badge--budget-over'
     case 'credit_payment_due':
       return 'notifications-panel__badge--recurring-expense'
   }
@@ -114,6 +123,8 @@ function getAmountValue(notification: AppNotification): number {
     case 'recurring_upcoming':
       return notification.amount
     case 'credit_utilization':
+      return notification.outstanding
+    case 'credit_limit_approaching':
       return notification.outstanding
     case 'credit_payment_due':
       return notification.amountDue

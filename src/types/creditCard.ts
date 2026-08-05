@@ -51,6 +51,15 @@ export type CreditCardNotification =
           days_until_statement: number;
       }
     | {
+          kind: "credit_limit_approaching";
+          account_id: number;
+          account_name: string;
+          utilization: number;
+          outstanding: number;
+          available: number;
+          credit_limit: number;
+      }
+    | {
           kind: "credit_payment_due";
           account_id: number;
           account_name: string;

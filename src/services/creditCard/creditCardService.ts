@@ -19,6 +19,15 @@ import { profileSessionService } from "../profileSession/profileSessionService";
 import { computeAccountBalance } from "../../utils/balanceUtils";
 import { daysBetween, nextDayOfMonthOnOrAfter } from "../../utils/dateUtils";
 
+/**
+ * Utilization at or above this fraction of the credit limit triggers a
+ * standalone "approaching limit" alert, independent of the statement cycle.
+ */
+export const LIMIT_APPROACHING_THRESHOLD = 0.9;
+
+/** Default utilization target users are nudged to stay under (5%). */
+export const DEFAULT_UTILIZATION_ALERT_THRESHOLD = 0.05;
+
 export interface CreditCardService {
     upsertCreditCardDetails(
         accountId: number,
@@ -59,7 +68,7 @@ export class CreditCardServiceImpl implements CreditCardService {
             utilization_alert_threshold:
                 request.utilization_alert_threshold ??
                 existing?.utilization_alert_threshold ??
-                0.1,
+                DEFAULT_UTILIZATION_ALERT_THRESHOLD,
             statement_reminder_lead_days:
                 request.statement_reminder_lead_days ??
                 existing?.statement_reminder_lead_days ??
@@ -144,6 +153,18 @@ export class CreditCardServiceImpl implements CreditCardService {
                 summary.next_statement_date
             );
             const daysUntilDue = daysBetween(referenceDate, summary.next_due_date);
+
+            if (summary.utilization >= LIMIT_APPROACHING_THRESHOLD) {
+                notifications.push({
+                    kind: "credit_limit_approaching",
+                    account_id: summary.account.account_id,
+                    account_name: summary.account.account_name,
+                    utilization: summary.utilization,
+                    outstanding: summary.outstanding,
+                    available: summary.available,
+                    credit_limit: summary.details.credit_limit,
+                });
+            }
 
             if (
                 daysUntilStatement <= summary.details.statement_reminder_lead_days &&

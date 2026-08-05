@@ -13,11 +13,12 @@ interface UseNotificationsResult {
 
 function sortNotifications(notifications: AppNotification[]): AppNotification[] {
   const kindRank: Record<AppNotification['kind'], number> = {
-    budget_over: 0,
-    credit_payment_due: 1,
-    budget_warning: 2,
-    credit_utilization: 3,
-    recurring_upcoming: 4,
+    credit_limit_approaching: 0,
+    budget_over: 1,
+    credit_payment_due: 2,
+    budget_warning: 3,
+    credit_utilization: 4,
+    recurring_upcoming: 5,
   }
 
   return [...notifications].sort((left, right) => {
@@ -103,6 +104,18 @@ function mapCreditNotification(notification: CreditCardNotification): AppNotific
       outstanding: notification.outstanding,
       statementDate: new Date(notification.statement_date),
       daysUntilStatement: notification.days_until_statement,
+    }
+  }
+
+  if (notification.kind === 'credit_limit_approaching') {
+    return {
+      kind: 'credit_limit_approaching',
+      accountId: notification.account_id,
+      name: notification.account_name,
+      utilizationPercent: notification.utilization * 100,
+      outstanding: notification.outstanding,
+      available: notification.available,
+      creditLimit: notification.credit_limit,
     }
   }
 

@@ -52,7 +52,7 @@ describe("CreditCardServiceImpl", () => {
                 credit_limit REAL NOT NULL,
                 statement_day INTEGER NOT NULL,
                 payment_due_day INTEGER NOT NULL,
-                utilization_alert_threshold REAL NOT NULL DEFAULT 0.10,
+                utilization_alert_threshold REAL NOT NULL DEFAULT 0.05,
                 statement_reminder_lead_days INTEGER NOT NULL DEFAULT 5,
                 payment_reminder_lead_days INTEGER NOT NULL DEFAULT 5,
                 created_on TEXT NOT NULL,
@@ -104,7 +104,7 @@ describe("CreditCardServiceImpl", () => {
             });
 
             expect(details.credit_limit).toBe(1000);
-            expect(details.utilization_alert_threshold).toBe(0.1);
+            expect(details.utilization_alert_threshold).toBe(0.05);
             expect(service.getCreditCardDetails(card.account_id)?.statement_day).toBe(10);
         });
 
@@ -222,6 +222,55 @@ describe("CreditCardServiceImpl", () => {
 
             const notifications = service.getNotifications(new Date(Date.UTC(2024, 0, 8)));
             expect(notifications.some((n) => n.kind === "credit_utilization")).toBe(false);
+        });
+
+        test("emits an approaching-limit alert regardless of statement date", () => {
+            const card = createCreditAccount();
+            service.upsertCreditCardDetails(card.account_id, {
+                credit_limit: 1000,
+                statement_day: 28,
+                payment_due_day: 15,
+            });
+            transactionService.createTransaction({
+                account_id: card.account_id,
+                transaction_date: new Date("2024-01-03"),
+                transaction_type: TransactionType.Withdraw,
+                amount: 950,
+                classification: Classification.Needs,
+            });
+
+            const notifications = service.getNotifications(new Date(Date.UTC(2024, 0, 8)));
+            const approaching = notifications.find(
+                (n) => n.kind === "credit_limit_approaching"
+            );
+
+            expect(approaching).toBeDefined();
+            expect(
+                approaching &&
+                    approaching.kind === "credit_limit_approaching" &&
+                    approaching.available
+            ).toBe(50);
+        });
+
+        test("does not emit an approaching-limit alert below 90% utilization", () => {
+            const card = createCreditAccount();
+            service.upsertCreditCardDetails(card.account_id, {
+                credit_limit: 1000,
+                statement_day: 10,
+                payment_due_day: 25,
+            });
+            transactionService.createTransaction({
+                account_id: card.account_id,
+                transaction_date: new Date("2024-01-03"),
+                transaction_type: TransactionType.Withdraw,
+                amount: 500,
+                classification: Classification.Needs,
+            });
+
+            const notifications = service.getNotifications(new Date(Date.UTC(2024, 0, 8)));
+            expect(
+                notifications.some((n) => n.kind === "credit_limit_approaching")
+            ).toBe(false);
         });
 
         test("emits a payment-due alert when due date is near and balance is owed", () => {

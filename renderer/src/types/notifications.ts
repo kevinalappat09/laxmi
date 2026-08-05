@@ -41,6 +41,15 @@ export type AppNotification =
       daysUntilStatement: number
     }
   | {
+      kind: 'credit_limit_approaching'
+      accountId: number
+      name: string
+      utilizationPercent: number
+      outstanding: number
+      available: number
+      creditLimit: number
+    }
+  | {
       kind: 'credit_payment_due'
       accountId: number
       name: string

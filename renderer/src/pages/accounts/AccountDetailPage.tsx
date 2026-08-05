@@ -145,12 +145,6 @@ export function AccountDetailPage({ accountId }: AccountDetailPageProps) {
               </span>
             </div>
             <div className="account-detail__credit-stat">
-              <span className="account-detail__credit-label">Utilization</span>
-              <span className="account-detail__credit-value">
-                {(creditSummary.utilization * 100).toFixed(1)}%
-              </span>
-            </div>
-            <div className="account-detail__credit-stat">
               <span className="account-detail__credit-label">Next Statement</span>
               <span className="account-detail__credit-value">
                 {formatDate(creditSummary.next_statement_date)}
@@ -163,6 +157,39 @@ export function AccountDetailPage({ accountId }: AccountDetailPageProps) {
               </span>
             </div>
           </div>
+
+          {(() => {
+            const utilizationPercent = creditSummary.utilization * 100
+            const fillWidth = Math.min(100, Math.max(0, utilizationPercent))
+            const level =
+              utilizationPercent >= 90
+                ? 'danger'
+                : utilizationPercent >= 30
+                  ? 'warning'
+                  : 'good'
+            return (
+              <div className="account-detail__utilization">
+                <div className="account-detail__utilization-header">
+                  <span className="account-detail__credit-label">Utilization</span>
+                  <span className="account-detail__utilization-percent">
+                    {utilizationPercent.toFixed(1)}%
+                  </span>
+                </div>
+                <div
+                  className="account-detail__utilization-track"
+                  role="progressbar"
+                  aria-valuenow={Math.round(utilizationPercent)}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                >
+                  <div
+                    className={`account-detail__utilization-fill account-detail__utilization-fill--${level}`}
+                    style={{ width: `${fillWidth}%` }}
+                  />
+                </div>
+              </div>
+            )
+          })()}
         </Card>
       )}
 
