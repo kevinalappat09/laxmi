@@ -100,7 +100,7 @@
   z-index: 10;
   margin: 0 0 var(--spacing-14);
   display: grid;
-  grid-template-columns: minmax(260px, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
   gap: var(--spacing-14);
   align-items: start;
 }
@@ -114,12 +114,14 @@
   position: relative;
   z-index: 1;
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(520px, 1fr));
   gap: var(--spacing-20);
 }
 
 .reports-page__chart-card {
-  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
 .reports-page__chart-header {
@@ -141,7 +143,6 @@
 }
 
 .reports-page__chart-empty {
-  min-height: 280px;
   display: flex;
   align-items: center;
   justify-content: center;

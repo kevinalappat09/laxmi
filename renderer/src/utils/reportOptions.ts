@@ -1,4 +1,37 @@
 import type { EChartsOption } from 'echarts'
+import { OTHER_SERIES_KEY } from './chartUtils'
+import { formatCurrency, formatCurrencyCompact } from './formatters'
+
+export const CHART_HEIGHT = 320
+
+const CHART_FONT_FAMILY = 'calibre, Inter, sans-serif'
+
+/**
+ * Explicit categorical ramp. Theme tokens are deliberately not used here: several of them
+ * alias the same hex value per theme, which silently collapsed the palette to five colors.
+ */
+const SERIES_COLORS = [
+  '#479ffa',
+  '#d6fe51',
+  '#4ebe96',
+  '#ffa16c',
+  '#c3b1e1',
+  '#f2799e',
+  '#5fd0e8',
+  '#ffd166',
+  '#8fd25f',
+  '#ff8b6b',
+  '#9d8df1',
+  '#3fbfbf',
+  '#b6d6ff',
+  '#c9a227',
+  '#7fa1ff',
+  '#e26d8b',
+]
+
+const OTHER_SERIES_COLOR = '#6b7280'
+
+const SHOW_LINE_SYMBOL_MAX_POINTS = 20
 
 function readThemeColor(token: string, fallback: string): string {
   if (typeof window === 'undefined') return fallback
@@ -12,53 +45,173 @@ function readThemeColor(token: string, fallback: string): string {
 
 function getChartPalette() {
   return {
-    seriesColors: [
-      readThemeColor('--color-cosmic-blue', '#479ffa'),
-      readThemeColor('--color-vibrant-gradient-1', '#d6fe51'),
-      readThemeColor('--color-positive', '#4ebe96'),
-      readThemeColor('--color-negative', '#ffa16c'),
-      readThemeColor('--color-cool-gradient-1', '#b6d6ff'),
-      readThemeColor('--color-positive-alt', '#a3e4cb'),
-      readThemeColor('--color-warn-gradient-1', '#ffd4b3'),
-      readThemeColor('--color-accent-muted', '#c3b1e1'),
-    ],
+    seriesColors: SERIES_COLORS,
     incomeColor: readThemeColor('--color-positive', '#4ebe96'),
     expenseColor: readThemeColor('--color-negative', '#ffa16c'),
     gridColor: readThemeColor('--color-border-subtle', 'rgba(255, 255, 255, 0.06)'),
     axisTextColor: readThemeColor('--color-text-secondary', '#868f97'),
+    headingColor: readThemeColor('--color-text-heading', '#ffffff'),
     tooltipBg: readThemeColor('--color-bg-input', '#191919'),
     tooltipBorder: readThemeColor('--color-border', '#2a2a2a'),
     tooltipText: readThemeColor('--color-text-primary', '#e6e6e6'),
-    pieStroke: readThemeColor('--color-bg-app', '#111111'),
+    pieStroke: readThemeColor('--color-bg-card', '#131313'),
   }
 }
 
-function baseOption(): EChartsOption {
-  const palette = getChartPalette()
+export type SeriesColorMap = Record<string, string>
 
+/** Flattens key lists from several charts into one de-duplicated, order-preserving list. */
+export function mergeSeriesKeys(...keyLists: string[][]): string[] {
+  const seen = new Set<string>()
+  const merged: string[] = []
+
+  keyLists.forEach((keys) => {
+    keys.forEach((key) => {
+      if (seen.has(key)) return
+      seen.add(key)
+      merged.push(key)
+    })
+  })
+
+  return merged
+}
+
+/**
+ * Maps each key to a stable color so the same series keeps its color across charts on a tab.
+ * The collapsed "Other" bucket always reads as neutral grey instead of consuming a hue.
+ */
+export function assignSeriesColors(keys: string[]): SeriesColorMap {
+  const colorMap: SeriesColorMap = {}
+  let paletteIndex = 0
+
+  keys.forEach((key) => {
+    if (key === OTHER_SERIES_KEY) {
+      colorMap[key] = OTHER_SERIES_COLOR
+      return
+    }
+
+    colorMap[key] = SERIES_COLORS[paletteIndex % SERIES_COLORS.length]
+    paletteIndex += 1
+  })
+
+  return colorMap
+}
+
+function resolveColor(key: string, index: number, colorMap?: SeriesColorMap): string {
+  if (colorMap?.[key]) return colorMap[key]
+  if (key === OTHER_SERIES_KEY) return OTHER_SERIES_COLOR
+  return SERIES_COLORS[index % SERIES_COLORS.length]
+}
+
+type Palette = ReturnType<typeof getChartPalette>
+
+function buildTooltip(palette: Palette, trigger: 'axis' | 'item'): EChartsOption['tooltip'] {
+  return {
+    trigger,
+    backgroundColor: palette.tooltipBg,
+    borderColor: palette.tooltipBorder,
+    textStyle: {
+      color: palette.tooltipText,
+      fontFamily: CHART_FONT_FAMILY,
+    },
+    axisPointer: {
+      type: trigger === 'axis' ? 'shadow' : 'none',
+      shadowStyle: { color: 'rgba(255, 255, 255, 0.04)' },
+    },
+    formatter: (params: any) => {
+      if (trigger === 'item') {
+        return `${params.marker} ${params.name}<br/><strong>${formatCurrency(params.value)}</strong> (${params.percent}%)`
+      }
+
+      const entries = (Array.isArray(params) ? params : [params]).slice()
+      if (entries.length === 0) return ''
+
+      entries.sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
+      const header = entries[0].axisValueLabel ?? entries[0].name
+      const rows = entries.map(
+        (entry) => `${entry.marker} ${entry.seriesName}: <strong>${formatCurrency(entry.value ?? 0)}</strong>`
+      )
+
+      return [header, ...rows].join('<br/>')
+    },
+  }
+}
+
+function buildTopLegend(palette: Palette): EChartsOption['legend'] {
+  return {
+    type: 'scroll',
+    top: 0,
+    left: 'center',
+    icon: 'roundRect',
+    itemWidth: 10,
+    itemHeight: 10,
+    itemGap: 16,
+    pageIconColor: palette.axisTextColor,
+    pageIconInactiveColor: palette.gridColor,
+    pageTextStyle: { color: palette.axisTextColor },
+    textStyle: {
+      color: palette.axisTextColor,
+      fontFamily: CHART_FONT_FAMILY,
+      overflow: 'truncate',
+      width: 140,
+    },
+  }
+}
+
+function buildSideLegend(palette: Palette): EChartsOption['legend'] {
+  return {
+    type: 'scroll',
+    orient: 'vertical',
+    right: 8,
+    top: 'middle',
+    icon: 'roundRect',
+    itemWidth: 10,
+    itemHeight: 10,
+    itemGap: 12,
+    pageIconColor: palette.axisTextColor,
+    pageIconInactiveColor: palette.gridColor,
+    pageTextStyle: { color: palette.axisTextColor },
+    textStyle: {
+      color: palette.axisTextColor,
+      fontFamily: CHART_FONT_FAMILY,
+      overflow: 'truncate',
+      width: 130,
+    },
+  }
+}
+
+/**
+ * Shared cartesian frame. `grid.top` clears the legend band so series never draw over it.
+ */
+function buildCartesianBase(palette: Palette, labels: string[]): EChartsOption {
   return {
     animation: true,
-    color: palette.seriesColors,
-    tooltip: {
-      trigger: 'axis',
-      backgroundColor: palette.tooltipBg,
-      borderColor: palette.tooltipBorder,
-      textStyle: {
-        color: palette.tooltipText,
-        fontFamily: 'calibre, Inter, sans-serif',
-      },
-    },
-    grid: { left: 20, right: 20, top: 20, bottom: 24, containLabel: true },
+    color: SERIES_COLORS,
+    tooltip: buildTooltip(palette, 'axis'),
+    legend: buildTopLegend(palette),
+    grid: { left: 8, right: 16, top: 48, bottom: 8, containLabel: true },
     xAxis: {
       type: 'category',
+      data: labels,
+      boundaryGap: true,
+      axisTick: { show: false },
       axisLine: { lineStyle: { color: palette.gridColor } },
-      axisLabel: { color: palette.axisTextColor },
+      axisLabel: {
+        color: palette.axisTextColor,
+        fontFamily: CHART_FONT_FAMILY,
+        hideOverlap: true,
+      },
     },
     yAxis: {
       type: 'value',
       axisLine: { show: false },
+      axisTick: { show: false },
       splitLine: { lineStyle: { color: palette.gridColor } },
-      axisLabel: { color: palette.axisTextColor },
+      axisLabel: {
+        color: palette.axisTextColor,
+        fontFamily: CHART_FONT_FAMILY,
+        formatter: (value: number) => formatCurrencyCompact(value),
+      },
     },
   }
 }
@@ -68,53 +221,28 @@ export interface PieDatum {
   value: number
 }
 
-export function buildSingleBarOption(data: Array<{ label: string; value: number }>): EChartsOption {
+export function buildIncomeExpenseOption(
+  data: Array<{ label: string; income: number; expense: number }>
+): EChartsOption {
   const palette = getChartPalette()
 
   return {
-    ...baseOption(),
-    xAxis: {
-      ...(baseOption().xAxis as object),
-      data: data.map((item) => item.label),
-    },
-    series: [
-      {
-        type: 'bar',
-        name: 'Expense',
-        data: data.map((item) => item.value),
-        itemStyle: { color: palette.expenseColor, borderRadius: [4, 4, 0, 0] },
-      },
-    ],
-  }
-}
-
-export function buildIncomeExpenseOption(data: Array<{ label: string; income: number; expense: number }>): EChartsOption {
-  const palette = getChartPalette()
-
-  return {
-    ...baseOption(),
-    legend: {
-      top: 0,
-      type: 'scroll',
-      pageIconColor: palette.axisTextColor,
-      pageTextStyle: { color: palette.axisTextColor },
-      textStyle: { color: palette.axisTextColor },
-    },
-    xAxis: {
-      ...(baseOption().xAxis as object),
-      data: data.map((item) => item.label),
-    },
+    ...buildCartesianBase(palette, data.map((item) => item.label)),
     series: [
       {
         type: 'bar',
         name: 'Income',
         data: data.map((item) => item.income),
+        barMaxWidth: 28,
+        emphasis: { focus: 'series' },
         itemStyle: { color: palette.incomeColor, borderRadius: [4, 4, 0, 0] },
       },
       {
         type: 'bar',
         name: 'Expense',
         data: data.map((item) => item.expense),
+        barMaxWidth: 28,
+        emphasis: { focus: 'series' },
         itemStyle: { color: palette.expenseColor, borderRadius: [4, 4, 0, 0] },
       },
     ],
@@ -123,76 +251,80 @@ export function buildIncomeExpenseOption(data: Array<{ label: string; income: nu
 
 export function buildMultiLineOption(
   data: Array<{ label: string } & Record<string, number | string>>,
-  seriesKeys: string[]
+  seriesKeys: string[],
+  colorMap?: SeriesColorMap
 ): EChartsOption {
   const palette = getChartPalette()
+  const showSymbol = data.length <= SHOW_LINE_SYMBOL_MAX_POINTS
 
   return {
-    ...baseOption(),
-    legend: {
-      top: 0,
-      type: 'scroll',
-      pageIconColor: palette.axisTextColor,
-      pageTextStyle: { color: palette.axisTextColor },
-      textStyle: { color: palette.axisTextColor },
-    },
-    xAxis: {
-      ...(baseOption().xAxis as object),
-      data: data.map((row) => row.label),
-    },
-    series: seriesKeys.map((key, index) => ({
-      type: 'line',
-      name: key,
-      smooth: true,
-      symbolSize: 6,
-      lineStyle: {
-        width: 2,
-        color: palette.seriesColors[index % palette.seriesColors.length],
-      },
-      itemStyle: {
-        color: palette.seriesColors[index % palette.seriesColors.length],
-      },
-      data: data.map((row) => (typeof row[key] === 'number' ? (row[key] as number) : 0)),
-    })),
+    ...buildCartesianBase(palette, data.map((row) => String(row.label))),
+    series: seriesKeys.map((key, index) => {
+      const color = resolveColor(key, index, colorMap)
+
+      return {
+        type: 'line',
+        name: key,
+        smooth: true,
+        showSymbol,
+        symbol: 'circle',
+        symbolSize: 5,
+        emphasis: { focus: 'series' },
+        lineStyle: { width: 2, color },
+        itemStyle: { color },
+        data: data.map((row) => (typeof row[key] === 'number' ? (row[key] as number) : 0)),
+      }
+    }),
   }
 }
 
-export function buildPieOption(data: PieDatum[]): EChartsOption {
+export function buildPieOption(data: PieDatum[], colorMap?: SeriesColorMap): EChartsOption {
   const palette = getChartPalette()
+  const total = data.reduce((sum, item) => sum + item.value, 0)
 
   return {
     animation: true,
-    color: palette.seriesColors,
-    tooltip: {
-      trigger: 'item',
-      backgroundColor: palette.tooltipBg,
-      borderColor: palette.tooltipBorder,
+    color: SERIES_COLORS,
+    tooltip: buildTooltip(palette, 'item'),
+    legend: buildSideLegend(palette),
+    title: {
+      text: formatCurrencyCompact(total),
+      subtext: 'Total',
+      left: '32%',
+      top: 'middle',
+      textAlign: 'center',
       textStyle: {
-        color: palette.tooltipText,
-        fontFamily: 'calibre, Inter, sans-serif',
+        color: palette.headingColor,
+        fontFamily: CHART_FONT_FAMILY,
+        fontSize: 22,
+        fontWeight: 600,
       },
-      formatter: '{b}: {c} ({d}%)',
-    },
-    legend: {
-      type: 'scroll',
-      bottom: 0,
-      pageIconColor: palette.axisTextColor,
-      pageTextStyle: { color: palette.axisTextColor },
-      textStyle: { color: palette.axisTextColor },
+      subtextStyle: {
+        color: palette.axisTextColor,
+        fontFamily: CHART_FONT_FAMILY,
+        fontSize: 12,
+      },
     },
     series: [
       {
         type: 'pie',
-        radius: ['45%', '72%'],
+        radius: ['52%', '76%'],
+        center: ['32%', '50%'],
         avoidLabelOverlap: true,
         itemStyle: {
           borderColor: palette.pieStroke,
           borderWidth: 2,
         },
-        label: {
-          color: palette.axisTextColor,
+        label: { show: false },
+        labelLine: { show: false },
+        emphasis: {
+          focus: 'self',
+          scaleSize: 6,
         },
-        data,
+        data: data.map((item, index) => ({
+          ...item,
+          itemStyle: { color: resolveColor(item.name, index, colorMap) },
+        })),
       },
     ],
   }
