@@ -155,6 +155,7 @@ declare global {
                 create: (req: CreatePortfolioTransactionRequest) => Promise<PortfolioTransaction>
                 deactivate: (id: number) => Promise<void>
                 listByAsset: (portfolioAssetId: number) => Promise<PortfolioTransaction[]>
+                listAll: () => Promise<PortfolioTransaction[]>
             }
             prices: {
                 refreshAll: () => Promise<PriceRefreshResult>

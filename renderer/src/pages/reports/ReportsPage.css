@@ -5,9 +5,6 @@
 }
 
 .reports-page__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   margin-bottom: 20px;
 }
 
@@ -17,6 +14,40 @@
   line-height: 1.2;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-heading);
+}
+
+.reports-page__header-description {
+  margin: var(--spacing-4) 0 0;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+}
+
+.reports-page__sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-8);
+  margin: 0 0 var(--spacing-20);
+  padding-bottom: var(--spacing-14);
+  border-bottom: 1px solid var(--color-border-subtle);
+}
+
+.reports-page__section-button {
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-pill);
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.reports-page__section-button:hover {
+  color: var(--color-text-heading);
+  border-color: var(--color-border-strong);
+}
+
+.reports-page__section-button--active {
+  background: var(--color-accent);
+  color: var(--color-bg-page, #131313);
+  border-color: var(--color-accent);
 }
 
 .reports-page__filters {
@@ -57,6 +88,14 @@
   align-items: center;
   justify-content: flex-start;
   gap: var(--spacing-6);
+}
+
+.reports-page__filter-note {
+  margin: 0;
+  padding-top: var(--spacing-4);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.5;
 }
 
 .reports-page__error {
@@ -110,6 +149,118 @@
   min-width: 0;
 }
 
+.reports-page__metrics {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--spacing-14);
+  margin: 0 0 var(--spacing-20);
+}
+
+.reports-metric-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-4);
+  min-width: 0;
+}
+
+.reports-metric-card__label {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.reports-metric-card__value {
+  color: var(--color-text-heading);
+  font-size: var(--text-heading-md, 24px);
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+}
+
+.reports-metric-card__value--positive {
+  color: var(--color-positive, #16a34a);
+}
+
+.reports-metric-card__value--negative {
+  color: var(--color-error);
+}
+
+.reports-metric-card__caption {
+  color: var(--color-text-muted);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.reports-home__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: var(--spacing-20);
+}
+
+.reports-home__card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.reports-home__card-header h2 {
+  margin: 0;
+  color: var(--color-text-heading);
+  font-size: var(--text-heading-sm);
+  font-weight: var(--font-weight-semibold);
+}
+
+.reports-home__card-cta {
+  align-self: flex-start;
+  margin-top: var(--spacing-14);
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.reports-home__card-cta:hover {
+  text-decoration: underline;
+}
+
+.reports-home__card-description {
+  margin: var(--spacing-6) 0 var(--spacing-14);
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.reports-home__card-rows {
+  margin: 0;
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-6);
+}
+
+.reports-home__card-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--spacing-14);
+}
+
+.reports-home__card-row dt {
+  color: var(--color-text-muted);
+  font-size: 12px;
+}
+
+.reports-home__card-row dd {
+  margin: 0;
+  color: var(--color-text-primary);
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+}
+
 .reports-page__charts {
   position: relative;
   z-index: 1;
@@ -122,6 +273,10 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
+}
+
+.reports-page__chart-card--full {
+  grid-column: 1 / -1;
 }
 
 .reports-page__chart-header {

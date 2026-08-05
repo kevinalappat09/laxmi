@@ -310,6 +310,9 @@ ipcMain.handle("portfolio:transaction:deactivate", (_event, { id }: { id: number
 ipcMain.handle("portfolio:transaction:list-by-asset", (_event, { portfolioAssetId }: { portfolioAssetId: number }) =>
     portfolioTransactionService.listByAsset(portfolioAssetId)
 )
+ipcMain.handle("portfolio:transaction:list-all", () =>
+    portfolioTransactionService.listAll()
+)
 
 // Portfolio — Analytics
 ipcMain.handle("portfolio:analytics:summary",
