@@ -1,21 +1,21 @@
 import { useMemo } from 'react'
-import { TransactionType, type Transaction } from '../../../../../src/types/transaction'
+import { TransactionType, type Transaction } from '../../../../../../src/types/transaction'
 import {
   aggregateByKey,
   collapsePivotToTopN,
   collapseToTopN,
   getAutoAggregateBuckets,
   pivotByKey,
-} from '../../../utils/chartUtils'
+} from '../../../../utils/chartUtils'
 import {
   assignSeriesColors,
   buildMultiLineOption,
   buildPieOption,
   mergeSeriesKeys,
-} from '../../../utils/reportOptions'
-import { ReportChartCard } from '../components/ReportChartCard'
+} from '../../../../utils/reportOptions'
+import { ReportChartCard } from '../../components/ReportChartCard'
 
-interface ClassificationReportsProps {
+interface ClassificationTabProps {
   transactions: Transaction[]
   fromDate: Date
   toDate: Date
@@ -29,7 +29,7 @@ function resolveClassificationName(transaction: Transaction): string {
   return capitalize(transaction.classification)
 }
 
-export function ClassificationReports({ transactions, fromDate, toDate }: ClassificationReportsProps) {
+export function ClassificationTab({ transactions, fromDate, toDate }: ClassificationTabProps) {
   const buckets = useMemo(() => getAutoAggregateBuckets(fromDate, toDate), [fromDate, toDate])
 
   const expenseData = useMemo(

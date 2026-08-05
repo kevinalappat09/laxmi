@@ -8,7 +8,7 @@ import {
 import { CreateCategoryRequest, UpdateCategoryRequest, Category } from "./src/types/category"
 import { Account } from "./src/types/account"
 import { CreatePortfolioAssetRequest, UpdatePortfolioAssetRequest } from "./src/types/portfolioAsset"
-import { CreatePortfolioTransactionRequest } from "./src/types/portfolioTransaction"
+import { CreatePortfolioTransactionRequest, PortfolioTransaction } from "./src/types/portfolioTransaction"
 import { PriceRefreshResult, PortfolioSummaryAnalytics, AssetAnalytics, PortfolioValuePoint, MfFundMeta } from "./src/types/portfolioAnalytics"
 import {
     CSVImportRequest,
@@ -173,6 +173,8 @@ contextBridge.exposeInMainWorld("financeAPI", {
                 ipcRenderer.invoke("portfolio:transaction:deactivate", { id }),
             listByAsset: (portfolioAssetId: number) =>
                 ipcRenderer.invoke("portfolio:transaction:list-by-asset", { portfolioAssetId }),
+            listAll: (): Promise<PortfolioTransaction[]> =>
+                ipcRenderer.invoke("portfolio:transaction:list-all"),
         },
         prices: {
             refreshAll: (): Promise<PriceRefreshResult> =>

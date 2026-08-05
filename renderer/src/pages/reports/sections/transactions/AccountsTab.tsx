@@ -1,16 +1,16 @@
 import { useMemo } from 'react'
-import type { Account } from '../../../../../src/types/account'
-import { TransactionType, type Transaction } from '../../../../../src/types/transaction'
-import { aggregateByKey, collapseToTopN } from '../../../utils/chartUtils'
-import { assignSeriesColors, buildPieOption, mergeSeriesKeys } from '../../../utils/reportOptions'
-import { ReportChartCard } from '../components/ReportChartCard'
+import type { Account } from '../../../../../../src/types/account'
+import { TransactionType, type Transaction } from '../../../../../../src/types/transaction'
+import { aggregateByKey, collapseToTopN } from '../../../../utils/chartUtils'
+import { assignSeriesColors, buildPieOption, mergeSeriesKeys } from '../../../../utils/reportOptions'
+import { ReportChartCard } from '../../components/ReportChartCard'
 
-interface AccountsReportsProps {
+interface AccountsTabProps {
   transactions: Transaction[]
   accounts: Account[]
 }
 
-export function AccountsReports({ transactions, accounts }: AccountsReportsProps) {
+export function AccountsTab({ transactions, accounts }: AccountsTabProps) {
   const accountNameById = useMemo(
     () => new Map(accounts.map((account) => [account.account_id, account.account_name])),
     [accounts]

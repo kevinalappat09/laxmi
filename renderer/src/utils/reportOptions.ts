@@ -58,6 +58,17 @@ function getChartPalette() {
   }
 }
 
+/** Semantic colors for callers that build their own series, keeping them on the shared theme. */
+export function getSemanticChartColors() {
+  const palette = getChartPalette()
+  return {
+    income: palette.incomeColor,
+    expense: palette.expenseColor,
+    neutral: OTHER_SERIES_COLOR,
+    accent: SERIES_COLORS[0],
+  }
+}
+
 export type SeriesColorMap = Record<string, string>
 
 /** Flattens key lists from several charts into one de-duplicated, order-preserving list. */
@@ -105,7 +116,26 @@ function resolveColor(key: string, index: number, colorMap?: SeriesColorMap): st
 
 type Palette = ReturnType<typeof getChartPalette>
 
-function buildTooltip(palette: Palette, trigger: 'axis' | 'item'): EChartsOption['tooltip'] {
+/** Not every report is denominated in money: budget counts and utilization need their own units. */
+export type ValueFormat = 'currency' | 'percent' | 'count'
+
+function formatAxisValue(value: number, format: ValueFormat): string {
+  if (format === 'percent') return `${value}%`
+  if (format === 'count') return String(value)
+  return formatCurrencyCompact(value)
+}
+
+function formatPointValue(value: number, format: ValueFormat): string {
+  if (format === 'percent') return `${Number(value).toFixed(1)}%`
+  if (format === 'count') return String(value)
+  return formatCurrency(value)
+}
+
+function buildTooltip(
+  palette: Palette,
+  trigger: 'axis' | 'item',
+  format: ValueFormat = 'currency'
+): EChartsOption['tooltip'] {
   return {
     trigger,
     backgroundColor: palette.tooltipBg,
@@ -120,7 +150,7 @@ function buildTooltip(palette: Palette, trigger: 'axis' | 'item'): EChartsOption
     },
     formatter: (params: any) => {
       if (trigger === 'item') {
-        return `${params.marker} ${params.name}<br/><strong>${formatCurrency(params.value)}</strong> (${params.percent}%)`
+        return `${params.marker} ${params.name}<br/><strong>${formatPointValue(params.value, format)}</strong> (${params.percent}%)`
       }
 
       const entries = (Array.isArray(params) ? params : [params]).slice()
@@ -128,9 +158,10 @@ function buildTooltip(palette: Palette, trigger: 'axis' | 'item'): EChartsOption
 
       entries.sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
       const header = entries[0].axisValueLabel ?? entries[0].name
-      const rows = entries.map(
-        (entry) => `${entry.marker} ${entry.seriesName}: <strong>${formatCurrency(entry.value ?? 0)}</strong>`
-      )
+      const rows = entries.map((entry) => {
+        const value = entry.value == null ? '--' : formatPointValue(entry.value, format)
+        return `${entry.marker} ${entry.seriesName}: <strong>${value}</strong>`
+      })
 
       return [header, ...rows].join('<br/>')
     },
@@ -183,11 +214,15 @@ function buildSideLegend(palette: Palette): EChartsOption['legend'] {
 /**
  * Shared cartesian frame. `grid.top` clears the legend band so series never draw over it.
  */
-function buildCartesianBase(palette: Palette, labels: string[]): EChartsOption {
+function buildCartesianBase(
+  palette: Palette,
+  labels: string[],
+  format: ValueFormat = 'currency'
+): EChartsOption {
   return {
     animation: true,
     color: SERIES_COLORS,
-    tooltip: buildTooltip(palette, 'axis'),
+    tooltip: buildTooltip(palette, 'axis', format),
     legend: buildTopLegend(palette),
     grid: { left: 8, right: 16, top: 48, bottom: 8, containLabel: true },
     xAxis: {
@@ -210,7 +245,7 @@ function buildCartesianBase(palette: Palette, labels: string[]): EChartsOption {
       axisLabel: {
         color: palette.axisTextColor,
         fontFamily: CHART_FONT_FAMILY,
-        formatter: (value: number) => formatCurrencyCompact(value),
+        formatter: (value: number) => formatAxisValue(value, format),
       },
     },
   }
@@ -278,18 +313,171 @@ export function buildMultiLineOption(
   }
 }
 
-export function buildPieOption(data: PieDatum[], colorMap?: SeriesColorMap): EChartsOption {
+export function buildBarOption(
+  data: Array<{ label: string; value: number }>,
+  seriesName: string,
+  options: { color?: string; valueFormat?: ValueFormat } = {}
+): EChartsOption {
   const palette = getChartPalette()
+  const base = buildCartesianBase(palette, data.map((item) => item.label), options.valueFormat)
+
+  return {
+    ...base,
+    legend: { show: false },
+    grid: { left: 8, right: 16, top: 24, bottom: 8, containLabel: true },
+    series: [
+      {
+        type: 'bar',
+        name: seriesName,
+        data: data.map((item) => item.value),
+        barMaxWidth: 28,
+        itemStyle: { color: options.color ?? SERIES_COLORS[0], borderRadius: [4, 4, 0, 0] },
+      },
+    ],
+  }
+}
+
+/** Bars colored by sign, for values that cross zero such as net cash flow. */
+export function buildDivergingBarOption(
+  data: Array<{ label: string; value: number }>,
+  seriesName = 'Net'
+): EChartsOption {
+  const palette = getChartPalette()
+  const base = buildCartesianBase(palette, data.map((item) => item.label))
+
+  return {
+    ...base,
+    legend: { show: false },
+    grid: { left: 8, right: 16, top: 24, bottom: 8, containLabel: true },
+    series: [
+      {
+        type: 'bar',
+        name: seriesName,
+        barMaxWidth: 28,
+        data: data.map((item) => ({
+          value: item.value,
+          itemStyle: {
+            color: item.value >= 0 ? palette.incomeColor : palette.expenseColor,
+            borderRadius: item.value >= 0 ? [4, 4, 0, 0] : [0, 0, 4, 4],
+          },
+        })),
+      },
+    ],
+  }
+}
+
+/** Line chart on a percentage axis. Null values leave a gap rather than plotting a misleading zero. */
+export function buildPercentLineOption(
+  data: Array<{ label: string; value: number | null }>,
+  seriesName: string
+): EChartsOption {
+  const palette = getChartPalette()
+  const base = buildCartesianBase(palette, data.map((item) => item.label), 'percent')
+  const accent = SERIES_COLORS[0]
+
+  return {
+    ...base,
+    legend: { show: false },
+    grid: { left: 8, right: 16, top: 24, bottom: 8, containLabel: true },
+    series: [
+      {
+        type: 'line',
+        name: seriesName,
+        smooth: true,
+        symbol: 'circle',
+        symbolSize: 6,
+        connectNulls: false,
+        lineStyle: { width: 2, color: accent },
+        itemStyle: { color: accent },
+        areaStyle: { color: accent, opacity: 0.08 },
+        data: data.map((item) => item.value),
+      },
+    ],
+  }
+}
+
+export interface HorizontalBarSeries {
+  name: string
+  values: number[]
+  color?: string
+}
+
+/**
+ * Category axis on the left. Height is driven by the caller since the number of rows
+ * varies, unlike the fixed-height cartesian charts.
+ */
+export function buildHorizontalBarOption(
+  categories: string[],
+  series: HorizontalBarSeries[],
+  options: { stacked?: boolean } = {}
+): EChartsOption {
+  const palette = getChartPalette()
+  const stack = options.stacked ? 'total' : undefined
+  const lastIndex = series.length - 1
+
+  return {
+    animation: true,
+    color: SERIES_COLORS,
+    tooltip: buildTooltip(palette, 'axis'),
+    legend: buildTopLegend(palette),
+    grid: { left: 8, right: 24, top: 48, bottom: 8, containLabel: true },
+    xAxis: {
+      type: 'value',
+      axisLine: { show: false },
+      axisTick: { show: false },
+      splitLine: { lineStyle: { color: palette.gridColor } },
+      axisLabel: {
+        color: palette.axisTextColor,
+        fontFamily: CHART_FONT_FAMILY,
+        formatter: (value: number) => formatCurrencyCompact(value),
+      },
+    },
+    yAxis: {
+      type: 'category',
+      data: categories,
+      inverse: true,
+      axisTick: { show: false },
+      axisLine: { lineStyle: { color: palette.gridColor } },
+      axisLabel: {
+        color: palette.axisTextColor,
+        fontFamily: CHART_FONT_FAMILY,
+        overflow: 'truncate',
+        width: 140,
+      },
+    },
+    series: series.map((entry, index) => ({
+      type: 'bar',
+      name: entry.name,
+      data: entry.values,
+      stack,
+      barMaxWidth: 18,
+      emphasis: { focus: 'series' },
+      itemStyle: {
+        color: entry.color ?? SERIES_COLORS[index % SERIES_COLORS.length],
+        // Only the outermost segment of a stack gets the rounded cap.
+        borderRadius: !stack || index === lastIndex ? [0, 4, 4, 0] : 0,
+      },
+    })),
+  }
+}
+
+export function buildPieOption(
+  data: PieDatum[],
+  colorMap?: SeriesColorMap,
+  options: { valueFormat?: ValueFormat; totalLabel?: string } = {}
+): EChartsOption {
+  const palette = getChartPalette()
+  const valueFormat = options.valueFormat ?? 'currency'
   const total = data.reduce((sum, item) => sum + item.value, 0)
 
   return {
     animation: true,
     color: SERIES_COLORS,
-    tooltip: buildTooltip(palette, 'item'),
+    tooltip: buildTooltip(palette, 'item', valueFormat),
     legend: buildSideLegend(palette),
     title: {
-      text: formatCurrencyCompact(total),
-      subtext: 'Total',
+      text: valueFormat === 'currency' ? formatCurrencyCompact(total) : String(total),
+      subtext: options.totalLabel ?? 'Total',
       left: '32%',
       top: 'middle',
       textAlign: 'center',

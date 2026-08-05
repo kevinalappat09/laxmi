@@ -1,25 +1,25 @@
 import { useMemo, useState } from 'react'
-import type { Category } from '../../../../../src/types/category'
-import { TransactionType, type Transaction } from '../../../../../src/types/transaction'
-import { Button } from '../../../components/ui/Button'
-import { Select } from '../../../components/ui/Input'
-import { MultiSelectDropdown } from '../../../components/ui/MultiSelectDropdown'
+import type { Category } from '../../../../../../src/types/category'
+import { TransactionType, type Transaction } from '../../../../../../src/types/transaction'
+import { Button } from '../../../../components/ui/Button'
+import { Select } from '../../../../components/ui/Input'
+import { MultiSelectDropdown } from '../../../../components/ui/MultiSelectDropdown'
 import {
   aggregateByKey,
   collapsePivotToTopN,
   collapseToTopN,
   getAutoAggregateBuckets,
   pivotByKey,
-} from '../../../utils/chartUtils'
+} from '../../../../utils/chartUtils'
 import {
   assignSeriesColors,
   buildMultiLineOption,
   buildPieOption,
   mergeSeriesKeys,
-} from '../../../utils/reportOptions'
-import { ReportChartCard } from '../components/ReportChartCard'
+} from '../../../../utils/reportOptions'
+import { ReportChartCard } from '../../components/ReportChartCard'
 
-interface CategoryReportsProps {
+interface CategoryTabProps {
   transactions: Transaction[]
   categories: Category[]
   fromDate: Date
@@ -45,7 +45,7 @@ function buildDescendantIdSet(
   return descendantIds
 }
 
-export function CategoryReports({ transactions, categories, fromDate, toDate }: CategoryReportsProps) {
+export function CategoryTab({ transactions, categories, fromDate, toDate }: CategoryTabProps) {
   const [selectedParentId, setSelectedParentId] = useState<'all' | number>('all')
   const [selectedLeafIds, setSelectedLeafIds] = useState<Set<number> | null>(null)
 

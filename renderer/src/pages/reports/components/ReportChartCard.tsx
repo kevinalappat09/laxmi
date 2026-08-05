@@ -8,11 +8,27 @@ interface ReportChartCardProps {
   subtitle: string
   option: EChartsOption
   hasData: boolean
+  /** Charts whose height depends on row count, such as horizontal bars, can override this. */
+  height?: number
+  emptyMessage?: string
+  fullWidth?: boolean
 }
 
-export function ReportChartCard({ title, subtitle, option, hasData }: ReportChartCardProps) {
+export function ReportChartCard({
+  title,
+  subtitle,
+  option,
+  hasData,
+  height = CHART_HEIGHT,
+  emptyMessage = 'No data for selected filters.',
+  fullWidth = false,
+}: ReportChartCardProps) {
+  const className = fullWidth
+    ? 'reports-page__chart-card reports-page__chart-card--full'
+    : 'reports-page__chart-card'
+
   return (
-    <Card className="reports-page__chart-card">
+    <Card className={className}>
       <div className="reports-page__chart-header">
         <h2>{title}</h2>
         <p>{subtitle}</p>
@@ -21,12 +37,12 @@ export function ReportChartCard({ title, subtitle, option, hasData }: ReportChar
         <ReactECharts
           option={option}
           notMerge
-          style={{ height: CHART_HEIGHT, width: '100%' }}
+          style={{ height, width: '100%' }}
           opts={{ renderer: 'canvas' }}
         />
       ) : (
-        <div className="reports-page__chart-empty" style={{ height: CHART_HEIGHT }}>
-          No data for selected filters.
+        <div className="reports-page__chart-empty" style={{ height }}>
+          {emptyMessage}
         </div>
       )}
     </Card>
