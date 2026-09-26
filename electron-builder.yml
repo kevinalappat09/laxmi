@@ -11,7 +11,10 @@ directories:
 
 files:
   - dist/**
+  - "!dist/scripts/seed/**"
+  - "!dist/**/*.test.js"
   - renderer/dist/**
+  - "!node_modules/**/*.map"
   - package.json
   - "!**/*.ts"
   - "!src/**"
@@ -30,6 +33,8 @@ asarUnpack:
   - node_modules/node-gyp-build/**/*
 
 win:
+  # Personal unsigned builds do not need the cross-platform signing toolkit.
+  signAndEditExecutable: false
   target:
     - target: nsis
       arch:

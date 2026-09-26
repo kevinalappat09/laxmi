@@ -56,14 +56,6 @@ ipcMain.handle("open-profile", async (_event, profileName: string) => {
     await profileService.openProfile(profileName, migrationService)
     recurringTransactionService.processRecurringTransactions()
         .catch(err => console.error('Background recurring processing error:', err))
-    // Fire and forget — profile open must not block on network
-    priceUpdaterService.refreshStaleAssets()
-        .then(result => {
-            if (result.failedAssets.length > 0) {
-                console.warn('Price refresh partial failure:', result.failedAssets)
-            }
-        })
-        .catch(err => console.error('Background price refresh error:', err))
 })
 
 const accountService = new AccountServiceImpl()
@@ -350,8 +342,14 @@ function createWindow(): void {
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
             contextIsolation: true,
-            nodeIntegration: false
+            nodeIntegration: false,
+            sandbox: true
         }
+    })
+
+    win.webContents.setWindowOpenHandler(() => ({ action: "deny" }))
+    win.webContents.on("will-navigate", (event) => {
+        event.preventDefault()
     })
 
     ipcMain.handle("window-minimize", () => win.minimize())

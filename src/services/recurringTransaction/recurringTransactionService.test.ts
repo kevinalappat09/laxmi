@@ -1,12 +1,10 @@
 jest.mock("../profileSession/profileSessionService");
-jest.mock("../priceUpdater/providers/mfapiProvider");
 
 import Database from "better-sqlite3";
 import path from "path";
 import { initializeSchema } from "../../database/databaseService";
 import { MigrationService } from "../migration/migrationService";
 import { profileSessionService } from "../profileSession/profileSessionService";
-import { MfapiProviderImpl } from "../priceUpdater/providers/mfapiProvider";
 import { RecurringTransactionServiceImpl } from "./recurringTransactionService";
 import { RecurringFrequency } from "../../types/recurringTransaction";
 import { Classification, TransactionType } from "../../types/transaction";
@@ -62,7 +60,6 @@ describe("RecurringTransactionServiceImpl — Portfolio SIP", () => {
     let investmentAccountId: number;
     let bankAccountId: number;
     let assetId: number;
-    let mockGetNavForDate: jest.Mock;
 
     beforeEach(() => {
         db = buildDb();
@@ -72,11 +69,10 @@ describe("RecurringTransactionServiceImpl — Portfolio SIP", () => {
         investmentAccountId = insertAccount(db, { account_name: "Zerodha", sub_type: "investment" });
         bankAccountId = insertAccount(db, { account_name: "HDFC Savings", sub_type: "savings" });
         assetId = insertPortfolioAsset(db);
-
-        mockGetNavForDate = jest.fn().mockResolvedValue(100);
-        (MfapiProviderImpl as jest.Mock).mockImplementation(() => ({
-            getNavForDate: mockGetNavForDate,
-        }));
+        db.prepare(`
+            INSERT INTO portfolio_price_history (portfolio_asset_id, price, currency, recorded_date, created_on)
+            VALUES (?, ?, ?, ?, ?)
+        `).run(assetId, 100, "INR", "2024-01-01", new Date().toISOString());
     });
 
     afterEach(() => {
@@ -157,7 +153,10 @@ describe("RecurringTransactionServiceImpl — Portfolio SIP", () => {
         });
 
         test("SIP due today: quantity = amount / navForDate", async () => {
-            mockGetNavForDate.mockResolvedValue(200);
+            db.prepare(`
+                UPDATE portfolio_price_history SET price = 200
+                WHERE portfolio_asset_id = ? AND recorded_date = ?
+            `).run(assetId, "2024-01-01");
             createSipRecurring();
             await service.processRecurringTransactions(new Date("2024-01-02"));
 
@@ -225,39 +224,32 @@ describe("RecurringTransactionServiceImpl — Portfolio SIP", () => {
 
         // ── NAV lookup ────────────────────────────────────────────────────
 
-        test("SIP: uses price_history when NAV already cached (MFAPI not called)", async () => {
+        test("SIP: uses price_history when NAV is cached", async () => {
             createSipRecurring();
-            // Pre-seed NAV for the due date
             db.prepare(`
-                INSERT INTO portfolio_price_history (portfolio_asset_id, price, currency, recorded_date, created_on)
-                VALUES (?, ?, ?, ?, ?)
-            `).run(assetId, 150, "INR", "2024-01-01", new Date().toISOString());
+                UPDATE portfolio_price_history SET price = 150
+                WHERE portfolio_asset_id = ? AND recorded_date = ?
+            `).run(assetId, "2024-01-01");
 
             await service.processRecurringTransactions(new Date("2024-01-02"));
 
-            expect(mockGetNavForDate).not.toHaveBeenCalled();
             const rows = db.prepare("SELECT * FROM portfolio_transactions").all() as any[];
             expect(rows[0].price_per_unit).toBeCloseTo(150);
         });
 
-        test("SIP: calls MFAPI getNavForDate when no cached price exists", async () => {
-            mockGetNavForDate.mockResolvedValue(123.45);
-            createSipRecurring();
-            await service.processRecurringTransactions(new Date("2024-01-02"));
+        test("SIP: skips processing without cached NAV and performs no network fallback", async () => {
+            db.prepare("DELETE FROM portfolio_price_history WHERE portfolio_asset_id = ?").run(assetId);
+            const rec = createSipRecurring();
+            const consoleSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
 
-            expect(mockGetNavForDate).toHaveBeenCalledWith("122639", "2024-01-01");
-        });
-
-        test("SIP: stores fetched NAV in portfolio_price_history after MFAPI lookup", async () => {
-            mockGetNavForDate.mockResolvedValue(99);
-            createSipRecurring();
             await service.processRecurringTransactions(new Date("2024-01-02"));
 
             const row = db.prepare(
-                "SELECT * FROM portfolio_price_history WHERE portfolio_asset_id = ? AND recorded_date = ?"
-            ).get(assetId, "2024-01-01") as any;
-            expect(row).not.toBeNull();
-            expect(row.price).toBeCloseTo(99);
+                "SELECT last_processed_date FROM recurring_transactions WHERE recurring_id = ?"
+            ).get(rec.recurring_id) as any;
+            expect(row.last_processed_date).toBeNull();
+            expect(db.prepare("SELECT * FROM portfolio_transactions").all()).toHaveLength(0);
+            consoleSpy.mockRestore();
         });
 
         // ── Opened late ───────────────────────────────────────────────────
@@ -273,8 +265,8 @@ describe("RecurringTransactionServiceImpl — Portfolio SIP", () => {
 
         // ── Error handling ────────────────────────────────────────────────
 
-        test("MFAPI network failure: SIP skipped, last_processed_date NOT advanced", async () => {
-            mockGetNavForDate.mockRejectedValue(new Error("Network error"));
+        test("missing cached NAV: SIP skipped, last_processed_date NOT advanced", async () => {
+            db.prepare("DELETE FROM portfolio_price_history WHERE portfolio_asset_id = ?").run(assetId);
             const rec = createSipRecurring();
             const consoleSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
 
@@ -291,9 +283,13 @@ describe("RecurringTransactionServiceImpl — Portfolio SIP", () => {
             consoleSpy.mockRestore();
         });
 
-        test("MFAPI network failure: other SIPs still processed", async () => {
+        test("missing cached NAV: other SIPs with cached prices still process", async () => {
             const assetId2 = insertPortfolioAsset(db, { name: "HDFC Top 100", price_source_id: "111222" });
-            // First SIP will fail, second will succeed
+            db.prepare("DELETE FROM portfolio_price_history WHERE portfolio_asset_id = ?").run(assetId);
+            db.prepare(`
+                INSERT INTO portfolio_price_history (portfolio_asset_id, price, currency, recorded_date, created_on)
+                VALUES (?, ?, ?, ?, ?)
+            `).run(assetId2, 50, "INR", "2024-01-01", new Date().toISOString());
             createSipRecurring();
             service.createRecurringTransaction({
                 account_id: null,
@@ -305,10 +301,6 @@ describe("RecurringTransactionServiceImpl — Portfolio SIP", () => {
                 portfolio_asset_id: assetId2,
                 asset_account_id: investmentAccountId,
             });
-
-            mockGetNavForDate
-                .mockRejectedValueOnce(new Error("Network error"))
-                .mockResolvedValueOnce(50);
 
             const consoleSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
             const count = await service.processRecurringTransactions(new Date("2024-01-02"));
@@ -375,8 +367,6 @@ describe("RecurringTransactionServiceImpl — Portfolio SIP", () => {
             const ptRows = db.prepare("SELECT * FROM portfolio_transactions").all() as any[];
             expect(ptRows).toHaveLength(0);
 
-            // MFAPI not called
-            expect(mockGetNavForDate).not.toHaveBeenCalled();
         });
     });
 });
