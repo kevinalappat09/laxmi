@@ -43,15 +43,24 @@ describe('PriceUpdaterServiceImpl', () => {
     let db: ReturnType<typeof buildDb>
     let service: PriceUpdaterServiceImpl
     let mockMfapiGetLatest: jest.Mock
+    let mockMfapiGetAllLatest: jest.Mock
     let mockYahooGetLatest: jest.Mock
 
     beforeEach(() => {
         db = buildDb()
         ;(profileSessionService.getDatabaseConnection as jest.Mock).mockReturnValue(db)
         mockMfapiGetLatest = jest.fn().mockResolvedValue(500)
+        mockMfapiGetAllLatest = jest.fn().mockResolvedValue(new Map([
+            ['119551', 500],
+            ['111111', 500],
+            ['222222', 500],
+            ['111', 500],
+            ['222', 500],
+        ]))
         mockYahooGetLatest = jest.fn().mockResolvedValue(1500)
         MockMfapi.mockImplementation(() => ({
             getLatestPrice: mockMfapiGetLatest,
+            getAllLatestPrices: mockMfapiGetAllLatest,
             getNavForDate: jest.fn(),
         }) as any)
         MockYahoo.mockImplementation(() => ({
@@ -77,7 +86,7 @@ describe('PriceUpdaterServiceImpl', () => {
 
             expect(result.skippedCount).toBe(1)
             expect(result.refreshedCount).toBe(0)
-            expect(mockMfapiGetLatest).not.toHaveBeenCalled()
+            expect(mockMfapiGetAllLatest).not.toHaveBeenCalled()
         })
 
         it('refreshes an asset with lastPriceUpdatedAt = null (never fetched)', async () => {
@@ -87,7 +96,7 @@ describe('PriceUpdaterServiceImpl', () => {
 
             expect(result.refreshedCount).toBe(1)
             expect(result.skippedCount).toBe(0)
-            expect(mockMfapiGetLatest).toHaveBeenCalledWith('119551')
+            expect(mockMfapiGetAllLatest).toHaveBeenCalledTimes(1)
         })
 
         it('refreshes an asset past its MFAPI 6-hour threshold', async () => {
@@ -99,7 +108,7 @@ describe('PriceUpdaterServiceImpl', () => {
             const result = await service.refreshStaleAssets()
 
             expect(result.refreshedCount).toBe(1)
-            expect(mockMfapiGetLatest).toHaveBeenCalledWith('119551')
+            expect(mockMfapiGetAllLatest).toHaveBeenCalledTimes(1)
         })
 
         it('refreshes a YAHOO asset past its 15-minute threshold', async () => {
@@ -115,7 +124,7 @@ describe('PriceUpdaterServiceImpl', () => {
         })
 
         it('updates portfolio_assets.current_price on successful refresh', async () => {
-            mockMfapiGetLatest.mockResolvedValue(892.456)
+            mockMfapiGetAllLatest.mockResolvedValue(new Map([['119551', 892.456]]))
             const asset = createAsset(db)
 
             await service.refreshStaleAssets()
@@ -127,7 +136,7 @@ describe('PriceUpdaterServiceImpl', () => {
         })
 
         it('creates a portfolio_price_history row for today on successful refresh', async () => {
-            mockMfapiGetLatest.mockResolvedValue(892.456)
+            mockMfapiGetAllLatest.mockResolvedValue(new Map([['119551', 892.456]]))
             const asset = createAsset(db)
             const todayISO = new Date().toISOString().split('T')[0]
 
@@ -140,7 +149,7 @@ describe('PriceUpdaterServiceImpl', () => {
         })
 
         it('upserts — only one history row after two refreshes on the same day', async () => {
-            mockMfapiGetLatest.mockResolvedValue(892.456)
+            mockMfapiGetAllLatest.mockResolvedValue(new Map([['119551', 892.456]]))
             const asset = createAsset(db)
             const todayISO = new Date().toISOString().split('T')[0]
 
@@ -153,7 +162,7 @@ describe('PriceUpdaterServiceImpl', () => {
             repo.updatePrice(asset.id, 892.456, staleIso)
 
             // Second refresh
-            mockMfapiGetLatest.mockResolvedValue(895.000)
+            mockMfapiGetAllLatest.mockResolvedValue(new Map([['119551', 895.000]]))
             await service.refreshStaleAssets()
 
             const priceRepo = new PortfolioPriceRepositoryImpl(db)
@@ -166,9 +175,7 @@ describe('PriceUpdaterServiceImpl', () => {
             const failAsset  = createAsset(db, { name: 'Failing Fund', priceSourceId: '111111' })
             const okAsset    = createAsset(db, { name: 'OK Fund',      priceSourceId: '222222' })
 
-            mockMfapiGetLatest
-                .mockRejectedValueOnce(new Error('API error'))
-                .mockResolvedValueOnce(500)
+            mockMfapiGetAllLatest.mockResolvedValue(new Map([['222222', 500]]))
 
             const result = await service.refreshStaleAssets()
 
@@ -176,6 +183,7 @@ describe('PriceUpdaterServiceImpl', () => {
             expect(result.failedAssets[0].assetId).toBe(failAsset.id)
             expect(result.failedAssets[0].name).toBe('Failing Fund')
             expect(result.refreshedCount).toBe(1)
+            expect(mockMfapiGetAllLatest).toHaveBeenCalledTimes(1)
 
             const repo = new PortfolioAssetRepositoryImpl(db)
             expect(repo.getById(okAsset.id)!.currentPrice).toBe(500)
@@ -193,21 +201,20 @@ describe('PriceUpdaterServiceImpl', () => {
 
             expect(result.refreshedCount).toBe(1)
             expect(result.skippedCount).toBe(0)
-            expect(mockMfapiGetLatest).toHaveBeenCalled()
+            expect(mockMfapiGetAllLatest).toHaveBeenCalledTimes(1)
         })
     })
 
     describe('refreshAsset', () => {
         it('refreshes only the specified asset', async () => {
-            mockMfapiGetLatest.mockResolvedValue(900)
+            mockMfapiGetAllLatest.mockResolvedValue(new Map([['111', 900], ['222', 800]]))
             const asset1 = createAsset(db, { name: 'Fund 1', priceSourceId: '111' })
             const asset2 = createAsset(db, { name: 'Fund 2', priceSourceId: '222' })
 
             const result = await service.refreshAsset(asset1.id)
 
             expect(result.refreshedCount).toBe(1)
-            expect(mockMfapiGetLatest).toHaveBeenCalledTimes(1)
-            expect(mockMfapiGetLatest).toHaveBeenCalledWith('111')
+            expect(mockMfapiGetAllLatest).toHaveBeenCalledTimes(1)
 
             const repo = new PortfolioAssetRepositoryImpl(db)
             expect(repo.getById(asset1.id)!.currentPrice).toBe(900)

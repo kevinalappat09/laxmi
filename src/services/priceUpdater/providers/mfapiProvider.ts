@@ -1,8 +1,33 @@
 import type { PriceProvider } from './priceProvider'
 
 interface MfapiHistoricalEntry { date: string; nav: string }  // date: "DD-MM-YYYY"
+interface MfapiLatestEntry {
+    schemeCode: number
+    nav: string
+}
 
 export class MfapiProviderImpl implements PriceProvider {
+    /**
+     * Downloads MFAPI's complete latest-NAV document. The request contains no
+     * scheme identifiers, so holdings are matched locally by scheme code.
+     */
+    async getAllLatestPrices(): Promise<Map<string, number>> {
+        const res = await fetch('https://api.mfapi.in/mf/latest')
+        if (!res.ok) {
+            throw new Error(`MFAPI returned ${res.status} for the latest NAV dataset`)
+        }
+
+        const json = await res.json() as MfapiLatestEntry[]
+        const prices = new Map<string, number>()
+        for (const entry of json) {
+            const price = parseFloat(entry.nav)
+            if (Number.isFinite(price)) {
+                prices.set(String(entry.schemeCode), price)
+            }
+        }
+        return prices
+    }
+
     async getLatestPrice(schemeCode: string): Promise<number> {
         const res = await fetch(`https://api.mfapi.in/mf/${schemeCode}/latest`)
         if (!res.ok) {

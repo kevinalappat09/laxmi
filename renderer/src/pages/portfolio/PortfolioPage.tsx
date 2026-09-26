@@ -155,7 +155,7 @@ export function PortfolioPage() {
         <h1 className="portfolio-page__title">Portfolio</h1>
         <div className="portfolio-page__header-actions">
           <Button variant="pill" onClick={handleRefreshAll} disabled={isRefreshing}>
-            {isRefreshing ? '↻ Refreshing Prices…' : '↻ Refresh Prices'}
+            {isRefreshing ? '↻ Fetching Current Prices…' : '↻ Fetch Current Prices'}
           </Button>
           <Button variant="pill" onClick={() => setTxnDialog({ defaultType: 'BUY' })}>+ Add Transaction</Button>
         </div>

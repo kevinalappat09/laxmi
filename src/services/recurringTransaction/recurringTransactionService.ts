@@ -21,7 +21,6 @@ import {
 } from "../../types/recurringTransaction";
 import { Classification, TransactionType } from "../../types/transaction";
 import { profileSessionService } from "../profileSession/profileSessionService";
-import { MfapiProviderImpl } from "../priceUpdater/providers/mfapiProvider";
 import { TransactionServiceImpl } from "../transaction/transactionService";
 import { SQLiteDatabase } from "../../database/databaseService";
 import { addDays, createDateWithClampedDay, toDateOnly } from "../../utils/dateUtils";
@@ -325,18 +324,13 @@ export class RecurringTransactionServiceImpl
             throw new Error(`Asset ${asset.name} has no price source configured`);
         }
 
-        // Check price history first; fall back to MFAPI
+        // Recurring processing is local-only. Historical NAV data must already
+        // be cached; profile opening must never disclose holdings over HTTP.
         const priceRepo = new PortfolioPriceRepositoryImpl(db);
-        let navForDate = priceRepo.getNavForDate(asset.id, dueDateISO);
+        const navForDate = priceRepo.getNavForDate(asset.id, dueDateISO);
 
         if (navForDate == null) {
-            const provider = new MfapiProviderImpl();
-            navForDate = await provider.getNavForDate(asset.priceSourceId, dueDateISO);
-            if (navForDate == null) {
-                throw new Error(`Could not find NAV for ${asset.name} on or after ${dueDateISO}`);
-            }
-            // Cache for future reference
-            priceRepo.upsertDailyPrice(asset.id, navForDate, asset.currency, dueDateISO);
+            throw new Error(`No cached NAV is available for ${asset.name} on or after ${dueDateISO}`);
         }
 
         const quantity = recurring.amount / navForDate;

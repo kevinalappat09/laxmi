@@ -12,6 +12,33 @@ describe('MfapiProviderImpl', () => {
         jest.resetAllMocks()
     })
 
+    describe('getAllLatestPrices', () => {
+        it('downloads the generic latest dataset and indexes prices by scheme code', async () => {
+            (global.fetch as jest.Mock).mockResolvedValueOnce({
+                ok: true,
+                json: async () => [
+                    { schemeCode: 119551, nav: '892.45600' },
+                    { schemeCode: 122639, nav: '10.50000' },
+                ],
+            })
+
+            const prices = await provider.getAllLatestPrices()
+
+            expect(global.fetch).toHaveBeenCalledWith('https://api.mfapi.in/mf/latest')
+            expect(prices.get('119551')).toBe(892.456)
+            expect(prices.get('122639')).toBe(10.5)
+        })
+
+        it('skips malformed NAV values', async () => {
+            (global.fetch as jest.Mock).mockResolvedValueOnce({
+                ok: true,
+                json: async () => [{ schemeCode: 119551, nav: 'not-a-number' }],
+            })
+
+            await expect(provider.getAllLatestPrices()).resolves.toEqual(new Map())
+        })
+    })
+
     describe('getLatestPrice', () => {
         it('parses data[0].nav string into a number correctly', async () => {
             (global.fetch as jest.Mock).mockResolvedValueOnce({

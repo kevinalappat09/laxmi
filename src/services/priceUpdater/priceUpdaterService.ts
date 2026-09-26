@@ -5,7 +5,7 @@ import type { PriceProvider } from './providers/priceProvider'
 import { MfapiProviderImpl } from './providers/mfapiProvider'
 import { YahooProviderImpl } from './providers/yahooProvider'
 import type { PriceRefreshResult } from '../../types/portfolioAnalytics'
-import type { PriceSource } from '../../types/portfolioAsset'
+import type { PortfolioAsset, PriceSource } from '../../types/portfolioAsset'
 
 export interface PriceUpdaterService {
     refreshStaleAssets(): Promise<PriceRefreshResult>
@@ -17,7 +17,7 @@ const MFAPI_THRESHOLD_MS  = 6 * 60 * 60 * 1000   // 6 hours
 const YAHOO_THRESHOLD_MS  = 15 * 60 * 1000         // 15 minutes
 
 export class PriceUpdaterServiceImpl implements PriceUpdaterService {
-    private readonly mfapiProvider: PriceProvider = new MfapiProviderImpl()
+    private readonly mfapiProvider = new MfapiProviderImpl()
     private readonly yahooProvider: PriceProvider = new YahooProviderImpl()
 
     private getProvider(priceSource: PriceSource): PriceProvider {
@@ -40,6 +40,7 @@ export class PriceUpdaterServiceImpl implements PriceUpdaterService {
         const todayISO  = now.toISOString().split('T')[0]
         const result: PriceRefreshResult = { refreshedCount: 0, skippedCount: 0, failedAssets: [], asOf: now.toISOString() }
 
+        const assetsToRefresh: PortfolioAsset[] = []
         for (const asset of repo.listActive()) {
             if (!asset.priceSource || !asset.priceSourceId) {
                 result.skippedCount++
@@ -54,9 +55,10 @@ export class PriceUpdaterServiceImpl implements PriceUpdaterService {
                 continue
             }
 
-            await this.fetchAndStore(asset.id, asset.name, asset.priceSource, asset.priceSourceId, asset.currency, now, todayISO, repo, priceRepo, result)
+            assetsToRefresh.push(asset)
         }
 
+        await this.refreshAssets(assetsToRefresh, now, todayISO, repo, priceRepo, result)
         return result
     }
 
@@ -69,15 +71,17 @@ export class PriceUpdaterServiceImpl implements PriceUpdaterService {
         const todayISO  = now.toISOString().split('T')[0]
         const result: PriceRefreshResult = { refreshedCount: 0, skippedCount: 0, failedAssets: [], asOf: now.toISOString() }
 
+        const assetsToRefresh: PortfolioAsset[] = []
         for (const asset of repo.listActive()) {
             if (!asset.priceSource || !asset.priceSourceId) {
                 result.skippedCount++
                 continue
             }
 
-            await this.fetchAndStore(asset.id, asset.name, asset.priceSource, asset.priceSourceId, asset.currency, now, todayISO, repo, priceRepo, result)
+            assetsToRefresh.push(asset)
         }
 
+        await this.refreshAssets(assetsToRefresh, now, todayISO, repo, priceRepo, result)
         return result
     }
 
@@ -100,8 +104,73 @@ export class PriceUpdaterServiceImpl implements PriceUpdaterService {
             return result
         }
 
-        await this.fetchAndStore(asset.id, asset.name, asset.priceSource, asset.priceSourceId, asset.currency, now, todayISO, repo, priceRepo, result)
+        await this.refreshAssets([asset], now, todayISO, repo, priceRepo, result)
         return result
+    }
+
+    private async refreshAssets(
+        assets: PortfolioAsset[],
+        now: Date,
+        todayISO: string,
+        repo: PortfolioAssetRepositoryImpl,
+        priceRepo: PortfolioPriceRepositoryImpl,
+        result: PriceRefreshResult
+    ): Promise<void> {
+        const mfapiAssets = assets.filter(asset => asset.priceSource === 'MFAPI')
+        let mfapiPrices: Map<string, number> | null = null
+        let mfapiError: unknown = null
+
+        if (mfapiAssets.length > 0) {
+            try {
+                mfapiPrices = await this.mfapiProvider.getAllLatestPrices()
+            } catch (err) {
+                mfapiError = err
+            }
+        }
+
+        for (const asset of assets) {
+            if (!asset.priceSource || !asset.priceSourceId) continue
+
+            if (asset.priceSource === 'MFAPI') {
+                const price = mfapiPrices?.get(asset.priceSourceId)
+                if (price == null) {
+                    const error = mfapiError instanceof Error
+                        ? mfapiError.message
+                        : `No current NAV found in MFAPI's latest dataset`
+                    result.failedAssets.push({ assetId: asset.id, name: asset.name, error })
+                    continue
+                }
+                this.storePrice(asset, price, now, todayISO, repo, priceRepo, result)
+                continue
+            }
+
+            await this.fetchAndStore(
+                asset.id,
+                asset.name,
+                asset.priceSource,
+                asset.priceSourceId,
+                asset.currency,
+                now,
+                todayISO,
+                repo,
+                priceRepo,
+                result
+            )
+        }
+    }
+
+    private storePrice(
+        asset: PortfolioAsset,
+        price: number,
+        now: Date,
+        todayISO: string,
+        repo: PortfolioAssetRepositoryImpl,
+        priceRepo: PortfolioPriceRepositoryImpl,
+        result: PriceRefreshResult
+    ): void {
+        repo.updatePrice(asset.id, price, now.toISOString())
+        priceRepo.upsertDailyPrice(asset.id, price, asset.currency, todayISO)
+        result.refreshedCount++
     }
 
     private async fetchAndStore(
