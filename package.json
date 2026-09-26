@@ -46,6 +46,10 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:run": "jest --runInBand",
+    "seed": "npm run build:electron && electron dist/scripts/seed/seedAll.js",
+    "seed:txn": "npm run build:electron && electron dist/scripts/seed/seedAll.js --profile=txn",
+    "seed:assets": "npm run build:electron && electron dist/scripts/seed/seedAll.js --profile=assets",
+    "seed:credit": "npm run build:electron && electron dist/scripts/seed/seedAll.js --profile=credit",
     "postinstall": "npm run rebuild:native"
   },
   "dependencies": {
