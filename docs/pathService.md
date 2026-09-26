@@ -45,15 +45,18 @@ This is implemented by:
 
 ## Profile Paths
 
+- `getProfilesDirectory(): string`
+  - Returns the `profiles` directory under the root data directory.
+
 - `getProfileDirectory(profileName: string): string`
-  - Returns the directory path for a given profile under the root data directory.
+  - Returns the directory path for a given profile under the `profiles` directory.
   - Example (macOS, prod):
-    - `/Users/<User>/Library/Application Support/Laxmi/MyProfile`
+    - `/Users/<User>/Library/Application Support/Laxmi/profiles/MyProfile`
 
 - `getProfilePreferencesPath(profileName: string): string`
   - Returns the path to the `preferences.json` file for a given profile.
   - Example (Linux, dev):
-    - `/home/<User>/.config/Laxmi-Dev/MyProfile/preferences.json`
+    - `/home/<User>/.config/Laxmi-Dev/profiles/MyProfile/preferences.json`
 
 > Note: The `pathService` only resolves paths and does not perform any file system operations or validate profile names. Validation and IO are handled by other services (e.g., profile validator, profile service).
 
