@@ -44,7 +44,7 @@ import {
 import { MigrationService } from '../migration/migrationService';
 
 import {
-    getRootDataDirectory,
+    getProfilesDirectory,
     getProfileDirectory,
     getProfilePreferencesPath,
     getProfileDbPath,
@@ -80,18 +80,18 @@ describe('profileService (module)', () => {
 
         /* ---------------- Default Safe Mocks ---------------- */
 
-        jest.mocked(getRootDataDirectory).mockReturnValue('/mock/appData');
+        jest.mocked(getProfilesDirectory).mockReturnValue('/mock/appData/profiles');
 
         jest.mocked(getProfileDirectory).mockImplementation(
-            (name) => `/mock/appData/${name}`
+            (name) => `/mock/appData/profiles/${name}`
         );
 
         jest.mocked(getProfilePreferencesPath).mockImplementation(
-            (name) => `/mock/appData/${name}/preferences.json`
+            (name) => `/mock/appData/profiles/${name}/preferences.json`
         );
 
         jest.mocked(getProfileDbPath).mockImplementation(
-            (name) => `/mock/appData/${name}/profile.db`
+            (name) => `/mock/appData/profiles/${name}/profile.db`
         );
 
         jest.mocked(openDatabase).mockReturnValue(mockDb);
@@ -123,7 +123,7 @@ describe('profileService (module)', () => {
         test('returns empty array if no profiles exist', async () => {
             const profiles = await listProfiles();
             expect(profiles).toEqual([]);
-            expect(fsPromises.mkdir).toHaveBeenCalledWith('/mock/appData', {
+            expect(fsPromises.mkdir).toHaveBeenCalledWith('/mock/appData/profiles', {
                 recursive: true,
             });
         });
@@ -155,21 +155,21 @@ describe('profileService (module)', () => {
 
             expect(fsPromises.mkdir).toHaveBeenNthCalledWith(
                 1,
-                '/mock/appData',
+                '/mock/appData/profiles',
                 { recursive: true }
             );
             expect(fsPromises.mkdir).toHaveBeenNthCalledWith(
                 2,
-                '/mock/appData/NewProfile'
+                '/mock/appData/profiles/NewProfile'
             );
 
             expect(fsPromises.writeFile).toHaveBeenCalledWith(
-                '/mock/appData/NewProfile/preferences.json',
+                '/mock/appData/profiles/NewProfile/preferences.json',
                 JSON.stringify({}, null, 2)
             );
 
             expect(openDatabase).toHaveBeenCalledWith(
-                '/mock/appData/NewProfile/profile.db'
+                '/mock/appData/profiles/NewProfile/profile.db'
             );
 
             expect(initializeSchema).toHaveBeenCalledWith(mockDb);
@@ -188,7 +188,7 @@ describe('profileService (module)', () => {
             ).rejects.toThrow('Invalid name');
 
             expect(fsPromises.mkdir).toHaveBeenCalledTimes(1);
-            expect(fsPromises.mkdir).toHaveBeenCalledWith('/mock/appData', {
+            expect(fsPromises.mkdir).toHaveBeenCalledWith('/mock/appData/profiles', {
                 recursive: true,
             });
         });
@@ -228,7 +228,7 @@ describe('profileService (module)', () => {
             await deleteProfile('ProfileToDelete');
 
             expect(fsPromises.rm).toHaveBeenCalledWith(
-                '/mock/appData/ProfileToDelete',
+                '/mock/appData/profiles/ProfileToDelete',
                 { recursive: true, force: true }
             );
         });

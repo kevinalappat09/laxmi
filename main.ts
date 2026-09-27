@@ -8,6 +8,7 @@ import path from "path"
 import * as globalPreferencesService from "./src/services/globalPreferences/globalPreferencesService"
 import * as profileService from "./src/services/profile/profileService"
 import { MigrationService } from "./src/services/migration/migrationService"
+import { migrateProfileLayout } from "./src/services/migration/profileLayoutMigration"
 import { getRootDataDirectory } from "./src/services/path/pathService"
 import { AccountServiceImpl } from "./src/services/account/accountService"
 import { CreateAccountRequest, UpdateAccountRequest } from "./src/types/account"
@@ -370,7 +371,19 @@ function createWindow(): void {
     }
 }
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
+    // Must finish before the renderer asks for the profile list.
+    try {
+        const movedProfiles = await migrateProfileLayout()
+        if (movedProfiles.length > 0) {
+            console.log(
+                `Moved profiles into the profiles directory: ${movedProfiles.join(", ")}`
+            )
+        }
+    } catch (err) {
+        console.error("Failed to migrate profile layout:", err)
+    }
+
     Menu.setApplicationMenu(null)
     createWindow()
 })

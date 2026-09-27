@@ -1,5 +1,5 @@
 import {
-    getRootDataDirectory,
+    getProfilesDirectory,
     getProfileDirectory,
     getProfilePreferencesPath,
     getProfileDbPath,
@@ -43,10 +43,10 @@ async function initializeProfileDb(
 /* ------------------------------------------------------------------ */
 
 export async function listProfiles(): Promise<string[]> {
-    const appDataPath = getRootDataDirectory();
-    await fs.promises.mkdir(appDataPath, { recursive: true });
+    const profilesPath = getProfilesDirectory();
+    await fs.promises.mkdir(profilesPath, { recursive: true });
 
-    const entries = await fs.promises.readdir(appDataPath, {
+    const entries = await fs.promises.readdir(profilesPath, {
         withFileTypes: true,
     });
 

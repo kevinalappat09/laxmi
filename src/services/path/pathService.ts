@@ -25,14 +25,14 @@ export function getBaseAppDataPathFor(platform: NodeJS.Platform, homeDir: string
  *
  * - Uses the appropriate base app data path for the current platform.
  * - Appends "Laxmi-Dev" when running in development mode.
- * - Appends "Laxmi-Prod" when running in production mode.
+ * - Appends "Laxmi" when running in production mode.
  */
 export function getRootDataDirectory(): string {
     const homeDir = os.homedir();
     const baseAppDataPath = typeof app.getPath === "function"
         ? app.getPath("appData")
         : getBaseAppDataPathFor(process.platform, homeDir);
-    const appFolderName = app.isPackaged ? "Laxmi-Prod" : "Laxmi-Dev";
+    const appFolderName = app.isPackaged ? "Laxmi" : "Laxmi-Dev";
 
     return path.join(baseAppDataPath, appFolderName);
 }
@@ -45,11 +45,18 @@ export function getGlobalPreferencesPath(): string {
 }
 
 /**
+ * Returns the directory containing all financial profiles.
+ */
+export function getProfilesDirectory(): string {
+    return path.join(getRootDataDirectory(), "profiles");
+}
+
+/**
  * Returns the directory path for the given profile name under the root data directory.
  * This function only resolves the path and does not perform any IO or validation.
  */
 export function getProfileDirectory(profileName: string): string {
-    return path.join(getRootDataDirectory(), profileName);
+    return path.join(getProfilesDirectory(), profileName);
 }
 
 /**
