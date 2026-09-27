@@ -3,7 +3,9 @@
   align-items: center;
   height: 36px;
   min-height: 36px;
-  background-color: var(--color-bg-app);
+  background-color: var(--color-bg-chrome);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(115%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(115%);
   border-bottom: 1px solid var(--color-border-subtle);
   -webkit-app-region: drag;
   user-select: none;

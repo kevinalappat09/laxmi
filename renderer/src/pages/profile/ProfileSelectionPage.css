@@ -5,6 +5,36 @@
   align-items: center;
   padding: var(--spacing-32);
   background: var(--color-bg-app);
+  position: relative;
+}
+
+.profile-page__close {
+  position: absolute;
+  top: var(--spacing-14);
+  right: var(--spacing-14);
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-input-sm);
+  background: var(--color-bg-chrome);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  -webkit-app-region: no-drag;
+  transition: background-color 0.12s ease, color 0.12s ease, border-color 0.12s ease;
+}
+
+.profile-page__close:hover {
+  background-color: #c42b1c;
+  border-color: #c42b1c;
+  color: #fff;
+}
+
+.profile-page__close:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .profile-page__container {

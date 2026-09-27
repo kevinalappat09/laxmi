@@ -47,6 +47,14 @@ ipcMain.handle("get-last-opened-profile", () =>
     globalPreferencesService.getLastOpenedProfile()
 )
 
+ipcMain.handle("get-appearance", () =>
+    globalPreferencesService.getAppearance()
+)
+
+ipcMain.handle("set-appearance", (_event, appearance: globalPreferencesService.Appearance) =>
+    globalPreferencesService.setAppearance(appearance)
+)
+
 ipcMain.handle("list-profiles", () => profileService.listProfiles())
 
 ipcMain.handle("create-profile", (_event, profileName: string) =>
@@ -340,6 +348,8 @@ function createWindow(): void {
         width: 1200,
         height: 800,
         frame: false,
+        transparent: true,
+        backgroundColor: "#00000000",
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
             contextIsolation: true,

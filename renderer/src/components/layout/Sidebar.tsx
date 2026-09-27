@@ -59,6 +59,12 @@ export function Sidebar({ isOpen, activePage, onNavigate }: SidebarProps) {
         >
           Import / Export
         </button>
+        <button
+          className={`sidebar__nav-item${activePage === 'settings' ? ' sidebar__nav-item--active' : ''}`}
+          onClick={() => onNavigate('settings')}
+        >
+          Settings
+        </button>
       </nav>
     </aside>
   )

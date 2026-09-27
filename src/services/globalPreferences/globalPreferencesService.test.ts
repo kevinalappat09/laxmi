@@ -33,7 +33,7 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: null });
+            expect(result).toEqual({ last_opened_profile: null, appearance: "solid" });
             expect(mockReadFile).toHaveBeenCalledWith(TEST_PREFS_PATH, { encoding: "utf-8" });
         });
 
@@ -44,7 +44,21 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: "user1" });
+            expect(result).toEqual({ last_opened_profile: "user1", appearance: "solid" });
+        });
+
+        it("should load the glass appearance", async () => {
+            mockReadFile.mockResolvedValue(JSON.stringify({
+                last_opened_profile: "user1",
+                appearance: "glass",
+            }));
+
+            const { loadPreferences } = require("./globalPreferencesService");
+
+            await expect(loadPreferences()).resolves.toEqual({
+                last_opened_profile: "user1",
+                appearance: "glass",
+            });
         });
 
         it("should ignore unknown fields and only return last_opened_profile", async () => {
@@ -58,7 +72,7 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: "user1" });
+            expect(result).toEqual({ last_opened_profile: "user1", appearance: "solid" });
         });
 
         it("should return default when last_opened_profile key is missing", async () => {
@@ -68,7 +82,7 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: null });
+            expect(result).toEqual({ last_opened_profile: null, appearance: "solid" });
         });
 
         it("should return default preferences when file contains invalid JSON", async () => {
@@ -77,7 +91,7 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: null });
+            expect(result).toEqual({ last_opened_profile: null, appearance: "solid" });
         });
 
         it("should normalize invalid last_opened_profile type to null", async () => {
@@ -87,7 +101,7 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: null });
+            expect(result).toEqual({ last_opened_profile: null, appearance: "solid" });
         });
 
         it("should return default preferences when JSON is not an object", async () => {
@@ -96,7 +110,7 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: null });
+            expect(result).toEqual({ last_opened_profile: null, appearance: "solid" });
         });
 
         it("should propagate read errors that are not ENOENT", async () => {
@@ -115,11 +129,11 @@ describe("globalPreferencesService", () => {
             mockWriteFile.mockResolvedValue(undefined);
 
             const { savePreferences } = require("./globalPreferencesService");
-            await savePreferences({ last_opened_profile: "user1" });
+            await savePreferences({ last_opened_profile: "user1", appearance: "solid" });
 
             expect(mockWriteFile).toHaveBeenCalledWith(
                 TEST_PREFS_PATH,
-                JSON.stringify({ last_opened_profile: "user1" }, null, 2),
+                JSON.stringify({ last_opened_profile: "user1", appearance: "solid" }, null, 2),
                 { encoding: "utf-8" }
             );
         });
@@ -128,10 +142,10 @@ describe("globalPreferencesService", () => {
             mockWriteFile.mockResolvedValue(undefined);
 
             const { savePreferences } = require("./globalPreferencesService");
-            await savePreferences({ last_opened_profile: "user2" });
+            await savePreferences({ last_opened_profile: "user2", appearance: "solid" });
 
             const writtenContent = JSON.parse(mockWriteFile.mock.calls[0][1]);
-            expect(writtenContent).toEqual({ last_opened_profile: "user2" });
+            expect(writtenContent).toEqual({ last_opened_profile: "user2", appearance: "solid" });
             expect(writtenContent.theme).toBeUndefined();
         });
 
@@ -142,7 +156,7 @@ describe("globalPreferencesService", () => {
 
             const { savePreferences } = require("./globalPreferencesService");
 
-            await expect(savePreferences({ last_opened_profile: "user1" })).rejects.toThrow(
+            await expect(savePreferences({ last_opened_profile: "user1", appearance: "solid" })).rejects.toThrow(
                 "Permission denied"
             );
         });
@@ -189,7 +203,7 @@ describe("globalPreferencesService", () => {
             await setLastOpenedProfile("user2");
 
             const writtenContent = JSON.parse(mockWriteFile.mock.calls[0][1]);
-            expect(writtenContent).toEqual({ last_opened_profile: "user2" });
+            expect(writtenContent).toEqual({ last_opened_profile: "user2", appearance: "solid" });
         });
 
         it("should set last_opened_profile to null", async () => {
@@ -199,7 +213,7 @@ describe("globalPreferencesService", () => {
             await setLastOpenedProfile(null);
 
             const writtenContent = JSON.parse(mockWriteFile.mock.calls[0][1]);
-            expect(writtenContent).toEqual({ last_opened_profile: null });
+            expect(writtenContent).toEqual({ last_opened_profile: null, appearance: "solid" });
         });
 
         it("should propagate errors from save", async () => {
@@ -213,6 +227,24 @@ describe("globalPreferencesService", () => {
         });
     });
 
+    describe("setAppearance", () => {
+        it("should preserve the last opened profile", async () => {
+            mockReadFile.mockResolvedValue(JSON.stringify({
+                last_opened_profile: "user1",
+                appearance: "solid",
+            }));
+            mockWriteFile.mockResolvedValue(undefined);
+
+            const { setAppearance } = require("./globalPreferencesService");
+            await setAppearance("glass");
+
+            expect(JSON.parse(mockWriteFile.mock.calls[0][1])).toEqual({
+                last_opened_profile: "user1",
+                appearance: "glass",
+            });
+        });
+    });
+
     describe("resetPreferences", () => {
         it("should overwrite file with default preferences", async () => {
             mockWriteFile.mockResolvedValue(undefined);
@@ -222,7 +254,7 @@ describe("globalPreferencesService", () => {
 
             expect(mockWriteFile).toHaveBeenCalledWith(
                 TEST_PREFS_PATH,
-                JSON.stringify({ last_opened_profile: null }, null, 2),
+                JSON.stringify({ last_opened_profile: null, appearance: "solid" }, null, 2),
                 { encoding: "utf-8" }
             );
         });

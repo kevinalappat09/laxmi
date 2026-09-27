@@ -38,6 +38,10 @@ contextBridge.exposeInMainWorld("financeAPI", {
     // Profile management
     getLastOpenedProfile: (): Promise<string | null> =>
         ipcRenderer.invoke("get-last-opened-profile"),
+    getAppearance: (): Promise<"solid" | "glass"> =>
+        ipcRenderer.invoke("get-appearance"),
+    setAppearance: (appearance: "solid" | "glass"): Promise<void> =>
+        ipcRenderer.invoke("set-appearance", appearance),
     listProfiles: (): Promise<string[]> => ipcRenderer.invoke("list-profiles"),
     createProfile: (profileName: string): Promise<void> =>
         ipcRenderer.invoke("create-profile", profileName),

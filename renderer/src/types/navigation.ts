@@ -9,3 +9,4 @@ export type Page =
   | 'reports'
   | 'portfolio'
   | 'portfolio-asset-detail'
+  | 'settings'

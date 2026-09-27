@@ -1,12 +1,16 @@
 import * as fs from "fs/promises";
 import { getGlobalPreferencesPath } from "../path/pathService";
 
+export type Appearance = "solid" | "glass";
+
 export interface GlobalPreferences {
     last_opened_profile: string | null;
+    appearance: Appearance;
 }
 
 const DEFAULT_GLOBAL_PREFERENCES: GlobalPreferences = {
     last_opened_profile: null,
+    appearance: "solid",
 };
 
 function normalizeLastOpenedProfile(value: unknown): string | null {
@@ -17,6 +21,10 @@ function normalizeLastOpenedProfile(value: unknown): string | null {
         return null;
     }
     return null;
+}
+
+function normalizeAppearance(value: unknown): Appearance {
+    return value === "glass" ? "glass" : "solid";
 }
 
 export async function loadPreferences(): Promise<GlobalPreferences> {
@@ -39,6 +47,7 @@ export async function loadPreferences(): Promise<GlobalPreferences> {
         const prefs = parsed as Record<string, unknown>;
         return {
             last_opened_profile: normalizeLastOpenedProfile(prefs.last_opened_profile),
+            appearance: normalizeAppearance(prefs.appearance),
         };
     } catch (error) {
         const errnoError = error as NodeJS.ErrnoException;
@@ -61,7 +70,18 @@ export async function getLastOpenedProfile(): Promise<string | null> {
 }
 
 export async function setLastOpenedProfile(profileName: string | null): Promise<void> {
-    await savePreferences({ last_opened_profile: profileName });
+    const prefs = await loadPreferences();
+    await savePreferences({ ...prefs, last_opened_profile: profileName });
+}
+
+export async function getAppearance(): Promise<Appearance> {
+    const prefs = await loadPreferences();
+    return prefs.appearance;
+}
+
+export async function setAppearance(appearance: Appearance): Promise<void> {
+    const prefs = await loadPreferences();
+    await savePreferences({ ...prefs, appearance });
 }
 
 export async function resetPreferences(): Promise<void> {

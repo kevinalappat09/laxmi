@@ -77,6 +77,10 @@
 [data-theme='dark'] {
   /* Semantic aliases used by components */
   --color-bg-app: var(--color-midnight-ink);
+  --background-app: var(--color-bg-app);
+  --color-bg-chrome: var(--color-midnight-ink);
+  --color-bg-dialog-glass: var(--color-obsidian-deep);
+  --glass-blur: 16px;
   --color-bg-surface: var(--color-obsidian-deep);
   --color-bg-elevated: var(--color-obsidian-deep);
   --color-bg-input: var(--color-coal-dust);
@@ -125,6 +129,10 @@
 
 [data-theme='light'] {
   --color-bg-app: #f0f0f0;
+  --background-app: var(--color-bg-app);
+  --color-bg-chrome: #f0f0f0;
+  --color-bg-dialog-glass: #ffffff;
+  --glass-blur: 16px;
   --color-bg-surface: #ffffff;
   --color-bg-elevated: #ffffff;
   --color-bg-input: #f9f9f9;
@@ -168,4 +176,26 @@
   --color-overlay: rgba(0, 0, 0, 0.24);
   --color-overlay-strong: rgba(0, 0, 0, 0.4);
   --color-dialog-shadow: rgba(0, 0, 0, 0.15);
+}
+
+[data-theme='dark'][data-appearance='glass'] {
+  --color-bg-app: rgba(11, 11, 11, 0.9);
+  --background-app: transparent;
+  --color-bg-chrome: rgba(11, 11, 11, 0.86);
+  --color-bg-dialog-glass: rgba(19, 19, 19, 0.94);
+  --color-bg-surface: rgba(19, 19, 19, 0.94);
+  --color-bg-elevated: rgba(19, 19, 19, 0.94);
+  --color-bg-input: rgba(25, 25, 25, 0.94);
+  --color-bg-card: rgba(19, 19, 19, 0.94);
+}
+
+[data-theme='light'][data-appearance='glass'] {
+  --color-bg-app: rgba(240, 240, 240, 0.9);
+  --background-app: transparent;
+  --color-bg-chrome: rgba(240, 240, 240, 0.86);
+  --color-bg-dialog-glass: rgba(255, 255, 255, 0.94);
+  --color-bg-surface: rgba(255, 255, 255, 0.94);
+  --color-bg-elevated: rgba(255, 255, 255, 0.94);
+  --color-bg-input: rgba(249, 249, 249, 0.94);
+  --color-bg-card: rgba(255, 255, 255, 0.94);
 }
