@@ -4,7 +4,9 @@
   width: 240px;
   min-width: 240px;
   height: 100%;
-  background-color: var(--color-bg-app);
+  background-color: var(--color-bg-chrome);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(115%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(115%);
   overflow: hidden;
   transition: width 0.22s ease, min-width 0.22s ease;
   border-right: 1px solid var(--color-border-subtle);
@@ -52,4 +54,8 @@
 
 .sidebar__nav-item--active:hover {
   color: var(--color-accent);
+}
+
+.sidebar__nav-item:last-child {
+  margin-top: auto;
 }

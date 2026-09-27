@@ -4,6 +4,7 @@ import './index.css'
 import App from './App.tsx'
 
 document.documentElement.dataset.theme = 'dark'
+document.documentElement.dataset.appearance = 'solid'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

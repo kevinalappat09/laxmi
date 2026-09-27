@@ -66,6 +66,8 @@ declare global {
     interface IFinanceAPI {
         // Profile management
         getLastOpenedProfile: () => Promise<string | null>
+        getAppearance: () => Promise<"solid" | "glass">
+        setAppearance: (appearance: "solid" | "glass") => Promise<void>
         listProfiles: () => Promise<string[]>
         createProfile: (profileName: string) => Promise<void>
         openProfile: (profileName: string) => Promise<void>

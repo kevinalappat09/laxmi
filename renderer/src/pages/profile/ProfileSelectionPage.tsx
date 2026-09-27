@@ -22,6 +22,17 @@ export function ProfileSelectionPage({
 }: ProfileSelectionPageProps) {
   return (
     <div className="profile-page">
+      <button
+        type="button"
+        className="profile-page__close"
+        onClick={() => window.windowAPI.close()}
+        title="Close"
+        aria-label="Close Laxmi"
+      >
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
+          <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+        </svg>
+      </button>
       <div className="profile-page__container">
         <h1 className="profile-page__title">Select a Profile</h1>
         {error && <p className="profile-page__error">{error}</p>}

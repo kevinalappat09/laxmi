@@ -9,11 +9,14 @@
 
 .ui-dialog::backdrop {
   background-color: var(--color-overlay-strong);
-  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
 
 .ui-dialog__panel {
-  background-color: var(--color-bg-surface);
+  background-color: var(--color-bg-dialog-glass);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(115%);
+  backdrop-filter: blur(var(--glass-blur)) saturate(115%);
   border-radius: var(--radius-cards);
   box-shadow: 0 20px 60px var(--color-dialog-shadow);
   border: 1px solid var(--color-border-subtle);

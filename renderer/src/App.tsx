@@ -13,6 +13,7 @@ import { AssetDetailPage } from './pages/portfolio/AssetDetailPage'
 import { CommandPalette, type PaletteAction } from './components/CommandPalette'
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext'
 import { ProfileSelectionPage } from './pages/profile/ProfileSelectionPage'
+import { SettingsPage, type Appearance } from './pages/settings/SettingsPage'
 import './App.css'
 
 type PendingAction = 'addAccount' | 'addTransaction' | null
@@ -20,6 +21,7 @@ type PendingAction = 'addAccount' | 'addTransaction' | null
 function AppContent() {
   const { activePage, selectedAccountId, selectedAssetId, navigate, selectAccount } = useNavigation()
   const [currentProfile, setCurrentProfile] = useState<string | null>(null)
+  const [appearance, setAppearance] = useState<Appearance>('solid')
   const [isLoading, setIsLoading] = useState(true)
   const [showSelectionDialog, setShowSelectionDialog] = useState(false)
   const [profiles, setProfiles] = useState<string[]>([])
@@ -91,6 +93,22 @@ function AppContent() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  useEffect(() => {
+    window.financeAPI
+      .getAppearance()
+      .then((savedAppearance) => {
+        setAppearance(savedAppearance)
+        document.documentElement.dataset.appearance = savedAppearance
+      })
+      .catch((e) => console.error('Failed to load appearance preference.', e))
+  }, [])
+
+  const handleAppearanceChange = async (nextAppearance: Appearance) => {
+    await window.financeAPI.setAppearance(nextAppearance)
+    setAppearance(nextAppearance)
+    document.documentElement.dataset.appearance = nextAppearance
   }
 
   useEffect(() => {
@@ -184,6 +202,15 @@ function AppContent() {
 
     if (activePage === 'portfolio-asset-detail' && selectedAssetId !== null) {
       return <AssetDetailPage assetId={selectedAssetId} />
+    }
+
+    if (activePage === 'settings') {
+      return (
+        <SettingsPage
+          appearance={appearance}
+          onAppearanceChange={handleAppearanceChange}
+        />
+      )
     }
 
     return <ImportExportPage />
