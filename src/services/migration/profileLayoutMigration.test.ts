@@ -1,6 +1,12 @@
 /* ------------------------------------------------------------------ */
 /* Module Mocks (hoisted by Jest)                                     */
 /* ------------------------------------------------------------------ */
+jest.mock('electron', () => ({
+    app: {
+        getPath: jest.fn(() => '/mock/appData'),
+        isPackaged: false,
+    },
+}));
 jest.mock('../path/pathService');
 jest.mock('fs', () => ({
     promises: {
