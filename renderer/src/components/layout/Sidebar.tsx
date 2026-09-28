@@ -1,4 +1,5 @@
 import type { Page } from '../../types/navigation'
+import laxmiIcon from '../../assets/laxmi-icon.png'
 import './Sidebar.css'
 
 interface SidebarProps {
@@ -10,6 +11,10 @@ interface SidebarProps {
 export function Sidebar({ isOpen, activePage, onNavigate }: SidebarProps) {
   return (
     <aside className={`sidebar${isOpen ? '' : ' sidebar--collapsed'}`}>
+      <div className="sidebar__brand">
+        <img src={laxmiIcon} alt="" className="sidebar__brand-icon" />
+        <span>Laxmi</span>
+      </div>
       <nav className="sidebar__nav" aria-label="Main navigation">
         <button
           className={`sidebar__nav-item${activePage === 'home' ? ' sidebar__nav-item--active' : ''}`}

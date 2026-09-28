@@ -350,6 +350,9 @@ function createWindow(): void {
         frame: false,
         transparent: true,
         backgroundColor: "#00000000",
+        icon: app.isPackaged
+            ? path.join(process.resourcesPath, "icon.png")
+            : path.join(__dirname, "../build/icon.png"),
         webPreferences: {
             preload: path.join(__dirname, "preload.js"),
             contextIsolation: true,

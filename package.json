@@ -5,7 +5,10 @@
   "description": "Local-first, open-source, opinionated personal finance management software.",
   "main": "dist/main.js",
   "type": "commonjs",
-  "author": "Kevin Alappat",
+  "author": {
+    "name": "Kevin Alappat",
+    "email": "kevin.d.alappat@gmail.com"
+  },
   "license": "GPL-3.0-only",
   "repository": {
     "type": "git",

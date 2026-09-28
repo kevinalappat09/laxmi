@@ -17,6 +17,23 @@
   min-width: 0;
 }
 
+.sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-10);
+  padding: var(--spacing-18) var(--spacing-20) var(--spacing-4);
+  color: var(--color-text-heading);
+  font-size: var(--text-heading-sm);
+  font-weight: var(--font-weight-semibold);
+  white-space: nowrap;
+}
+
+.sidebar__brand-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-input-sm);
+}
+
 .sidebar__nav {
   flex: 1;
   padding: var(--spacing-14) var(--spacing-8);
