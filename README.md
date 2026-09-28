@@ -35,14 +35,14 @@ npm run dist:linux
 Run the AppImage directly:
 
 ```bash
-chmod +x releases/Laxmi-1.0.0-x64.AppImage
-./releases/Laxmi-1.0.0-x64.AppImage
+chmod +x releases/Laxmi-1.0.1-x64.AppImage
+./releases/Laxmi-1.0.1-x64.AppImage
 ```
 
 Or install the Debian package, then launch **Laxmi** from the application menu:
 
 ```bash
-sudo apt install ./releases/Laxmi-1.0.0-x64.deb
+sudo apt install ./releases/Laxmi-1.0.1-x64.deb
 ```
 
 **Windows** (installer):
@@ -51,9 +51,23 @@ sudo apt install ./releases/Laxmi-1.0.0-x64.deb
 npm run dist:win
 ```
 
-Run `releases/Laxmi-Setup-1.0.0.exe`. The installer lets you choose a directory and adds Desktop and Start menu shortcuts. Open **Laxmi** from either shortcut.
+Run `releases/Laxmi-Setup-1.0.1.exe`. The installer lets you choose a directory and adds Desktop and Start menu shortcuts. Open **Laxmi** from either shortcut.
 
-The `1.0.0` segment matches the `version` field in `package.json`. A later version produces the same file names with that version number.
+The `1.0.1` segment matches the `version` field in `package.json`. A later version produces the same file names with that version number.
+
+## Releasing
+
+Published installers are attached to [GitHub Releases](https://github.com/kevinalappat09/laxmi/releases). The local `releases/` directory is not committed.
+
+1. Set `version` in `package.json` and commit that change.
+2. Tag that commit `v` plus the same version, for example `v1.1.0`.
+3. Push the tag:
+
+```bash
+git push origin v1.1.0
+```
+
+The Release workflow builds the Linux AppImage and `.deb` and the Windows installer, then publishes them on that tag. The tag must match `version` in `package.json`.
 
 ## Project Structure
 
