@@ -187,43 +187,6 @@ export function HomePage({ currentProfile, onSwitchProfile }: HomePageProps) {
         </Button>
       </div>
 
-      <NotificationsPanel
-        notifications={notifications}
-        isLoading={isLoadingNotifications}
-        error={notificationsError}
-      />
-
-      <div className="home-page__metrics">
-        <Card className="metric-tile">
-          <p className="metric-tile__label">This Month</p>
-          <p className="metric-tile__sub-label">Income</p>
-          <p className="metric-tile__value metric-tile__value--income">
-            {isLoadingMetrics ? '…' : formatCurrency(metrics.monthIncome)}
-          </p>
-        </Card>
-        <Card className="metric-tile">
-          <p className="metric-tile__label">This Month</p>
-          <p className="metric-tile__sub-label">Expenses</p>
-          <p className="metric-tile__value metric-tile__value--expense">
-            {isLoadingMetrics ? '…' : formatCurrency(metrics.monthExpense)}
-          </p>
-        </Card>
-        <Card className="metric-tile">
-          <p className="metric-tile__label">This Year</p>
-          <p className="metric-tile__sub-label">Income</p>
-          <p className="metric-tile__value metric-tile__value--income">
-            {isLoadingMetrics ? '…' : formatCurrency(metrics.yearIncome)}
-          </p>
-        </Card>
-        <Card className="metric-tile">
-          <p className="metric-tile__label">This Year</p>
-          <p className="metric-tile__sub-label">Expenses</p>
-          <p className="metric-tile__value metric-tile__value--expense">
-            {isLoadingMetrics ? '…' : formatCurrency(metrics.yearExpense)}
-          </p>
-        </Card>
-      </div>
-
       {error && <p className="home-page__error">{error}</p>}
 
       {isLoading ? (
@@ -259,6 +222,43 @@ export function HomePage({ currentProfile, onSwitchProfile }: HomePageProps) {
           ))}
         </div>
       )}
+
+      <div className="home-page__metrics">
+        <Card className="metric-tile">
+          <p className="metric-tile__label">This Month</p>
+          <p className="metric-tile__sub-label">Income</p>
+          <p className="metric-tile__value metric-tile__value--income">
+            {isLoadingMetrics ? '…' : formatCurrency(metrics.monthIncome)}
+          </p>
+        </Card>
+        <Card className="metric-tile">
+          <p className="metric-tile__label">This Month</p>
+          <p className="metric-tile__sub-label">Expenses</p>
+          <p className="metric-tile__value metric-tile__value--expense">
+            {isLoadingMetrics ? '…' : formatCurrency(metrics.monthExpense)}
+          </p>
+        </Card>
+        <Card className="metric-tile">
+          <p className="metric-tile__label">This Year</p>
+          <p className="metric-tile__sub-label">Income</p>
+          <p className="metric-tile__value metric-tile__value--income">
+            {isLoadingMetrics ? '…' : formatCurrency(metrics.yearIncome)}
+          </p>
+        </Card>
+        <Card className="metric-tile">
+          <p className="metric-tile__label">This Year</p>
+          <p className="metric-tile__sub-label">Expenses</p>
+          <p className="metric-tile__value metric-tile__value--expense">
+            {isLoadingMetrics ? '…' : formatCurrency(metrics.yearExpense)}
+          </p>
+        </Card>
+      </div>
+
+      <NotificationsPanel
+        notifications={notifications}
+        isLoading={isLoadingNotifications}
+        error={notificationsError}
+      />
     </div>
   )
 }

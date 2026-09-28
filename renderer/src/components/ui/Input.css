@@ -5,7 +5,7 @@
 }
 
 .ui-field__label {
-  font-size: 12px;
+  font-size: 0.857rem;
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-secondary);
   text-transform: uppercase;

@@ -88,6 +88,35 @@
   margin: 0;
 }
 
+.asset-detail__details {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 14px 24px;
+  margin: 0;
+}
+
+.asset-detail__detail dt {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 0 0 4px;
+}
+
+.asset-detail__detail dd {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--color-text-primary);
+}
+
+.asset-detail__scheme-code {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}
+
 .asset-detail__range-btns {
   display: flex;
   gap: 4px;
@@ -158,5 +187,10 @@
   max-width: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.asset-detail__txn-actions {
+  text-align: right;
   white-space: nowrap;
 }

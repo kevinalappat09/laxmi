@@ -8,6 +8,7 @@ import { SQLiteDatabase } from "../../database/databaseService";
 import {
     CreatePortfolioTransactionRequest,
     PortfolioTransaction,
+    PortfolioTransactionType,
 } from "../../types/portfolioTransaction";
 
 export interface PortfolioHoldingRow {
@@ -34,8 +35,25 @@ export interface PortfolioSummaryRow extends PortfolioHoldingRow {
     realizedPl: number;
 }
 
+export interface PortfolioTransactionUpdate {
+    transactionType: PortfolioTransactionType;
+    quantity: number;
+    pricePerUnit: number;
+    fees: number;
+    taxes: number;
+    currency: string;
+    transactionDate: Date;
+    isDividendReinvestment: boolean;
+    assetAccountId: number;
+    sourceAccountId: number | null;
+    note: string | null;
+}
+
 export interface PortfolioTransactionRepository {
     create(request: CreatePortfolioTransactionRequest & { quantity: number }): PortfolioTransaction;
+    update(id: number, request: PortfolioTransactionUpdate): PortfolioTransaction;
+    setLinkedTransactionId(id: number, linkedTransactionId: number | null): void;
+    getById(id: number): PortfolioTransaction | null;
     deactivate(id: number): void;
     listByAsset(portfolioAssetId: number): PortfolioTransaction[];
     listAll(): PortfolioTransaction[];
@@ -80,6 +98,56 @@ export class PortfolioTransactionRepositoryImpl implements PortfolioTransactionR
         `).get(result.lastInsertRowid as number) as any;
 
         return this.mapRow(row);
+    }
+
+    update(id: number, request: PortfolioTransactionUpdate): PortfolioTransaction {
+        const existing = this.getById(id);
+        if (!existing) {
+            throw new Error(`Portfolio transaction not found: ${id}`);
+        }
+
+        const now = new Date().toISOString();
+        this.db.prepare(`
+            UPDATE portfolio_transactions
+            SET transaction_type = ?, quantity = ?, price_per_unit = ?,
+                fees = ?, taxes = ?, currency = ?, transaction_date = ?,
+                is_dividend_reinvestment = ?, asset_account_id = ?,
+                source_account_id = ?, note = ?, modified_on = ?
+            WHERE id = ?
+        `).run(
+            request.transactionType,
+            request.quantity,
+            request.pricePerUnit,
+            request.fees,
+            request.taxes,
+            request.currency,
+            request.transactionDate.toISOString().split("T")[0],
+            request.isDividendReinvestment ? 1 : 0,
+            request.assetAccountId,
+            request.sourceAccountId,
+            request.note,
+            now,
+            id
+        );
+
+        return this.getById(id)!;
+    }
+
+    setLinkedTransactionId(id: number, linkedTransactionId: number | null): void {
+        const now = new Date().toISOString();
+        this.db.prepare(`
+            UPDATE portfolio_transactions
+            SET linked_transaction_id = ?, modified_on = ?
+            WHERE id = ?
+        `).run(linkedTransactionId, now, id);
+    }
+
+    getById(id: number): PortfolioTransaction | null {
+        const row = this.db.prepare(`
+            SELECT * FROM portfolio_transactions WHERE id = ?
+        `).get(id) as any;
+
+        return row ? this.mapRow(row) : null;
     }
 
     deactivate(id: number): void {
@@ -168,6 +236,7 @@ export class PortfolioTransactionRepositoryImpl implements PortfolioTransactionR
             isDividendReinvestment: row.is_dividend_reinvestment === 1,
             assetAccountId: row.asset_account_id,
             sourceAccountId: row.source_account_id ?? null,
+            linkedTransactionId: row.linked_transaction_id ?? null,
             linkedRecurringId: row.linked_recurring_id ?? null,
             note: row.note ?? null,
             isActive: row.is_active === 1,

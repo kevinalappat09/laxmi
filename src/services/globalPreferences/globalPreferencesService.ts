@@ -2,15 +2,18 @@ import * as fs from "fs/promises";
 import { getGlobalPreferencesPath } from "../path/pathService";
 
 export type Appearance = "solid" | "glass";
+export type TextSize = "default" | "large" | "larger";
 
 export interface GlobalPreferences {
     last_opened_profile: string | null;
     appearance: Appearance;
+    text_size: TextSize;
 }
 
 const DEFAULT_GLOBAL_PREFERENCES: GlobalPreferences = {
     last_opened_profile: null,
     appearance: "solid",
+    text_size: "default",
 };
 
 function normalizeLastOpenedProfile(value: unknown): string | null {
@@ -25,6 +28,13 @@ function normalizeLastOpenedProfile(value: unknown): string | null {
 
 function normalizeAppearance(value: unknown): Appearance {
     return value === "glass" ? "glass" : "solid";
+}
+
+function normalizeTextSize(value: unknown): TextSize {
+    if (value === "large" || value === "larger") {
+        return value;
+    }
+    return "default";
 }
 
 export async function loadPreferences(): Promise<GlobalPreferences> {
@@ -48,6 +58,7 @@ export async function loadPreferences(): Promise<GlobalPreferences> {
         return {
             last_opened_profile: normalizeLastOpenedProfile(prefs.last_opened_profile),
             appearance: normalizeAppearance(prefs.appearance),
+            text_size: normalizeTextSize(prefs.text_size),
         };
     } catch (error) {
         const errnoError = error as NodeJS.ErrnoException;
@@ -82,6 +93,16 @@ export async function getAppearance(): Promise<Appearance> {
 export async function setAppearance(appearance: Appearance): Promise<void> {
     const prefs = await loadPreferences();
     await savePreferences({ ...prefs, appearance });
+}
+
+export async function getTextSize(): Promise<TextSize> {
+    const prefs = await loadPreferences();
+    return prefs.text_size;
+}
+
+export async function setTextSize(textSize: TextSize): Promise<void> {
+    const prefs = await loadPreferences();
+    await savePreferences({ ...prefs, text_size: normalizeTextSize(textSize) });
 }
 
 export async function resetPreferences(): Promise<void> {

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import type { Account } from '../../../../src/types/account'
 import type { PortfolioAsset, AssetCategory, AssetSubCategory } from '../../../../src/types/portfolioAsset'
 import type { MfSearchResult, MfFundMeta } from '../../../../src/types/portfolioAnalytics'
-import type { PortfolioTransactionType } from '../../../../src/types/portfolioTransaction'
+import type { PortfolioTransaction, PortfolioTransactionType } from '../../../../src/types/portfolioTransaction'
 import { AccountSubType } from '../../../../src/types/account'
 import { Button } from '../../components/ui/Button'
 import { Dialog } from '../../components/ui/Dialog'
@@ -38,12 +38,14 @@ function todayISO(): string {
 interface TransactionDialogProps {
   /** Pre-selected asset — if omitted the dialog shows a fund picker first */
   asset?: PortfolioAsset
+  /** When set, the dialog edits this transaction instead of logging a new one. */
+  transaction?: PortfolioTransaction
   defaultType?: 'BUY' | 'SELL'
   onClose: () => void
   onSaved: () => void
 }
 
-export function TransactionDialog({ asset: preselectedAsset, defaultType = 'BUY', onClose, onSaved }: TransactionDialogProps) {
+export function TransactionDialog({ asset: preselectedAsset, transaction, defaultType = 'BUY', onClose, onSaved }: TransactionDialogProps) {
   /* ── Fund picker state (only used when no asset is pre-selected) ── */
   const [allAssets, setAllAssets]             = useState<PortfolioAsset[]>([])
   const [fundMode, setFundMode]               = useState<'existing' | 'new'>('existing')
@@ -63,18 +65,18 @@ export function TransactionDialog({ asset: preselectedAsset, defaultType = 'BUY'
   const mfDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   /* ── Transaction state ── */
-  const [txnType, setTxnType]       = useState<PortfolioTransactionType>(defaultType)
-  const [date, setDate]             = useState(todayISO())
-  const [navPrice, setNavPrice]     = useState('')
-  const [amount, setAmount]         = useState('')
-  const [manualUnits, setManualUnits] = useState(false)
-  const [units, setUnits]           = useState('')
-  const [fees, setFees]             = useState('0')
-  const [note, setNote]             = useState('')
+  const [txnType, setTxnType]       = useState<PortfolioTransactionType>(transaction?.transactionType ?? defaultType)
+  const [date, setDate]             = useState(transaction ? transaction.transactionDate.slice(0, 10) : todayISO())
+  const [navPrice, setNavPrice]     = useState(transaction ? String(transaction.pricePerUnit) : '')
+  const [amount, setAmount]         = useState(transaction ? String(transaction.quantity * transaction.pricePerUnit) : '')
+  const [manualUnits, setManualUnits] = useState(transaction != null)
+  const [units, setUnits]           = useState(transaction ? String(transaction.quantity) : '')
+  const [fees, setFees]             = useState(transaction ? String(transaction.fees) : '0')
+  const [note, setNote]             = useState(transaction?.note ?? '')
 
   const [accounts, setAccounts]                     = useState<Account[]>([])
-  const [investmentAccountId, setInvestmentAccountId] = useState<number | ''>('')
-  const [sourceAccountId, setSourceAccountId]         = useState<number | ''>('')
+  const [investmentAccountId, setInvestmentAccountId] = useState<number | ''>(transaction?.assetAccountId ?? '')
+  const [sourceAccountId, setSourceAccountId]         = useState<number | ''>(transaction?.sourceAccountId ?? '')
 
   const [saving, setSaving]               = useState(false)
   const [error, setError]                 = useState<string | null>(null)
@@ -121,9 +123,11 @@ export function TransactionDialog({ asset: preselectedAsset, defaultType = 'BUY'
   const computedUnits = manualUnits ? (parseFloat(units) || 0) : (nav > 0 ? (parseFloat(amount) || 0) / nav : 0)
   const fundingLabel  = isBuyLike ? 'Funded from' : isSellLike ? 'Proceeds to' : 'Account'
 
-  const dialogTitle = preselectedAsset
-    ? `Log Transaction — ${preselectedAsset.name}`
-    : 'Add Transaction'
+  const dialogTitle = transaction
+    ? `Edit Transaction — ${preselectedAsset?.name ?? 'Fund'}`
+    : preselectedAsset
+      ? `Log Transaction — ${preselectedAsset.name}`
+      : 'Add Transaction'
 
   /* ── Submit ── */
   const handleSubmit = async (e: React.FormEvent) => {
@@ -132,7 +136,7 @@ export function TransactionDialog({ asset: preselectedAsset, defaultType = 'BUY'
     setOversellError(null)
 
     // Validate fund selection
-    if (!preselectedAsset) {
+    if (!preselectedAsset && !transaction) {
       if (fundMode === 'existing' && selectedAssetId === '') {
         setError('Please select a fund.')
         return
@@ -149,6 +153,28 @@ export function TransactionDialog({ asset: preselectedAsset, defaultType = 'BUY'
 
     setSaving(true)
     try {
+      if (transaction) {
+        const req: any = {
+          transactionType: txnType,
+          pricePerUnit: nav,
+          fees: parseFloat(fees) || 0,
+          taxes: transaction.taxes,
+          transactionDate: new Date(date),
+          isDividendReinvestment: txnType === 'DIVIDEND' ? transaction.isDividendReinvestment : false,
+          assetAccountId: investmentAccountId as number,
+          sourceAccountId: sourceAccountId !== '' ? sourceAccountId as number : null,
+          note: note.trim() || undefined,
+        }
+        if (manualUnits) {
+          req.quantity = computedUnits
+        } else {
+          req.investedAmount = parseFloat(amount) || 0
+        }
+        await window.financeAPI.portfolio.transaction.update(transaction.id, req)
+        onSaved()
+        return
+      }
+
       let assetId: number
 
       if (preselectedAsset) {
@@ -493,7 +519,7 @@ export function TransactionDialog({ asset: preselectedAsset, defaultType = 'BUY'
         <div className="txn-dialog__actions">
           <Button type="button" variant="secondary" onClick={onClose}>Cancel</Button>
           <Button type="submit" variant="pill" disabled={saving || !!oversellError}>
-            {saving ? 'Saving…' : 'Log Transaction'}
+            {saving ? 'Saving…' : transaction ? 'Save' : 'Log Transaction'}
           </Button>
         </div>
       </form>

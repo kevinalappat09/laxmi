@@ -186,6 +186,35 @@ describe("PortfolioTransactionRepositoryImpl", () => {
         });
     });
 
+    describe("update", () => {
+        test("replaces editable fields and preserves the id", () => {
+            const txn = buy(10, 50, "2024-01-15");
+
+            const updated = repo.update(txn.id, {
+                transactionType: "SIP",
+                quantity: 12.5,
+                pricePerUnit: 80,
+                fees: 5,
+                taxes: 1,
+                currency: "INR",
+                transactionDate: new Date("2024-02-01"),
+                isDividendReinvestment: false,
+                assetAccountId: accountId,
+                sourceAccountId: null,
+                note: "corrected",
+            });
+
+            expect(updated.id).toBe(txn.id);
+            expect(updated.transactionType).toBe("SIP");
+            expect(updated.quantity).toBe(12.5);
+            expect(updated.pricePerUnit).toBe(80);
+            expect(updated.fees).toBe(5);
+            expect(updated.transactionDate).toBe("2024-02-01");
+            expect(updated.note).toBe("corrected");
+            expect(repo.getTotalUnitsHeld(assetId)).toBe(12.5);
+        });
+    });
+
     describe("listByAsset", () => {
         test("returns transactions in descending date order", () => {
             buy(10, 50, "2024-01-01");

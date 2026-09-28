@@ -59,6 +59,8 @@ export class PortfolioAssetRepositoryImpl implements PortfolioAssetRepository {
         const now = new Date().toISOString();
 
         const name        = request.name        !== undefined ? request.name        : existing.name;
+        const category    = request.category    !== undefined ? request.category    : existing.category;
+        const type        = request.type        !== undefined ? request.type        : existing.type;
         const subCategory = request.subCategory !== undefined ? request.subCategory : existing.subCategory;
         const priceSource = request.priceSource !== undefined ? request.priceSource : existing.priceSource;
         const priceSourceId = request.priceSourceId !== undefined ? request.priceSourceId : existing.priceSourceId;
@@ -69,10 +71,11 @@ export class PortfolioAssetRepositoryImpl implements PortfolioAssetRepository {
 
         this.db.prepare(`
             UPDATE portfolio_assets
-            SET name = ?, sub_category = ?, price_source = ?, price_source_id = ?,
+            SET name = ?, category = ?, type = ?, sub_category = ?,
+                price_source = ?, price_source_id = ?,
                 metadata = ?, is_active = ?, modified_on = ?
             WHERE id = ?
-        `).run(name, subCategory, priceSource, priceSourceId, metadata, isActive ? 1 : 0, now, id);
+        `).run(name, category, type, subCategory, priceSource, priceSourceId, metadata, isActive ? 1 : 0, now, id);
 
         return this.getById(id)!;
     }

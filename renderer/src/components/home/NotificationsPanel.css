@@ -1,5 +1,5 @@
 .notifications-panel {
-  margin-bottom: var(--spacing-20);
+  margin: 0;
 }
 
 .notifications-panel__header {

@@ -13,7 +13,7 @@ import { AssetDetailPage } from './pages/portfolio/AssetDetailPage'
 import { CommandPalette, type PaletteAction } from './components/CommandPalette'
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext'
 import { ProfileSelectionPage } from './pages/profile/ProfileSelectionPage'
-import { SettingsPage, type Appearance } from './pages/settings/SettingsPage'
+import { SettingsPage, type Appearance, type TextSize } from './pages/settings/SettingsPage'
 import './App.css'
 
 type PendingAction = 'addAccount' | 'addTransaction' | null
@@ -22,6 +22,7 @@ function AppContent() {
   const { activePage, selectedAccountId, selectedAssetId, navigate, selectAccount } = useNavigation()
   const [currentProfile, setCurrentProfile] = useState<string | null>(null)
   const [appearance, setAppearance] = useState<Appearance>('solid')
+  const [textSize, setTextSize] = useState<TextSize>('default')
   const [isLoading, setIsLoading] = useState(true)
   const [showSelectionDialog, setShowSelectionDialog] = useState(false)
   const [profiles, setProfiles] = useState<string[]>([])
@@ -103,7 +104,21 @@ function AppContent() {
         document.documentElement.dataset.appearance = savedAppearance
       })
       .catch((e) => console.error('Failed to load appearance preference.', e))
+
+    window.financeAPI
+      .getTextSize()
+      .then((savedTextSize) => {
+        document.documentElement.dataset.textSize = savedTextSize
+        setTextSize(savedTextSize)
+      })
+      .catch((e) => console.error('Failed to load text size preference.', e))
   }, [])
+
+  const handleTextSizeChange = async (nextTextSize: TextSize) => {
+    await window.financeAPI.setTextSize(nextTextSize)
+    document.documentElement.dataset.textSize = nextTextSize
+    setTextSize(nextTextSize)
+  }
 
   const handleAppearanceChange = async (nextAppearance: Appearance) => {
     await window.financeAPI.setAppearance(nextAppearance)
@@ -209,6 +224,8 @@ function AppContent() {
         <SettingsPage
           appearance={appearance}
           onAppearanceChange={handleAppearanceChange}
+          textSize={textSize}
+          onTextSizeChange={handleTextSizeChange}
         />
       )
     }
@@ -219,7 +236,7 @@ function AppContent() {
   return (
     <div className="app-root">
       {isLoading && <div>Loading...</div>}
-      {!isLoading && currentProfile && <AppLayout>{renderContent()}</AppLayout>}
+      {!isLoading && currentProfile && <AppLayout key={textSize}>{renderContent()}</AppLayout>}
 
       {currentProfile && (
         <CommandPalette

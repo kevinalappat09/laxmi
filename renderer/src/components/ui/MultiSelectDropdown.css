@@ -23,7 +23,7 @@
 
 .ui-multi-select__chevron {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.857rem;
   flex-shrink: 0;
   transition: transform 0.15s ease;
 }

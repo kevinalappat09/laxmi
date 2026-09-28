@@ -3,10 +3,24 @@ import type { AssetAnalytics } from '../../../../src/types/portfolioAnalytics'
 import type { PortfolioAsset } from '../../../../src/types/portfolioAsset'
 import type { PortfolioTransaction } from '../../../../src/types/portfolioTransaction'
 import { Button } from '../../components/ui/Button'
+import { AssetDialog } from './AssetDialog'
 import { TransactionDialog } from './TransactionDialog'
 import { useNavigation } from '../../contexts/NavigationContext'
 import { formatCurrency, formatSignedCurrency, formatSignedPercent } from '../../utils/formatters'
 import './AssetDetailPage.css'
+
+const SUB_CATEGORY_LABELS: Record<string, string> = {
+  large_cap: 'Large Cap',
+  mid_cap: 'Mid Cap',
+  small_cap: 'Small Cap',
+  flexi_cap: 'Flexi Cap',
+  index: 'Index',
+  elss: 'ELSS',
+  liquid: 'Liquid',
+  debt: 'Debt',
+  hybrid: 'Hybrid',
+  international: 'International',
+}
 
 function fmtDate(iso: string): string {
   try {
@@ -32,7 +46,11 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
   const [transactions, setTransactions] = useState<PortfolioTransaction[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const [txnDialog, setTxnDialog] = useState<{ defaultType: 'BUY' | 'SELL' } | null>(null)
+  const [txnDialog, setTxnDialog] = useState<{
+    defaultType: 'BUY' | 'SELL'
+    transaction?: PortfolioTransaction
+  } | null>(null)
+  const [editing, setEditing] = useState(false)
 
   const loadData = useCallback(async () => {
     setIsLoading(true)
@@ -85,6 +103,36 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
         <h1 className="asset-detail__title">{analytics?.name ?? rawAsset.name}</h1>
       </div>
 
+      <div className="asset-detail__section">
+        <div className="asset-detail__section-header">
+          <h2 className="asset-detail__section-title">Fund details</h2>
+          <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>Edit</Button>
+        </div>
+        <dl className="asset-detail__details">
+          <div className="asset-detail__detail">
+            <dt>Name</dt>
+            <dd>{rawAsset.name}</dd>
+          </div>
+          <div className="asset-detail__detail">
+            <dt>Category</dt>
+            <dd>{rawAsset.category === 'DEBT' ? 'Debt' : 'Equity'}</dd>
+          </div>
+          <div className="asset-detail__detail">
+            <dt>Sub-category</dt>
+            <dd>{rawAsset.subCategory ? (SUB_CATEGORY_LABELS[rawAsset.subCategory] ?? rawAsset.subCategory) : 'None'}</dd>
+          </div>
+          <div className="asset-detail__detail">
+            <dt>Scheme</dt>
+            <dd>
+              {String(rawAsset.metadata?.schemeName ?? rawAsset.name)}
+              {rawAsset.priceSourceId && (
+                <span className="asset-detail__scheme-code">{rawAsset.priceSourceId}</span>
+              )}
+            </dd>
+          </div>
+        </dl>
+      </div>
+
       {/* Metrics grid — only shown once there are holdings */}
       {analytics && (
         <div className="asset-detail__metrics">
@@ -131,6 +179,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
                 <th className="asset-detail__col-right">Units</th>
                 <th className="asset-detail__col-right">Amount</th>
                 <th>Note</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -146,6 +195,18 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
                   <td className="asset-detail__col-right">{t.quantity.toFixed(3)}</td>
                   <td className="asset-detail__col-right">{formatCurrency(t.quantity * t.pricePerUnit, 0)}</td>
                   <td className="asset-detail__txn-note">{t.note ?? ''}</td>
+                  <td className="asset-detail__txn-actions">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => setTxnDialog({
+                        defaultType: t.transactionType === 'SELL' || t.transactionType === 'REDEMPTION' ? 'SELL' : 'BUY',
+                        transaction: t,
+                      })}
+                    >
+                      Edit
+                    </Button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -155,10 +216,20 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
 
       {txnDialog && rawAsset && (
         <TransactionDialog
+          key={txnDialog.transaction?.id ?? `new-${txnDialog.defaultType}`}
           asset={rawAsset}
+          transaction={txnDialog.transaction}
           defaultType={txnDialog.defaultType}
           onClose={() => setTxnDialog(null)}
           onSaved={() => { setTxnDialog(null); loadData() }}
+        />
+      )}
+
+      {editing && rawAsset && (
+        <AssetDialog
+          asset={rawAsset}
+          onClose={() => setEditing(false)}
+          onSaved={() => { setEditing(false); loadData() }}
         />
       )}
     </div>

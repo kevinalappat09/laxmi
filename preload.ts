@@ -8,7 +8,7 @@ import {
 import { CreateCategoryRequest, UpdateCategoryRequest, Category } from "./src/types/category"
 import { Account } from "./src/types/account"
 import { CreatePortfolioAssetRequest, UpdatePortfolioAssetRequest } from "./src/types/portfolioAsset"
-import { CreatePortfolioTransactionRequest, PortfolioTransaction } from "./src/types/portfolioTransaction"
+import { CreatePortfolioTransactionRequest, PortfolioTransaction, UpdatePortfolioTransactionRequest } from "./src/types/portfolioTransaction"
 import { PriceRefreshResult, PortfolioSummaryAnalytics, AssetAnalytics, PortfolioValuePoint, MfFundMeta } from "./src/types/portfolioAnalytics"
 import {
     CSVImportRequest,
@@ -42,6 +42,10 @@ contextBridge.exposeInMainWorld("financeAPI", {
         ipcRenderer.invoke("get-appearance"),
     setAppearance: (appearance: "solid" | "glass"): Promise<void> =>
         ipcRenderer.invoke("set-appearance", appearance),
+    getTextSize: (): Promise<"default" | "large" | "larger"> =>
+        ipcRenderer.invoke("get-text-size"),
+    setTextSize: (textSize: "default" | "large" | "larger"): Promise<void> =>
+        ipcRenderer.invoke("set-text-size", textSize),
     listProfiles: (): Promise<string[]> => ipcRenderer.invoke("list-profiles"),
     createProfile: (profileName: string): Promise<void> =>
         ipcRenderer.invoke("create-profile", profileName),
@@ -173,6 +177,8 @@ contextBridge.exposeInMainWorld("financeAPI", {
         transaction: {
             create: (req: CreatePortfolioTransactionRequest) =>
                 ipcRenderer.invoke("portfolio:transaction:create", req),
+            update: (id: number, req: UpdatePortfolioTransactionRequest) =>
+                ipcRenderer.invoke("portfolio:transaction:update", { id, request: req }),
             deactivate: (id: number) =>
                 ipcRenderer.invoke("portfolio:transaction:deactivate", { id }),
             listByAsset: (portfolioAssetId: number) =>

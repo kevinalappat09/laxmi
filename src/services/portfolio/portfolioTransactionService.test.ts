@@ -176,6 +176,89 @@ describe("PortfolioTransactionServiceImpl", () => {
         });
     });
 
+    describe("update", () => {
+        test("updates quantity and the linked withdraw amount", () => {
+            const txn = service.create(baseBuy({ quantity: 100, sourceAccountId: bankAccountId, fees: 10 }));
+
+            const updated = service.update(txn.id, {
+                transactionType: "BUY",
+                quantity: 80,
+                pricePerUnit: 50,
+                fees: 10,
+                transactionDate: new Date("2024-01-15"),
+                assetAccountId: investmentAccountId,
+                sourceAccountId: bankAccountId,
+            });
+
+            expect(updated.quantity).toBe(80);
+            expect(updated.linkedTransactionId).toBe(txn.linkedTransactionId);
+
+            const bank = db.prepare(`SELECT * FROM transactions WHERE transaction_id = ?`).get(updated.linkedTransactionId) as any;
+            expect(bank.amount).toBeCloseTo(80 * 50 + 10);
+            expect(bank.is_active).toBe(1);
+        });
+
+        test("matches an unlinked account transaction and stores the link", () => {
+            const txn = service.create(baseBuy({ quantity: 40, pricePerUnit: 25, sourceAccountId: bankAccountId }));
+            db.prepare(`UPDATE portfolio_transactions SET linked_transaction_id = NULL WHERE id = ?`).run(txn.id);
+
+            const updated = service.update(txn.id, {
+                transactionType: "BUY",
+                quantity: 40,
+                pricePerUnit: 30,
+                transactionDate: new Date("2024-01-15"),
+                assetAccountId: investmentAccountId,
+                sourceAccountId: bankAccountId,
+            });
+
+            const bankRows = db.prepare(`SELECT * FROM transactions WHERE is_active = 1`).all() as any[];
+            expect(bankRows).toHaveLength(1);
+            expect(updated.linkedTransactionId).toBe(bankRows[0].transaction_id);
+            expect(bankRows[0].amount).toBeCloseTo(40 * 30);
+        });
+
+        test("removes the account transaction when the source account is cleared", () => {
+            const txn = service.create(baseBuy({ quantity: 10, sourceAccountId: bankAccountId }));
+
+            service.update(txn.id, {
+                transactionType: "BUY",
+                quantity: 10,
+                pricePerUnit: 50,
+                transactionDate: new Date("2024-01-15"),
+                assetAccountId: investmentAccountId,
+                sourceAccountId: null,
+            });
+
+            const bank = db.prepare(`SELECT is_active FROM transactions WHERE transaction_id = ?`).get(txn.linkedTransactionId) as any;
+            expect(bank.is_active).toBe(0);
+        });
+
+        test("rejects an edit that would sell more units than remain", () => {
+            service.create(baseBuy({ quantity: 100 }));
+            const sale = service.create({
+                portfolioAssetId: assetId,
+                transactionType: "SELL",
+                quantity: 40,
+                pricePerUnit: 60,
+                transactionDate: new Date("2024-06-01"),
+                assetAccountId: investmentAccountId,
+            });
+
+            expect(() =>
+                service.update(sale.id, {
+                    transactionType: "SELL",
+                    quantity: 101,
+                    pricePerUnit: 60,
+                    transactionDate: new Date("2024-06-01"),
+                    assetAccountId: investmentAccountId,
+                })
+            ).toThrow("Cannot sell more units than currently held");
+
+            const stored = db.prepare(`SELECT quantity FROM portfolio_transactions WHERE id = ?`).get(sale.id) as any;
+            expect(stored.quantity).toBe(40);
+        });
+    });
+
     describe("oversell guard", () => {
         beforeEach(() => {
             service.create(baseBuy({ quantity: 100 }));

@@ -35,7 +35,7 @@ import { MfapiSearchServiceImpl } from "./src/services/portfolio/mfapiSearchServ
 import { PriceUpdaterServiceImpl } from "./src/services/priceUpdater/priceUpdaterService"
 import { PortfolioAnalyticsServiceImpl } from "./src/services/portfolioAnalytics/portfolioAnalyticsService"
 import { CreatePortfolioAssetRequest, UpdatePortfolioAssetRequest } from "./src/types/portfolioAsset"
-import { CreatePortfolioTransactionRequest } from "./src/types/portfolioTransaction"
+import { CreatePortfolioTransactionRequest, UpdatePortfolioTransactionRequest } from "./src/types/portfolioTransaction"
 
 const isDev = !app.isPackaged;
 
@@ -53,6 +53,14 @@ ipcMain.handle("get-appearance", () =>
 
 ipcMain.handle("set-appearance", (_event, appearance: globalPreferencesService.Appearance) =>
     globalPreferencesService.setAppearance(appearance)
+)
+
+ipcMain.handle("get-text-size", () =>
+    globalPreferencesService.getTextSize()
+)
+
+ipcMain.handle("set-text-size", (_event, textSize: globalPreferencesService.TextSize) =>
+    globalPreferencesService.setTextSize(textSize)
 )
 
 ipcMain.handle("list-profiles", () => profileService.listProfiles())
@@ -304,6 +312,10 @@ ipcMain.handle("portfolio:mfapi:getMeta", (_event, { schemeCode }: { schemeCode:
 ipcMain.handle("portfolio:transaction:create", (_event, req: CreatePortfolioTransactionRequest) => {
     req.transactionDate = new Date(req.transactionDate)
     return portfolioTransactionService.create(req)
+})
+ipcMain.handle("portfolio:transaction:update", (_event, { id, request }: { id: number; request: UpdatePortfolioTransactionRequest }) => {
+    request.transactionDate = new Date(request.transactionDate)
+    return portfolioTransactionService.update(id, request)
 })
 ipcMain.handle("portfolio:transaction:deactivate", (_event, { id }: { id: number }) =>
     portfolioTransactionService.deactivate(id)

@@ -55,6 +55,8 @@ export interface CreatePortfolioAssetRequest {
 
 export interface UpdatePortfolioAssetRequest {
     name?: string
+    category?: AssetCategory
+    type?: AssetType
     subCategory?: AssetSubCategory | null
     priceSource?: PriceSource | null
     priceSourceId?: string | null

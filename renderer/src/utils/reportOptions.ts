@@ -5,6 +5,15 @@ import { formatCurrency, formatCurrencyCompact } from './formatters'
 export const CHART_HEIGHT = 320
 
 const CHART_FONT_FAMILY = 'calibre, Inter, sans-serif'
+const CHART_AXIS_FONT_SIZE = 14
+const CHART_PIE_TOTAL_FONT_SIZE = 25
+const CHART_PIE_SUBTITLE_FONT_SIZE = 14
+
+export function chartFontSize(base: number): number {
+  const size = typeof document === 'undefined' ? undefined : document.documentElement.dataset.textSize
+  const scale = size === 'large' ? 1.125 : size === 'larger' ? 1.25 : 1
+  return Math.round(base * scale)
+}
 
 /**
  * Explicit categorical ramp. Theme tokens are deliberately not used here: several of them
@@ -143,6 +152,7 @@ function buildTooltip(
     textStyle: {
       color: palette.tooltipText,
       fontFamily: CHART_FONT_FAMILY,
+      fontSize: chartFontSize(CHART_AXIS_FONT_SIZE),
     },
     axisPointer: {
       type: trigger === 'axis' ? 'shadow' : 'none',
@@ -179,12 +189,13 @@ function buildTopLegend(palette: Palette): EChartsOption['legend'] {
     itemGap: 16,
     pageIconColor: palette.axisTextColor,
     pageIconInactiveColor: palette.gridColor,
-    pageTextStyle: { color: palette.axisTextColor },
+    pageTextStyle: { color: palette.axisTextColor, fontSize: chartFontSize(CHART_AXIS_FONT_SIZE) },
     textStyle: {
       color: palette.axisTextColor,
       fontFamily: CHART_FONT_FAMILY,
+      fontSize: chartFontSize(CHART_AXIS_FONT_SIZE),
       overflow: 'truncate',
-      width: 140,
+      width: chartFontSize(140),
     },
   }
 }
@@ -201,12 +212,13 @@ function buildSideLegend(palette: Palette): EChartsOption['legend'] {
     itemGap: 12,
     pageIconColor: palette.axisTextColor,
     pageIconInactiveColor: palette.gridColor,
-    pageTextStyle: { color: palette.axisTextColor },
+    pageTextStyle: { color: palette.axisTextColor, fontSize: chartFontSize(CHART_AXIS_FONT_SIZE) },
     textStyle: {
       color: palette.axisTextColor,
       fontFamily: CHART_FONT_FAMILY,
+      fontSize: chartFontSize(CHART_AXIS_FONT_SIZE),
       overflow: 'truncate',
-      width: 130,
+      width: chartFontSize(130),
     },
   }
 }
@@ -234,6 +246,7 @@ function buildCartesianBase(
       axisLabel: {
         color: palette.axisTextColor,
         fontFamily: CHART_FONT_FAMILY,
+        fontSize: chartFontSize(CHART_AXIS_FONT_SIZE),
         hideOverlap: true,
       },
     },
@@ -245,6 +258,7 @@ function buildCartesianBase(
       axisLabel: {
         color: palette.axisTextColor,
         fontFamily: CHART_FONT_FAMILY,
+        fontSize: chartFontSize(CHART_AXIS_FONT_SIZE),
         formatter: (value: number) => formatAxisValue(value, format),
       },
     },
@@ -429,6 +443,7 @@ export function buildHorizontalBarOption(
       axisLabel: {
         color: palette.axisTextColor,
         fontFamily: CHART_FONT_FAMILY,
+        fontSize: chartFontSize(CHART_AXIS_FONT_SIZE),
         formatter: (value: number) => formatCurrencyCompact(value),
       },
     },
@@ -441,8 +456,9 @@ export function buildHorizontalBarOption(
       axisLabel: {
         color: palette.axisTextColor,
         fontFamily: CHART_FONT_FAMILY,
+        fontSize: chartFontSize(CHART_AXIS_FONT_SIZE),
         overflow: 'truncate',
-        width: 140,
+        width: chartFontSize(140),
       },
     },
     series: series.map((entry, index) => ({
@@ -484,13 +500,13 @@ export function buildPieOption(
       textStyle: {
         color: palette.headingColor,
         fontFamily: CHART_FONT_FAMILY,
-        fontSize: 22,
+        fontSize: chartFontSize(CHART_PIE_TOTAL_FONT_SIZE),
         fontWeight: 600,
       },
       subtextStyle: {
         color: palette.axisTextColor,
         fontFamily: CHART_FONT_FAMILY,
-        fontSize: 12,
+        fontSize: chartFontSize(CHART_PIE_SUBTITLE_FONT_SIZE),
       },
     },
     series: [

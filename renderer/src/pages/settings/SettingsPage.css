@@ -19,6 +19,10 @@
   color: var(--color-text-secondary);
 }
 
+.settings-page__section + .settings-page__section {
+  margin-top: var(--spacing-20);
+}
+
 .settings-page__section-heading {
   margin-bottom: var(--spacing-20);
 }
