@@ -183,6 +183,9 @@ describe("RecurringTransactionServiceImpl — Portfolio SIP", () => {
             expect(txns).toHaveLength(1);
             expect(txns[0].amount).toBe(5000);
             expect(txns[0].transaction_date).toBe("2024-01-01");
+
+            const portfolio = db.prepare(`SELECT linked_transaction_id FROM portfolio_transactions`).get() as any;
+            expect(portfolio.linked_transaction_id).toBe(txns[0].transaction_id);
         });
 
         test("SIP with account_id = null: no bank transaction created", async () => {

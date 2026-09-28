@@ -1,6 +1,7 @@
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { Input } from '../../components/ui/Input'
+import laxmiIcon from '../../assets/laxmi-icon.png'
 import './ProfileSelectionPage.css'
 
 interface ProfileSelectionPageProps {
@@ -34,6 +35,7 @@ export function ProfileSelectionPage({
         </svg>
       </button>
       <div className="profile-page__container">
+        <img src={laxmiIcon} alt="Laxmi" className="profile-page__logo" />
         <h1 className="profile-page__title">Select a Profile</h1>
         {error && <p className="profile-page__error">{error}</p>}
         <div className="profile-page__grid">

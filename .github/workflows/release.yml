@@ -1,0 +1,119 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Require the tag to match package.json
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "Tag $GITHUB_REF_NAME does not match package.json version v$version"
+            exit 1
+          fi
+
+      - name: Run tests
+        run: npm test
+
+  build:
+    name: Build (${{ matrix.platform }})
+    needs: verify
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            platform: linux
+            dist-script: dist:linux
+          - os: windows-latest
+            platform: windows
+            dist-script: dist:win
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            renderer/package-lock.json
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm --prefix renderer ci
+
+      - name: Package application
+        run: npm run ${{ matrix.dist-script }}
+
+      - name: Collect installers
+        shell: bash
+        run: |
+          mkdir -p publish
+          shopt -s nullglob
+          files=(releases/*.AppImage releases/*.deb releases/*.exe)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No installers were produced"
+            exit 1
+          fi
+          cp "${files[@]}" publish/
+          ls -la publish
+
+      - name: Upload installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: installers-${{ matrix.platform }}
+          path: publish/*
+          if-no-files-found: error
+
+  publish:
+    name: Publish GitHub release
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download installers
+        uses: actions/download-artifact@v4
+        with:
+          pattern: installers-*
+          merge-multiple: true
+          path: installers
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" installers/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" installers/* \
+              --title "Laxmi $GITHUB_REF_NAME" \
+              --generate-notes
+          fi

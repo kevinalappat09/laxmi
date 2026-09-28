@@ -249,7 +249,7 @@
 
 .portfolio-page__col-actions {
   text-align: right !important;
-  width: 260px;
+  width: 340px;
   white-space: nowrap;
 }
 
@@ -318,42 +318,6 @@
   gap: 6px;
 }
 
-.portfolio-page__action-btn {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: 3px 8px;
-  font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-  font-family: inherit;
-}
-
-.portfolio-page__action-btn:hover {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-accent-fg);
-}
-
-.portfolio-page__action-btn--sell:hover {
-  background: var(--color-error);
-  border-color: var(--color-error);
-}
-
-.portfolio-page__action-btn--delete {
-  opacity: 0.45;
-  min-width: 30px;
-  padding: 3px 6px;
-}
-
-.portfolio-page__action-btn--delete:hover {
-  background: var(--color-error);
-  border-color: var(--color-error);
-  opacity: 1;
-}
-
 /* Delete confirmation overlay */
 .portfolio-page__confirm-overlay {
   position: fixed;
@@ -395,32 +359,3 @@
   justify-content: flex-end;
 }
 
-.portfolio-page__confirm-btn {
-  padding: 8px 20px;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  border: 1px solid var(--color-border);
-  font-family: inherit;
-  transition: background 0.15s, color 0.15s;
-}
-
-.portfolio-page__confirm-btn--cancel {
-  background: transparent;
-  color: var(--color-text-secondary);
-}
-
-.portfolio-page__confirm-btn--cancel:hover {
-  background: var(--color-border);
-}
-
-.portfolio-page__confirm-btn--danger {
-  background: var(--color-error);
-  color: #fff;
-  border-color: var(--color-error);
-}
-
-.portfolio-page__confirm-btn--danger:hover {
-  opacity: 0.88;
-}

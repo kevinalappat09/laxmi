@@ -50,6 +50,7 @@ import {
 import {
     PortfolioTransaction,
     CreatePortfolioTransactionRequest,
+    UpdatePortfolioTransactionRequest,
 } from "../../../src/types/portfolioTransaction"
 import {
     MfSearchResult,
@@ -68,6 +69,8 @@ declare global {
         getLastOpenedProfile: () => Promise<string | null>
         getAppearance: () => Promise<"solid" | "glass">
         setAppearance: (appearance: "solid" | "glass") => Promise<void>
+        getTextSize: () => Promise<"default" | "large" | "larger">
+        setTextSize: (textSize: "default" | "large" | "larger") => Promise<void>
         listProfiles: () => Promise<string[]>
         createProfile: (profileName: string) => Promise<void>
         openProfile: (profileName: string) => Promise<void>
@@ -155,6 +158,7 @@ declare global {
             }
             transaction: {
                 create: (req: CreatePortfolioTransactionRequest) => Promise<PortfolioTransaction>
+                update: (id: number, req: UpdatePortfolioTransactionRequest) => Promise<PortfolioTransaction>
                 deactivate: (id: number) => Promise<void>
                 listByAsset: (portfolioAssetId: number) => Promise<PortfolioTransaction[]>
                 listAll: () => Promise<PortfolioTransaction[]>

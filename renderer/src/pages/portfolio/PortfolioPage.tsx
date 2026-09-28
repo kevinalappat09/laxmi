@@ -10,6 +10,8 @@ import type { PortfolioAsset } from '../../../../src/types/portfolioAsset'
 import type { AssetSubCategory } from '../../../../src/types/portfolioAsset'
 import type { PriceRefreshResult, PortfolioSummaryAnalytics, AssetAnalytics, PortfolioValuePoint } from '../../../../src/types/portfolioAnalytics'
 import { Button } from '../../components/ui/Button'
+import { chartFontSize } from '../../utils/reportOptions'
+import { AssetDialog } from './AssetDialog'
 import { TransactionDialog } from './TransactionDialog'
 import { useNavigation } from '../../contexts/NavigationContext'
 import {
@@ -75,6 +77,7 @@ export function PortfolioPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [txnDialog, setTxnDialog] = useState<{ asset?: PortfolioAsset; defaultType: 'BUY' | 'SELL' } | null>(null)
+  const [editingAsset, setEditingAsset] = useState<PortfolioAsset | null>(null)
   const [isRefreshing, setIsRefreshing] = useState(false)
   const [refreshWarning, setRefreshWarning] = useState<PriceRefreshResult | null>(null)
   const [activeTab, setActiveTab] = useState<AssetSubCategory | 'all'>('all')
@@ -238,6 +241,7 @@ export function PortfolioPage() {
                         analytics={a}
                         rawAsset={rawAsset}
                         onRowClick={() => selectAsset(rawAsset.id)}
+                        onEdit={() => setEditingAsset(rawAsset)}
                         onBuy={() => setTxnDialog({ asset: rawAsset, defaultType: 'BUY' })}
                         onSell={() => setTxnDialog({ asset: rawAsset, defaultType: 'SELL' })}
                         onDelete={() => setDeletingAssetId(rawAsset.id)}
@@ -263,8 +267,8 @@ export function PortfolioPage() {
                     "{asset?.name}" will be removed from your portfolio. This cannot be undone.
                   </p>
                   <div className="portfolio-page__confirm-actions">
-                    <button className="portfolio-page__confirm-btn portfolio-page__confirm-btn--cancel" onClick={() => setDeletingAssetId(null)}>Cancel</button>
-                    <button className="portfolio-page__confirm-btn portfolio-page__confirm-btn--danger" onClick={() => handleDeleteAsset(deletingAssetId)}>Remove</button>
+                    <Button variant="secondary" onClick={() => setDeletingAssetId(null)}>Cancel</Button>
+                    <Button variant="danger" onClick={() => handleDeleteAsset(deletingAssetId)}>Remove</Button>
                   </div>
                 </div>
               </div>
@@ -279,6 +283,14 @@ export function PortfolioPage() {
           defaultType={txnDialog.defaultType}
           onClose={() => setTxnDialog(null)}
           onSaved={() => { setTxnDialog(null); loadAll() }}
+        />
+      )}
+
+      {editingAsset && (
+        <AssetDialog
+          asset={editingAsset}
+          onClose={() => setEditingAsset(null)}
+          onSaved={() => { setEditingAsset(null); loadAll() }}
         />
       )}
     </div>
@@ -345,16 +357,16 @@ function AllocationChart({ summary }: { summary: PortfolioSummaryAnalytics }) {
       formatter: '{b}: {d}%',
       backgroundColor: bgInput,
       borderColor: border,
-      textStyle: { color: textPri },
+      textStyle: { color: textPri, fontSize: chartFontSize(14) },
     },
-    legend: { orient: 'vertical', right: 10, top: 'middle', textStyle: { fontSize: 12, color: textSec } },
+    legend: { orient: 'vertical', right: 10, top: 'middle', textStyle: { fontSize: chartFontSize(14), color: textSec } },
     series: [{
       type: 'pie',
       radius: ['40%', '70%'],
       center: ['40%', '50%'],
       data,
       label: { show: false },
-      emphasis: { label: { show: true, fontSize: 13, fontWeight: 'bold' } },
+      emphasis: { label: { show: true, fontSize: chartFontSize(14), fontWeight: 'bold' } },
     }],
     color: [accent, blue, positive, negative],
   }
@@ -391,12 +403,12 @@ function MonthlyChart({ summary }: { summary: PortfolioSummaryAnalytics }) {
       formatter: (p: any) => `${p[0].name}: ${formatCurrency(p[0].value, 0)}`,
       backgroundColor: bgInput,
       borderColor: border,
-      textStyle: { color: textPri },
+      textStyle: { color: textPri, fontSize: chartFontSize(14) },
     },
-    xAxis: { type: 'category', data: months, axisLabel: { fontSize: 11, color: textSec }, axisLine: { lineStyle: { color: grid } } },
-    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatCurrencyCompact(v), fontSize: 11, color: textSec }, splitLine: { lineStyle: { color: grid } } },
+    xAxis: { type: 'category', data: months, axisLabel: { fontSize: chartFontSize(14), color: textSec }, axisLine: { lineStyle: { color: grid } } },
+    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatCurrencyCompact(v), fontSize: chartFontSize(14), color: textSec }, splitLine: { lineStyle: { color: grid } } },
     series: [{ type: 'bar', data: amounts, itemStyle: { color: accent, borderRadius: [3, 3, 0, 0] } }],
-    grid: { left: 50, right: 10, top: 20, bottom: 35 },
+    grid: { left: 64, right: 10, top: 20, bottom: 42 },
   }
 
   return (
@@ -450,7 +462,7 @@ function ValueHistoryChart({ data, range, onRangeChange }: {
       trigger: 'axis',
       backgroundColor: bgInput,
       borderColor: border,
-      textStyle: { color: textPri },
+      textStyle: { color: textPri, fontSize: chartFontSize(14) },
       formatter: (params: any) => {
         const d = params[0].name
         const inv = params.find((p: any) => p.seriesName === 'Invested')?.value ?? 0
@@ -458,14 +470,14 @@ function ValueHistoryChart({ data, range, onRangeChange }: {
         return `${d}<br/>Invested: ${formatCurrency(inv, 0)}<br/>Current: ${formatCurrency(val, 0)}`
       },
     },
-    legend: { bottom: 0, data: ['Invested', 'Current Value'], textStyle: { color: textSec } },
-    xAxis: { type: 'category', data: dates, axisLabel: { fontSize: 11, rotate: 30, color: textSec }, axisLine: { lineStyle: { color: grid } } },
-    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatCurrencyCompact(v), fontSize: 11, color: textSec }, splitLine: { lineStyle: { color: grid } } },
+    legend: { bottom: 0, data: ['Invested', 'Current Value'], textStyle: { color: textSec, fontSize: chartFontSize(14) } },
+    xAxis: { type: 'category', data: dates, axisLabel: { fontSize: chartFontSize(14), rotate: 30, color: textSec }, axisLine: { lineStyle: { color: grid } } },
+    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatCurrencyCompact(v), fontSize: chartFontSize(14), color: textSec }, splitLine: { lineStyle: { color: grid } } },
     series: [
       { name: 'Invested', type: 'line', data: invested, step: 'end', lineStyle: { color: textSec }, itemStyle: { color: textSec }, areaStyle: { color: 'rgba(134,143,151,0.08)' }, symbol: 'none' },
       { name: 'Current Value', type: 'line', data: values, smooth: true, lineStyle: { color: accent }, itemStyle: { color: accent }, areaStyle: { color: `rgba(${readVar('--color-accent-rgb', '214,254,81')},0.08)` }, symbol: 'none' },
     ],
-    grid: { left: 60, right: 20, top: 20, bottom: 55 },
+    grid: { left: 72, right: 20, top: 20, bottom: 64 },
   }
 
   return (
@@ -491,12 +503,13 @@ interface FundRowProps {
   analytics: AssetAnalytics | null
   rawAsset: PortfolioAsset
   onRowClick: () => void
+  onEdit: () => void
   onBuy: () => void
   onSell: () => void
   onDelete: () => void
 }
 
-function FundRow({ analytics: a, rawAsset, onRowClick, onBuy, onSell, onDelete }: FundRowProps) {
+function FundRow({ analytics: a, rawAsset, onRowClick, onEdit, onBuy, onSell, onDelete }: FundRowProps) {
   const plColor = (a?.unrealizedPl ?? 0) >= 0 ? 'var(--color-positive, #16a34a)' : 'var(--color-error)'
   const dayColor = (a?.dayGainLoss ?? 0) >= 0 ? 'var(--color-positive, #16a34a)' : 'var(--color-error)'
   const staleness = getStalenessLabel(rawAsset)
@@ -536,9 +549,10 @@ function FundRow({ analytics: a, rawAsset, onRowClick, onBuy, onSell, onDelete }
       <td className="portfolio-page__col-right" style={{ color: a ? dayColor : undefined }}>{a ? formatSignedCurrency(a.dayGainLoss) : '—'}</td>
       <td className="portfolio-page__col-actions" onClick={e => e.stopPropagation()}>
         <div className="portfolio-page__action-group">
-          <button className="portfolio-page__action-btn" onClick={onBuy}>Buy More</button>
-          <button className="portfolio-page__action-btn portfolio-page__action-btn--sell" onClick={onSell}>Sell</button>
-          <button className="portfolio-page__action-btn portfolio-page__action-btn--delete" onClick={onDelete} aria-label="Delete asset">🗑</button>
+          <Button variant="secondary" size="sm" onClick={onEdit}>Edit</Button>
+          <Button variant="secondary" size="sm" onClick={onBuy}>Buy More</Button>
+          <Button variant="secondary" size="sm" onClick={onSell}>Sell</Button>
+          <Button variant="danger" size="sm" onClick={onDelete}>Delete</Button>
         </div>
       </td>
     </tr>

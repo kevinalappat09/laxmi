@@ -19,7 +19,7 @@
 .reports-page__header-description {
   margin: var(--spacing-4) 0 0;
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.929rem;
 }
 
 .reports-page__sections {
@@ -94,7 +94,7 @@
   margin: 0;
   padding-top: var(--spacing-4);
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 0.857rem;
   line-height: 1.5;
 }
 
@@ -165,7 +165,7 @@
 
 .reports-metric-card__label {
   color: var(--color-text-secondary);
-  font-size: 12px;
+  font-size: 0.857rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
@@ -187,7 +187,7 @@
 
 .reports-metric-card__caption {
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 0.857rem;
   line-height: 1.4;
 }
 
@@ -213,24 +213,12 @@
 .reports-home__card-cta {
   align-self: flex-start;
   margin-top: var(--spacing-14);
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--color-accent);
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.reports-home__card-cta:hover {
-  text-decoration: underline;
 }
 
 .reports-home__card-description {
   margin: var(--spacing-6) 0 var(--spacing-14);
   color: var(--color-text-secondary);
-  font-size: 13px;
+  font-size: 0.929rem;
   line-height: 1.5;
 }
 
@@ -251,13 +239,13 @@
 
 .reports-home__card-row dt {
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 0.857rem;
 }
 
 .reports-home__card-row dd {
   margin: 0;
   color: var(--color-text-primary);
-  font-size: 13px;
+  font-size: 0.929rem;
   font-weight: var(--font-weight-semibold);
 }
 
@@ -294,7 +282,7 @@
 .reports-page__chart-header p {
   margin: var(--spacing-4) 0 0;
   color: var(--color-text-muted);
-  font-size: 12px;
+  font-size: 0.857rem;
 }
 
 .reports-page__chart-empty {

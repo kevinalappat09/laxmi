@@ -63,7 +63,7 @@ export function ImportExportPage() {
             Load transactions from a CSV file into an account. Preview rows before committing,
             and export any errors for easy correction.
           </p>
-          <Button className="import-export-card__btn import-export-card__btn--primary" variant="pill" onClick={() => setShowImportDialog(true)}>
+          <Button className="import-export-card__btn" variant="pill" onClick={() => setShowImportDialog(true)}>
             Import Transactions
           </Button>
         </Card>
@@ -132,7 +132,7 @@ export function ImportExportPage() {
           )}
 
           <Button
-            className="import-export-card__btn import-export-card__btn--primary"
+            className="import-export-card__btn"
             variant="pill"
             onClick={handleExport}
             disabled={isExporting || !exportAccountId}

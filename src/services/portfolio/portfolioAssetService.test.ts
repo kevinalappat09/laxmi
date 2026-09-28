@@ -102,6 +102,53 @@ describe("PortfolioAssetServiceImpl", () => {
         });
     });
 
+    describe("update", () => {
+        function createFund() {
+            return service.create({
+                name: "Parag Parikh Flexi Cap",
+                category: "EQUITY",
+                type: "EQUITY_MUTUAL_FUND",
+                subCategory: "flexi_cap",
+                priceSource: "MFAPI",
+                priceSourceId: "122639",
+                metadata: { schemeCode: "122639", schemeName: "Parag Parikh Flexi Cap Fund" },
+            });
+        }
+
+        test("updates name, category, type, and sub-category", () => {
+            const asset = createFund();
+
+            const updated = service.update(asset.id, {
+                name: "  PPFCF  ",
+                category: "DEBT",
+                type: "LIQUID_FUND",
+                subCategory: "liquid",
+            });
+
+            expect(updated.name).toBe("PPFCF");
+            expect(updated.category).toBe("DEBT");
+            expect(updated.type).toBe("LIQUID_FUND");
+            expect(updated.subCategory).toBe("liquid");
+            expect(updated.priceSourceId).toBe("122639");
+        });
+
+        test("rejects a blank name", () => {
+            const asset = createFund();
+            expect(() => service.update(asset.id, { name: "   " })).toThrow("Asset name is required");
+        });
+
+        test("rejects an invalid price source for a mutual fund", () => {
+            const asset = createFund();
+            expect(() => service.update(asset.id, { priceSource: "YAHOO" })).toThrow(
+                "Invalid price source for mutual fund"
+            );
+        });
+
+        test("throws when asset ID not found", () => {
+            expect(() => service.update(9999, { name: "Missing" })).toThrow("Asset not found");
+        });
+    });
+
     describe("deactivate", () => {
         test("marks asset inactive; listActive no longer returns it", () => {
             const asset = service.create({

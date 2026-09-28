@@ -101,6 +101,7 @@ describe('profileService (module)', () => {
         jest.mocked(loadPreferences).mockResolvedValue({
             last_opened_profile: null,
             appearance: 'solid',
+            text_size: 'default',
         });
 
         jest.mocked(setLastOpenedProfile).mockResolvedValue(undefined);
@@ -240,6 +241,7 @@ describe('profileService (module)', () => {
             jest.mocked(loadPreferences).mockResolvedValueOnce({
                 last_opened_profile: 'LastOpenedProfile',
                 appearance: 'solid',
+                text_size: 'default',
             });
 
             await deleteProfile('LastOpenedProfile');

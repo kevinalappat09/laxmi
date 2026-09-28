@@ -337,7 +337,7 @@ export class RecurringTransactionServiceImpl
 
         db.transaction(() => {
             const portfolioTxnRepo = new PortfolioTransactionRepositoryImpl(db);
-            portfolioTxnRepo.create({
+            const portfolioTxn = portfolioTxnRepo.create({
                 portfolioAssetId:        asset.id,
                 transactionType:         "SIP",
                 quantity,
@@ -353,7 +353,7 @@ export class RecurringTransactionServiceImpl
             });
 
             if (recurring.account_id != null) {
-                this.transactionService.createTransaction({
+                const bankTxn = this.transactionService.createTransaction({
                     account_id:       recurring.account_id,
                     transaction_date: dueDate,
                     transaction_type: TransactionType.Withdraw,
@@ -362,6 +362,9 @@ export class RecurringTransactionServiceImpl
                     payee:            asset.name,
                     note:             `SIP — ${asset.name}`,
                 });
+                if (bankTxn.transaction_id) {
+                    portfolioTxnRepo.setLinkedTransactionId(portfolioTxn.id, bankTxn.transaction_id);
+                }
             }
         })();
     }

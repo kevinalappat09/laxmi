@@ -26,6 +26,10 @@ files:
   - "!jest.config.js"
   - "!tsconfig.json"
 
+extraResources:
+  - from: build/icon.png
+    to: icon.png
+
 # better-sqlite3 is a native module and cannot run inside an asar archive.
 asarUnpack:
   - node_modules/better-sqlite3/**/*
@@ -35,6 +39,7 @@ asarUnpack:
 win:
   # Personal unsigned builds do not need the cross-platform signing toolkit.
   signAndEditExecutable: false
+  icon: icon.ico
   target:
     - target: nsis
       arch:
@@ -49,6 +54,7 @@ nsis:
   shortcutName: Laxmi
 
 linux:
+  icon: icon.png
   target:
     - target: AppImage
       arch:

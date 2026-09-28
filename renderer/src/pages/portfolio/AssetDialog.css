@@ -80,6 +80,19 @@
   font-weight: 500;
 }
 
+.asset-dialog__scheme-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.asset-dialog__scheme-code {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
 /* Category strip */
 .asset-dialog__category-strip {
   display: flex;

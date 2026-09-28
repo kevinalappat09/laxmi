@@ -174,7 +174,6 @@ export function CSVImportDialog({ accounts, onClose }: CSVImportDialogProps) {
                 <Button
                   type="button"
                   variant="square"
-                  className="csv-import-dialog__file-btn"
                   onClick={handleSelectFile}
                   disabled={isLoadingFile}
                 >
@@ -184,7 +183,6 @@ export function CSVImportDialog({ accounts, onClose }: CSVImportDialogProps) {
                 <Button
                   type="button"
                   variant="square"
-                  className="csv-import-dialog__file-btn csv-import-dialog__file-btn--change"
                   onClick={handleSelectFile}
                   disabled={isLoadingFile || state === 'result'}
                 >
@@ -263,7 +261,6 @@ export function CSVImportDialog({ accounts, onClose }: CSVImportDialogProps) {
               <Button
                 type="button"
                 variant="subtle"
-                className="csv-import-dialog__template-btn"
                 onClick={handleGenerateTemplate}
                 disabled={isGeneratingTemplate}
               >
@@ -369,13 +366,12 @@ export function CSVImportDialog({ accounts, onClose }: CSVImportDialogProps) {
 
           {state !== 'result' && (
             <div className="csv-import-dialog__footer-actions">
-              <Button type="button" variant="secondary" className="csv-import-dialog__btn-cancel" onClick={onClose}>
+              <Button type="button" variant="secondary" onClick={onClose}>
                 Cancel
               </Button>
               <Button
                 type="button"
                 variant="pill"
-                className="csv-import-dialog__btn-import"
                 onClick={handleImport}
                 disabled={state !== 'previewing' || isImporting || !accountId || !preview || preview.totalDataRows === 0}
               >
@@ -391,7 +387,6 @@ export function CSVImportDialog({ accounts, onClose }: CSVImportDialogProps) {
                   <Button
                     type="button"
                     variant="danger"
-                    className="csv-import-dialog__btn-export-errors"
                     onClick={handleExportErrors}
                     disabled={isExportingErrors}
                   >
@@ -400,14 +395,13 @@ export function CSVImportDialog({ accounts, onClose }: CSVImportDialogProps) {
                   <Button
                     type="button"
                     variant="secondary"
-                    className="csv-import-dialog__btn-import-again"
                     onClick={handleReset}
                   >
                     Import Another File
                   </Button>
                 </>
               )}
-              <Button type="button" variant="secondary" className="csv-import-dialog__btn-cancel" onClick={onClose}>
+              <Button type="button" variant="secondary" onClick={onClose}>
                 Close
               </Button>
             </div>

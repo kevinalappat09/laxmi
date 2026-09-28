@@ -22,6 +22,8 @@ export interface PortfolioTransaction {
     /** Bank/savings account the money was transferred from (BUY/SIP) or to (SELL/REDEMPTION).
      *  null = direct transaction with no Laxmi account movement (ESOPs, employer grants, etc.) */
     sourceAccountId: number | null
+    /** Laxmi account transaction created for the cash movement, when one exists. */
+    linkedTransactionId: number | null
     linkedRecurringId: number | null
     note: string | null
     isActive: boolean
@@ -52,5 +54,21 @@ export interface CreatePortfolioTransactionRequest {
     assetAccountId: number
     sourceAccountId?: number | null
     linkedRecurringId?: number | null
+    note?: string
+}
+
+/** Replaces the editable fields of an existing portfolio transaction. */
+export interface UpdatePortfolioTransactionRequest {
+    transactionType: PortfolioTransactionType
+    quantity?: number
+    investedAmount?: number
+    pricePerUnit: number
+    fees?: number
+    taxes?: number
+    currency?: string
+    transactionDate: Date
+    isDividendReinvestment?: boolean
+    assetAccountId: number
+    sourceAccountId?: number | null
     note?: string
 }

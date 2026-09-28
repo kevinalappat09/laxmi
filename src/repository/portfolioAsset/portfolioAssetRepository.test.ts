@@ -155,9 +155,32 @@ describe("PortfolioAssetRepositoryImpl", () => {
             const updated = repo.update(asset.id, { name: "New Name" });
 
             expect(updated.name).toBe("New Name");
+            expect(updated.category).toBe("EQUITY");
+            expect(updated.type).toBe("EQUITY_MUTUAL_FUND");
             expect(updated.subCategory).toBe("large_cap");
             expect(updated.priceSource).toBe("MFAPI");
             expect(updated.priceSourceId).toBe("111");
+        });
+
+        test("updates category and type when provided", () => {
+            const asset = repo.create({
+                name: "Fund",
+                category: "EQUITY",
+                type: "EQUITY_MUTUAL_FUND",
+                priceSource: "MFAPI",
+                priceSourceId: "111",
+            });
+
+            const updated = repo.update(asset.id, {
+                category: "DEBT",
+                type: "LIQUID_FUND",
+                subCategory: "liquid",
+            });
+
+            expect(updated.category).toBe("DEBT");
+            expect(updated.type).toBe("LIQUID_FUND");
+            expect(updated.subCategory).toBe("liquid");
+            expect(updated.name).toBe("Fund");
         });
 
         test("throws when asset not found", () => {

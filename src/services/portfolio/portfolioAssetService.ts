@@ -36,7 +36,23 @@ export class PortfolioAssetServiceImpl implements PortfolioAssetService {
         if (!db) throw new Error("No active database connection. Open a profile first.");
 
         const repo = new PortfolioAssetRepositoryImpl(db);
-        return repo.update(id, request);
+        const existing = repo.getById(id);
+        if (!existing) throw new Error(`Asset not found: ${id}`);
+
+        const name = request.name !== undefined ? request.name.trim() : existing.name;
+        if (!name) throw new Error("Asset name is required");
+
+        this.validateRequest({
+            name,
+            category: request.category ?? existing.category,
+            type: request.type ?? existing.type,
+            subCategory: request.subCategory !== undefined ? request.subCategory : existing.subCategory,
+            priceSource: request.priceSource !== undefined ? request.priceSource : existing.priceSource,
+            priceSourceId: request.priceSourceId !== undefined ? request.priceSourceId : existing.priceSourceId,
+            metadata: request.metadata !== undefined ? request.metadata : (existing.metadata ?? undefined),
+        });
+
+        return repo.update(id, request.name !== undefined ? { ...request, name } : request);
     }
 
     deactivate(id: number): void {

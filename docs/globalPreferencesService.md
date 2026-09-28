@@ -22,7 +22,9 @@
 
 | Field | Type | Description |
 |-------|------|-------------|
-| last_opened_profile | string \| null | Profile name that was last opened, or null if none. |
+| last_opened_profile | string \| null | Stores the profile name that was last opened, or null if none. |
+| appearance | Appearance | Stores the solid or glass window appearance. |
+| text_size | TextSize | Stores the default, large, or larger text scale. |
 
 ## Functions
 
@@ -32,6 +34,10 @@
 | savePreferences(prefs: GlobalPreferences): Promise\<void\> | Writes preferences directly to file, overwriting existing content. |
 | getLastOpenedProfile(): Promise\<string \| null\> | Returns last_opened_profile value from preferences. |
 | setLastOpenedProfile(profileName: string \| null): Promise\<void\> | Updates last_opened_profile and saves preferences. |
+| getAppearance(): Promise\<Appearance\> | Returns the saved appearance. |
+| setAppearance(appearance: Appearance): Promise\<void\> | Updates appearance and saves preferences. |
+| getTextSize(): Promise\<TextSize\> | Returns the saved text size. |
+| setTextSize(textSize: TextSize): Promise\<void\> | Updates text_size and saves preferences. |
 | resetPreferences(): Promise\<void\> | Overwrites file with default preferences. |
 
 Notes:
@@ -62,4 +68,4 @@ Impact: Updating one field requires loading current preferences first, then savi
 - Throws file system errors when read or write operations fail (non-ENOENT).
 - Returns DEFAULT_GLOBAL_PREFERENCES when file missing (ENOENT).
 - Returns DEFAULT_GLOBAL_PREFERENCES when JSON invalid or not an object.
-- Normalizes invalid last_opened_profile types to null.
+- Normalizes invalid last_opened_profile to null and invalid text_size to default.
