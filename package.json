@@ -46,6 +46,7 @@
     "predist:linux": "npm run build",
     "dist:linux": "cross-env CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --linux --publish never",
     "verify": "npm run build && npm run test",
+    "pretest": "node scripts/ensureNodeSqlite.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:run": "jest --runInBand",

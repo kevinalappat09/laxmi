@@ -1,4 +1,5 @@
 import Database from "better-sqlite3";
+import fs from "fs";
 import path from "path";
 import {
     openDatabase,
@@ -186,8 +187,15 @@ describe("Migration Integration Tests", () => {
         const migrationService = new MigrationService(migrationsDir);
         migrationService.migrate(db);
 
+        const latestMigration = fs
+            .readdirSync(migrationsDir)
+            .reduce((max, file) => {
+                const version = parseInt(file.match(/^(\d+)-/)?.[1] ?? "0", 10);
+                return Math.max(max, version);
+            }, 0);
+
         const version = getCurrentSchemaVersion(db);
-        expect(version).toBe(14);
+        expect(version).toBe(latestMigration);
     });
 
     describe("Migration 8 — relax recurring_transactions constraints", () => {
