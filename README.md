@@ -35,14 +35,14 @@ npm run dist:linux
 Run the AppImage directly:
 
 ```bash
-chmod +x releases/Laxmi-1.0.1-x64.AppImage
-./releases/Laxmi-1.0.1-x64.AppImage
+chmod +x releases/Laxmi-1.0.2-x64.AppImage
+./releases/Laxmi-1.0.2-x64.AppImage
 ```
 
 Or install the Debian package, then launch **Laxmi** from the application menu:
 
 ```bash
-sudo apt install ./releases/Laxmi-1.0.1-x64.deb
+sudo apt install ./releases/Laxmi-1.0.2-x64.deb
 ```
 
 **Windows** (installer):
@@ -51,9 +51,9 @@ sudo apt install ./releases/Laxmi-1.0.1-x64.deb
 npm run dist:win
 ```
 
-Run `releases/Laxmi-Setup-1.0.1.exe`. The installer lets you choose a directory and adds Desktop and Start menu shortcuts. Open **Laxmi** from either shortcut.
+Run `releases/Laxmi-Setup-1.0.2.exe`. The installer lets you choose a directory and adds Desktop and Start menu shortcuts. Open **Laxmi** from either shortcut.
 
-The `1.0.1` segment matches the `version` field in `package.json`. A later version produces the same file names with that version number.
+The `1.0.2` segment matches the `version` field in `package.json`. A later version produces the same file names with that version number.
 
 ## Releasing
 

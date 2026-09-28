@@ -68,7 +68,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
   if (error || !rawAsset) {
     return (
       <div className="asset-detail-page">
-        <button className="asset-detail__back-btn" onClick={goBackToPortfolio}>← Portfolio</button>
+        <Button variant="square" className="asset-detail__back-btn" onClick={goBackToPortfolio}>← Portfolio</Button>
         <p className="asset-detail__error">{error ?? 'Asset not found.'}</p>
       </div>
     )
@@ -81,7 +81,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
     <div className="asset-detail-page">
       {/* Header */}
       <div className="asset-detail__header">
-        <button className="asset-detail__back-btn" onClick={goBackToPortfolio}>← Portfolio</button>
+        <Button variant="square" className="asset-detail__back-btn" onClick={goBackToPortfolio}>← Portfolio</Button>
         <h1 className="asset-detail__title">{analytics?.name ?? rawAsset.name}</h1>
       </div>
 

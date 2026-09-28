@@ -116,31 +116,9 @@
   cursor: pointer;
 }
 
-/* Action button */
 .import-export-card__btn {
-  padding: 0.55em 1.2em;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: background-color 0.2s ease;
   align-self: flex-start;
   margin-top: auto;
-}
-
-.import-export-card__btn--primary {
-  background: var(--gradient-accent);
-  color: var(--color-accent-fg);
-}
-
-.import-export-card__btn--primary:hover:not(:disabled) {
-  background-color: var(--color-accent-hover);
-}
-
-.import-export-card__btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 /* Feedback messages */

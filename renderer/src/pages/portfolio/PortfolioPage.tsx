@@ -263,8 +263,8 @@ export function PortfolioPage() {
                     "{asset?.name}" will be removed from your portfolio. This cannot be undone.
                   </p>
                   <div className="portfolio-page__confirm-actions">
-                    <button className="portfolio-page__confirm-btn portfolio-page__confirm-btn--cancel" onClick={() => setDeletingAssetId(null)}>Cancel</button>
-                    <button className="portfolio-page__confirm-btn portfolio-page__confirm-btn--danger" onClick={() => handleDeleteAsset(deletingAssetId)}>Remove</button>
+                    <Button variant="secondary" onClick={() => setDeletingAssetId(null)}>Cancel</Button>
+                    <Button variant="danger" onClick={() => handleDeleteAsset(deletingAssetId)}>Remove</Button>
                   </div>
                 </div>
               </div>
@@ -536,9 +536,9 @@ function FundRow({ analytics: a, rawAsset, onRowClick, onBuy, onSell, onDelete }
       <td className="portfolio-page__col-right" style={{ color: a ? dayColor : undefined }}>{a ? formatSignedCurrency(a.dayGainLoss) : '—'}</td>
       <td className="portfolio-page__col-actions" onClick={e => e.stopPropagation()}>
         <div className="portfolio-page__action-group">
-          <button className="portfolio-page__action-btn" onClick={onBuy}>Buy More</button>
-          <button className="portfolio-page__action-btn portfolio-page__action-btn--sell" onClick={onSell}>Sell</button>
-          <button className="portfolio-page__action-btn portfolio-page__action-btn--delete" onClick={onDelete} aria-label="Delete asset">🗑</button>
+          <Button variant="secondary" size="sm" onClick={onBuy}>Buy More</Button>
+          <Button variant="secondary" size="sm" onClick={onSell}>Sell</Button>
+          <Button variant="danger" size="sm" onClick={onDelete}>Delete</Button>
         </div>
       </td>
     </tr>

@@ -213,18 +213,6 @@
 .reports-home__card-cta {
   align-self: flex-start;
   margin-top: var(--spacing-14);
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--color-accent);
-  font: inherit;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.reports-home__card-cta:hover {
-  text-decoration: underline;
 }
 
 .reports-home__card-description {

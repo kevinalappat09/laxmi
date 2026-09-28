@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import { BudgetStatus } from '../../../../src/types/budget'
+import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
 import { useNavigation } from '../../contexts/NavigationContext'
 import { formatCurrency, formatPercent, formatSignedCurrency } from '../../utils/formatters'
@@ -34,9 +35,9 @@ function SummaryCard({ title, description, rows, onOpen }: SummaryCardProps) {
           </div>
         ))}
       </dl>
-      <button type="button" className="reports-home__card-cta" onClick={onOpen}>
+      <Button type="button" variant="subtle" size="sm" className="reports-home__card-cta" onClick={onOpen}>
         View report →
-      </button>
+      </Button>
     </Card>
   )
 }
