@@ -46,7 +46,7 @@
 
 .reports-page__section-button--active {
   background: var(--color-accent);
-  color: var(--color-bg-page, #131313);
+  color: var(--color-accent-fg);
   border-color: var(--color-accent);
 }
 

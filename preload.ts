@@ -38,6 +38,10 @@ contextBridge.exposeInMainWorld("financeAPI", {
     // Profile management
     getLastOpenedProfile: (): Promise<string | null> =>
         ipcRenderer.invoke("get-last-opened-profile"),
+    getTheme: (): Promise<"dark" | "light"> =>
+        ipcRenderer.invoke("get-theme"),
+    setTheme: (theme: "dark" | "light"): Promise<void> =>
+        ipcRenderer.invoke("set-theme", theme),
     getAppearance: (): Promise<"solid" | "glass"> =>
         ipcRenderer.invoke("get-appearance"),
     setAppearance: (appearance: "solid" | "glass"): Promise<void> =>

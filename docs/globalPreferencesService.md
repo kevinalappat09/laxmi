@@ -23,6 +23,7 @@
 | Field | Type | Description |
 |-------|------|-------------|
 | last_opened_profile | string \| null | Stores the profile name that was last opened, or null if none. |
+| theme | Theme | Stores the dark or light color theme. |
 | appearance | Appearance | Stores the solid or glass window appearance. |
 | text_size | TextSize | Stores the default, large, or larger text scale. |
 
@@ -36,6 +37,8 @@
 | setLastOpenedProfile(profileName: string \| null): Promise\<void\> | Updates last_opened_profile and saves preferences. |
 | getAppearance(): Promise\<Appearance\> | Returns the saved appearance. |
 | setAppearance(appearance: Appearance): Promise\<void\> | Updates appearance and saves preferences. |
+| getTheme(): Promise\<Theme\> | Returns the saved dark or light theme. |
+| setTheme(theme: Theme): Promise\<void\> | Updates the theme and saves preferences. |
 | getTextSize(): Promise\<TextSize\> | Returns the saved text size. |
 | setTextSize(textSize: TextSize): Promise\<void\> | Updates text_size and saves preferences. |
 | resetPreferences(): Promise\<void\> | Overwrites file with default preferences. |
@@ -68,4 +71,4 @@ Impact: Updating one field requires loading current preferences first, then savi
 - Throws file system errors when read or write operations fail (non-ENOENT).
 - Returns DEFAULT_GLOBAL_PREFERENCES when file missing (ENOENT).
 - Returns DEFAULT_GLOBAL_PREFERENCES when JSON invalid or not an object.
-- Normalizes invalid last_opened_profile to null and invalid text_size to default.
+- Normalizes invalid last_opened_profile to null, invalid theme to dark, and invalid text_size to default.

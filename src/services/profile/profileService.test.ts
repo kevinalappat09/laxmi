@@ -100,6 +100,7 @@ describe('profileService (module)', () => {
 
         jest.mocked(loadPreferences).mockResolvedValue({
             last_opened_profile: null,
+            theme: 'dark',
             appearance: 'solid',
             text_size: 'default',
         });
@@ -240,6 +241,7 @@ describe('profileService (module)', () => {
 
             jest.mocked(loadPreferences).mockResolvedValueOnce({
                 last_opened_profile: 'LastOpenedProfile',
+                theme: 'dark',
                 appearance: 'solid',
                 text_size: 'default',
             });

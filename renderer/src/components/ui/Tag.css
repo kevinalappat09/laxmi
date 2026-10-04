@@ -11,7 +11,7 @@
 }
 
 .ui-tag--default {
-  color: var(--color-light-smoke);
+  color: var(--color-text-primary);
 }
 
 .ui-tag--positive {

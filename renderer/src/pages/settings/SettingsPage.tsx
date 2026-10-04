@@ -2,14 +2,34 @@ import { Card } from '../../components/ui/Card'
 import './SettingsPage.css'
 
 export type Appearance = 'solid' | 'glass'
+export type Theme = 'dark' | 'light'
 export type TextSize = 'default' | 'large' | 'larger'
 
 interface SettingsPageProps {
+  theme: Theme
+  onThemeChange: (theme: Theme) => Promise<void>
   appearance: Appearance
   onAppearanceChange: (appearance: Appearance) => Promise<void>
   textSize: TextSize
   onTextSizeChange: (textSize: TextSize) => Promise<void>
 }
+
+const themeOptions: Array<{
+  value: Theme
+  title: string
+  description: string
+}> = [
+  {
+    value: 'dark',
+    title: 'Dark',
+    description: 'A low-light interface with bright financial indicators.',
+  },
+  {
+    value: 'light',
+    title: 'Light',
+    description: 'A bright interface with clear contrast for daytime use.',
+  },
+]
 
 const appearanceOptions: Array<{
   value: Appearance
@@ -51,6 +71,8 @@ const textSizeOptions: Array<{
 ]
 
 export function SettingsPage({
+  theme,
+  onThemeChange,
   appearance,
   onAppearanceChange,
   textSize,
@@ -62,6 +84,32 @@ export function SettingsPage({
         <h1>Settings</h1>
         <p>Customize how Laxmi looks on this device.</p>
       </header>
+
+      <Card className="settings-page__section">
+        <div className="settings-page__section-heading">
+          <h2>Theme</h2>
+          <p>Choose the color theme used throughout Laxmi.</p>
+        </div>
+
+        <div className="settings-page__options" role="radiogroup" aria-label="Theme">
+          {themeOptions.map((option) => (
+            <button
+              key={option.value}
+              type="button"
+              role="radio"
+              aria-checked={theme === option.value}
+              className={`settings-page__option${theme === option.value ? ' settings-page__option--selected' : ''}`}
+              onClick={() => void onThemeChange(option.value)}
+            >
+              <span className="settings-page__option-indicator" aria-hidden="true" />
+              <span>
+                <strong>{option.title}</strong>
+                <small>{option.description}</small>
+              </span>
+            </button>
+          ))}
+        </div>
+      </Card>
 
       <Card className="settings-page__section">
         <div className="settings-page__section-heading">

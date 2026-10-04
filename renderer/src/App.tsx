@@ -13,7 +13,7 @@ import { AssetDetailPage } from './pages/portfolio/AssetDetailPage'
 import { CommandPalette, type PaletteAction } from './components/CommandPalette'
 import { NavigationProvider, useNavigation } from './contexts/NavigationContext'
 import { ProfileSelectionPage } from './pages/profile/ProfileSelectionPage'
-import { SettingsPage, type Appearance, type TextSize } from './pages/settings/SettingsPage'
+import { SettingsPage, type Appearance, type TextSize, type Theme } from './pages/settings/SettingsPage'
 import './App.css'
 
 type PendingAction = 'addAccount' | 'addTransaction' | null
@@ -21,6 +21,7 @@ type PendingAction = 'addAccount' | 'addTransaction' | null
 function AppContent() {
   const { activePage, selectedAccountId, selectedAssetId, navigate, selectAccount } = useNavigation()
   const [currentProfile, setCurrentProfile] = useState<string | null>(null)
+  const [theme, setTheme] = useState<Theme>('dark')
   const [appearance, setAppearance] = useState<Appearance>('solid')
   const [textSize, setTextSize] = useState<TextSize>('default')
   const [isLoading, setIsLoading] = useState(true)
@@ -98,6 +99,14 @@ function AppContent() {
 
   useEffect(() => {
     window.financeAPI
+      .getTheme()
+      .then((savedTheme) => {
+        setTheme(savedTheme)
+        document.documentElement.dataset.theme = savedTheme
+      })
+      .catch((e) => console.error('Failed to load theme preference.', e))
+
+    window.financeAPI
       .getAppearance()
       .then((savedAppearance) => {
         setAppearance(savedAppearance)
@@ -113,6 +122,12 @@ function AppContent() {
       })
       .catch((e) => console.error('Failed to load text size preference.', e))
   }, [])
+
+  const handleThemeChange = async (nextTheme: Theme) => {
+    await window.financeAPI.setTheme(nextTheme)
+    document.documentElement.dataset.theme = nextTheme
+    setTheme(nextTheme)
+  }
 
   const handleTextSizeChange = async (nextTextSize: TextSize) => {
     await window.financeAPI.setTextSize(nextTextSize)
@@ -222,6 +237,8 @@ function AppContent() {
     if (activePage === 'settings') {
       return (
         <SettingsPage
+          theme={theme}
+          onThemeChange={handleThemeChange}
           appearance={appearance}
           onAppearanceChange={handleAppearanceChange}
           textSize={textSize}
@@ -236,7 +253,7 @@ function AppContent() {
   return (
     <div className="app-root">
       {isLoading && <div>Loading...</div>}
-      {!isLoading && currentProfile && <AppLayout key={textSize}>{renderContent()}</AppLayout>}
+      {!isLoading && currentProfile && <AppLayout key={`${theme}-${textSize}`}>{renderContent()}</AppLayout>}
 
       {currentProfile && (
         <CommandPalette

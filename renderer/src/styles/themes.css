@@ -84,6 +84,7 @@ html[data-text-size='larger'] {
 }
 
 [data-theme='dark'] {
+  color-scheme: dark;
   /* Semantic aliases used by components */
   --color-bg-app: var(--color-midnight-ink);
   --background-app: var(--color-bg-app);
@@ -134,9 +135,13 @@ html[data-text-size='larger'] {
   --color-overlay: rgba(0, 0, 0, 0.45);
   --color-overlay-strong: rgba(0, 0, 0, 0.65);
   --color-dialog-shadow: rgba(0, 0, 0, 0.6);
+  --color-chart-shadow: rgba(255, 255, 255, 0.04);
+  --shadow-xl: rgba(0, 0, 0, 0.8) 0 0 44px 0;
+  --shadow-subtle: rgba(0, 0, 0, 0.85) 0 1px 0 0;
 }
 
 [data-theme='light'] {
+  color-scheme: light;
   --color-bg-app: #f0f0f0;
   --background-app: var(--color-bg-app);
   --color-bg-chrome: #f0f0f0;
@@ -172,6 +177,7 @@ html[data-text-size='larger'] {
   --color-accent-subtle-hover: #ddeafc;
   --color-accent-muted: #2e7dd8;
   --color-accent-muted-hover: #1f6bc2;
+  --gradient-accent: linear-gradient(96.44deg, #2e7dd8 6.12%, #1f6bc2 110.28%);
 
   --color-positive: #1e8a67;
   --color-positive-alt: #1e8a67;
@@ -185,6 +191,9 @@ html[data-text-size='larger'] {
   --color-overlay: rgba(0, 0, 0, 0.24);
   --color-overlay-strong: rgba(0, 0, 0, 0.4);
   --color-dialog-shadow: rgba(0, 0, 0, 0.15);
+  --color-chart-shadow: rgba(0, 0, 0, 0.05);
+  --shadow-xl: rgba(15, 23, 42, 0.12) 0 12px 32px 0;
+  --shadow-subtle: rgba(15, 23, 42, 0.12) 0 1px 0 0;
 }
 
 [data-theme='dark'][data-appearance='glass'] {
