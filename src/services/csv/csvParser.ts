@@ -89,7 +89,11 @@ export class CSVParser {
         return { ok: true, date, amount: rawAmount, classification };
     }
 
-    serialise(transactions: Transaction[], positiveAreDeposits: boolean): string {
+    serialise(
+        transactions: Transaction[],
+        positiveAreDeposits: boolean,
+        categoryPathsById: ReadonlyMap<number, string> = new Map()
+    ): string {
         const lines: string[] = [];
 
         for (const tx of transactions) {
@@ -106,7 +110,11 @@ export class CSVParser {
                 dateStr,
                 this.escapeField(tx.payee ?? ""),
                 signedAmount.toString(),
-                this.escapeField(""),
+                this.escapeField(
+                    tx.category_id === undefined
+                        ? ""
+                        : categoryPathsById.get(tx.category_id) ?? ""
+                ),
                 tx.classification,
                 this.escapeField(tx.note ?? ""),
             ];
@@ -122,7 +130,7 @@ export class CSVParser {
             "25-03-2026",
             "Example Payee",
             "500.00",
-            "Food",
+            "Food:Groceries",
             "needs",
             "Example note",
         ];

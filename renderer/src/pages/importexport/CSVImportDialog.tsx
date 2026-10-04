@@ -192,6 +192,9 @@ export function CSVImportDialog({ accounts, onClose }: CSVImportDialogProps) {
               {fileError && (
                 <p className="csv-import-dialog__field-error">{fileError}</p>
               )}
+              <p className="csv-import-dialog__hint">
+                Use full paths for nested categories, for example Food:Groceries.
+              </p>
             </div>
 
             {/* Account */}

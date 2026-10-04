@@ -19,6 +19,7 @@ import { CategoryServiceImpl } from "../category/categoryService";
 import { profileSessionService } from "../profileSession/profileSessionService";
 import { CSVParser } from "./csvParser";
 import { MAX_CSV_FILE_BYTES, PREVIEW_ROW_COUNT } from "./csvLimits";
+import { buildCategoryPathLookup } from "../../utils/categoryPaths";
 
 export interface TransactionImportService {
     openAndPreview(): Promise<CSVPreviewResult>;
@@ -96,7 +97,9 @@ export class TransactionImportServiceImpl implements TransactionImportService {
             throw new Error("No active database connection. Open a profile first.");
         }
 
-        const categoryNameMap = this.categoryService.getCategoryNameMap();
+        const categoryPathLookup = buildCategoryPathLookup(
+            this.categoryService.listActiveCategories()
+        );
         const repository = new TransactionRepositoryImpl(db);
         const rows = this.pendingRows;
         const emptyLineCount = this.pendingEmptyCount;
@@ -113,7 +116,7 @@ export class TransactionImportServiceImpl implements TransactionImportService {
                     continue;
                 }
 
-                const categoryId = this.resolveCategoryId(row.category, categoryNameMap, row, failedRows);
+                const categoryId = this.resolveCategoryId(row.category, categoryPathLookup, row, failedRows);
                 if (categoryId === false) {
                     continue;
                 }
@@ -164,7 +167,7 @@ export class TransactionImportServiceImpl implements TransactionImportService {
             failedRows.push({
                 rowNumber: row.rowNumber,
                 rawLine: row.rawLine,
-                reason: `Unknown category "${categoryName}". Create the category first or leave the field blank.`,
+                reason: `Unknown category path "${categoryName}". Use the full Parent:Child path, create the category first, or leave the field blank.`,
             });
             return false;
         }

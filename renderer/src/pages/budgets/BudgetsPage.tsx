@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Account } from '../../../../src/types/account'
 import type { Category } from '../../../../src/types/category'
+import { buildCategoryPathMap } from '../../../../src/utils/categoryPaths'
 import {
   BudgetStatus,
   BudgetType,
@@ -19,13 +20,16 @@ function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1)
 }
 
-function getScopeLabel(budget: BudgetWithSpending): string {
+function getScopeLabel(budget: BudgetWithSpending, categoryPaths: Map<number, string>): string {
   if (budget.budget_type === BudgetType.Overall) return 'All spending'
   if (budget.budget_type === BudgetType.Account) {
     return budget.account_name ? `Account: ${budget.account_name}` : `Account #${budget.account_id}`
   }
   if (budget.budget_type === BudgetType.Category) {
-    return budget.category_name ? `Category: ${budget.category_name}` : `Category #${budget.category_id}`
+    const categoryPath = budget.category_id === undefined
+      ? budget.category_name
+      : categoryPaths.get(budget.category_id) ?? budget.category_name
+    return categoryPath ? `Category: ${categoryPath}` : `Category #${budget.category_id}`
   }
   return `Classification: ${capitalize(budget.classification ?? '')}`
 }
@@ -45,6 +49,7 @@ export function BudgetsPage() {
   const [activeFilter, setActiveFilter] = useState<BudgetFilterType>('all')
   const [dialogMode, setDialogMode] = useState<'create' | 'edit' | null>(null)
   const [selectedBudget, setSelectedBudget] = useState<Budget | undefined>(undefined)
+  const categoryPathMap = useMemo(() => buildCategoryPathMap(categories), [categories])
 
   const load = async () => {
     setIsLoading(true)
@@ -181,7 +186,7 @@ export function BudgetsPage() {
                   </span>
                 </div>
 
-                <p className="budget-card__scope">{getScopeLabel(budget)}</p>
+                <p className="budget-card__scope">{getScopeLabel(budget, categoryPathMap)}</p>
                 <p className="budget-card__period">For {budget.period_label}</p>
 
                 <div className="budget-card__numbers">

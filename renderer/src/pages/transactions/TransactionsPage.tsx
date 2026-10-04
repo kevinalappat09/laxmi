@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import type { Account } from '../../../../src/types/account'
 import type { Category } from '../../../../src/types/category'
 import type { Transaction } from '../../../../src/types/transaction'
 import { TransactionType, Classification } from '../../../../src/types/transaction'
+import { buildCategoryPathMap } from '../../../../src/utils/categoryPaths'
 import { TransactionDialog } from './TransactionDialog'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -54,7 +55,17 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>(undefined)
 
   const accountMap = new Map(accounts.map((a) => [a.account_id, a.account_name]))
-  const categoryMap = new Map(categories.map((c) => [c.category_id, c.category_name]))
+  const categoryMap = useMemo(() => buildCategoryPathMap(categories), [categories])
+  const categoryOptions = useMemo(
+    () => categories
+      .filter((category): category is Category & { category_id: number } => category.category_id !== undefined)
+      .map((category) => ({
+        value: String(category.category_id),
+        label: categoryMap.get(category.category_id) ?? category.category_name,
+      }))
+      .sort((a, b) => a.label.localeCompare(b.label)),
+    [categories, categoryMap]
+  )
 
   const loadReferenceData = async () => {
     const [accts, cats] = await Promise.all([
@@ -306,12 +317,7 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
               id="filter-category"
               label="Category"
               className="transactions-page__filter-group transactions-page__filter-with-actions-control"
-              options={categories
-                .filter((category): category is Category & { category_id: number } => category.category_id !== undefined)
-                .map((category) => ({
-                  value: String(category.category_id),
-                  label: category.category_name,
-                }))}
+              options={categoryOptions}
               selectedValues={filters.categoryIds}
               onChange={(values) => handleMultiSelectFilterChange('categoryIds', values)}
               placeholder="All categories"

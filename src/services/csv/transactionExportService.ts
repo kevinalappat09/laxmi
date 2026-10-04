@@ -11,6 +11,8 @@ import { CSVExportRequest, CSVExportResult } from "../../types/csvImport";
 import { TransactionRepositoryImpl } from "../../repository/transaction/transactionRepository";
 import { profileSessionService } from "../profileSession/profileSessionService";
 import { CSVParser } from "./csvParser";
+import { CategoryServiceImpl } from "../category/categoryService";
+import { buildCategoryPathMap } from "../../utils/categoryPaths";
 
 export interface TransactionExportService {
     exportToCSV(request: CSVExportRequest): Promise<CSVExportResult>;
@@ -18,6 +20,7 @@ export interface TransactionExportService {
 
 export class TransactionExportServiceImpl implements TransactionExportService {
     private readonly csvParser = new CSVParser();
+    private readonly categoryService = new CategoryServiceImpl();
 
     async exportToCSV(request: CSVExportRequest): Promise<CSVExportResult> {
         const db = profileSessionService.getDatabaseConnection();
@@ -27,8 +30,15 @@ export class TransactionExportServiceImpl implements TransactionExportService {
 
         const repository = new TransactionRepositoryImpl(db);
         const transactions = repository.findByAccountId(request.accountId);
+        const categoryPathsById = buildCategoryPathMap(
+            this.categoryService.listActiveCategories()
+        );
 
-        const csvString = this.csvParser.serialise(transactions, request.positiveAreDeposits);
+        const csvString = this.csvParser.serialise(
+            transactions,
+            request.positiveAreDeposits,
+            categoryPathsById
+        );
 
         const today = new Date().toISOString().split("T")[0];
         const defaultFilename = `transactions-${request.accountId}-${today}.csv`;

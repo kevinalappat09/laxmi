@@ -6,6 +6,7 @@ import {
   type RecurringTransaction,
 } from '../../../../src/types/recurringTransaction'
 import { TransactionType } from '../../../../src/types/transaction'
+import { buildCategoryPathMap } from '../../../../src/utils/categoryPaths'
 import { RecurringDialog } from './RecurringDialog'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -15,39 +16,6 @@ import './RecurringPage.css'
 
 function capitalize(value: string): string {
   return value.charAt(0).toUpperCase() + value.slice(1)
-}
-
-function createCategoryPathMap(categories: Category[]): Map<number, string> {
-  const byId = new Map<number, Category>()
-  categories.forEach((category) => {
-    if (category.category_id !== undefined) {
-      byId.set(category.category_id, category)
-    }
-  })
-
-  const cache = new Map<number, string>()
-  const buildPath = (id: number): string => {
-    const cached = cache.get(id)
-    if (cached) return cached
-
-    const category = byId.get(id)
-    if (!category) return String(id)
-    if (category.parent_category_id === undefined) {
-      cache.set(id, category.category_name)
-      return category.category_name
-    }
-
-    const parentPath = buildPath(category.parent_category_id)
-    const path = `${parentPath} / ${category.category_name}`
-    cache.set(id, path)
-    return path
-  }
-
-  for (const id of byId.keys()) {
-    buildPath(id)
-  }
-
-  return cache
 }
 
 function toDateOnly(date: Date): Date {
@@ -136,7 +104,7 @@ export function RecurringPage() {
     undefined
   )
 
-  const categoryPathMap = useMemo(() => createCategoryPathMap(categories), [categories])
+  const categoryPathMap = useMemo(() => buildCategoryPathMap(categories), [categories])
   const accountMap = useMemo(
     () => new Map(accounts.map((account) => [account.account_id, account.account_name])),
     [accounts]

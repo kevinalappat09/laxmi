@@ -10,6 +10,7 @@ import {
   type UpdateRecurringTransactionRequest,
 } from '../../../../src/types/recurringTransaction'
 import { Classification, TransactionType } from '../../../../src/types/transaction'
+import { buildCategoryPathMap } from '../../../../src/utils/categoryPaths'
 import { Button } from '../../components/ui/Button'
 import { Dialog } from '../../components/ui/Dialog'
 import { Input, Select } from '../../components/ui/Input'
@@ -55,39 +56,6 @@ function toDateInputValue(date: Date | string): string {
   const mm = String(d.getMonth() + 1).padStart(2, '0')
   const dd = String(d.getDate()).padStart(2, '0')
   return `${yyyy}-${mm}-${dd}`
-}
-
-function createCategoryPathMap(categories: Category[]): Map<number, string> {
-  const byId = new Map<number, Category>()
-  categories.forEach((category) => {
-    if (category.category_id !== undefined) {
-      byId.set(category.category_id, category)
-    }
-  })
-
-  const cache = new Map<number, string>()
-  const buildPath = (id: number): string => {
-    const cached = cache.get(id)
-    if (cached) return cached
-
-    const category = byId.get(id)
-    if (!category) return String(id)
-    if (category.parent_category_id === undefined) {
-      cache.set(id, category.category_name)
-      return category.category_name
-    }
-
-    const parentPath = buildPath(category.parent_category_id)
-    const path = `${parentPath} / ${category.category_name}`
-    cache.set(id, path)
-    return path
-  }
-
-  for (const id of byId.keys()) {
-    buildPath(id)
-  }
-
-  return cache
 }
 
 export function RecurringDialog({
@@ -149,7 +117,15 @@ export function RecurringDialog({
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
 
-  const categoryPathMap = useMemo(() => createCategoryPathMap(categories), [categories])
+  const categoryPathMap = useMemo(() => buildCategoryPathMap(categories), [categories])
+  const categoryOptions = useMemo(
+    () => [...categories].sort((a, b) => {
+      const aPath = a.category_id === undefined ? a.category_name : categoryPathMap.get(a.category_id) ?? a.category_name
+      const bPath = b.category_id === undefined ? b.category_name : categoryPathMap.get(b.category_id) ?? b.category_name
+      return aPath.localeCompare(bPath)
+    }),
+    [categories, categoryPathMap]
+  )
   const investmentAccounts = useMemo(
     () => accounts.filter((a) => a.sub_type === AccountSubType.Investment),
     [accounts]
@@ -439,7 +415,7 @@ export function RecurringDialog({
                 onChange={(e) => setCategoryId(e.target.value)}
               >
                 <option value="">No category</option>
-                {categories.map((category) => (
+                {categoryOptions.map((category) => (
                   <option key={category.category_id} value={category.category_id}>
                     {category.category_id
                       ? categoryPathMap.get(category.category_id)
