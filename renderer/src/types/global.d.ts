@@ -67,6 +67,8 @@ declare global {
     interface IFinanceAPI {
         // Profile management
         getLastOpenedProfile: () => Promise<string | null>
+        getTheme: () => Promise<"dark" | "light">
+        setTheme: (theme: "dark" | "light") => Promise<void>
         getAppearance: () => Promise<"solid" | "glass">
         setAppearance: (appearance: "solid" | "glass") => Promise<void>
         getTextSize: () => Promise<"default" | "large" | "larger">

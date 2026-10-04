@@ -51,6 +51,14 @@ ipcMain.handle("get-appearance", () =>
     globalPreferencesService.getAppearance()
 )
 
+ipcMain.handle("get-theme", () =>
+    globalPreferencesService.getTheme()
+)
+
+ipcMain.handle("set-theme", (_event, theme: globalPreferencesService.Theme) =>
+    globalPreferencesService.setTheme(theme)
+)
+
 ipcMain.handle("set-appearance", (_event, appearance: globalPreferencesService.Appearance) =>
     globalPreferencesService.setAppearance(appearance)
 )

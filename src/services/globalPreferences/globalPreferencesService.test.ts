@@ -33,7 +33,7 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: null, appearance: "solid", text_size: "default" });
+            expect(result).toEqual({ last_opened_profile: null, theme: "dark", appearance: "solid", text_size: "default" });
             expect(mockReadFile).toHaveBeenCalledWith(TEST_PREFS_PATH, { encoding: "utf-8" });
         });
 
@@ -44,12 +44,13 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: "user1", appearance: "solid", text_size: "default" });
+            expect(result).toEqual({ last_opened_profile: "user1", theme: "dark", appearance: "solid", text_size: "default" });
         });
 
         it("should load the glass appearance", async () => {
             mockReadFile.mockResolvedValue(JSON.stringify({
                 last_opened_profile: "user1",
+                theme: "dark",
                 appearance: "glass",
             }));
 
@@ -57,15 +58,16 @@ describe("globalPreferencesService", () => {
 
             await expect(loadPreferences()).resolves.toEqual({
                 last_opened_profile: "user1",
+                theme: "dark",
                 appearance: "glass",
                 text_size: "default",
             });
         });
 
-        it("should ignore unknown fields and only return last_opened_profile", async () => {
+        it("should load the saved theme and ignore unknown fields", async () => {
             const fileContent = JSON.stringify({
                 last_opened_profile: "user1",
-                theme: "dark",
+                theme: "light",
                 unknownField: "value",
             });
             mockReadFile.mockResolvedValue(fileContent);
@@ -73,7 +75,7 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: "user1", appearance: "solid", text_size: "default" });
+            expect(result).toEqual({ last_opened_profile: "user1", theme: "light", appearance: "solid", text_size: "default" });
         });
 
         it("should return default when last_opened_profile key is missing", async () => {
@@ -83,7 +85,7 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: null, appearance: "solid", text_size: "default" });
+            expect(result).toEqual({ last_opened_profile: null, theme: "dark", appearance: "solid", text_size: "default" });
         });
 
         it("should return default preferences when file contains invalid JSON", async () => {
@@ -92,7 +94,7 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: null, appearance: "solid", text_size: "default" });
+            expect(result).toEqual({ last_opened_profile: null, theme: "dark", appearance: "solid", text_size: "default" });
         });
 
         it("should normalize invalid last_opened_profile type to null", async () => {
@@ -102,7 +104,7 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: null, appearance: "solid", text_size: "default" });
+            expect(result).toEqual({ last_opened_profile: null, theme: "dark", appearance: "solid", text_size: "default" });
         });
 
         it("should return default preferences when JSON is not an object", async () => {
@@ -111,7 +113,7 @@ describe("globalPreferencesService", () => {
             const { loadPreferences } = require("./globalPreferencesService");
             const result = await loadPreferences();
 
-            expect(result).toEqual({ last_opened_profile: null, appearance: "solid", text_size: "default" });
+            expect(result).toEqual({ last_opened_profile: null, theme: "dark", appearance: "solid", text_size: "default" });
         });
 
         it("should propagate read errors that are not ENOENT", async () => {
@@ -130,11 +132,11 @@ describe("globalPreferencesService", () => {
             mockWriteFile.mockResolvedValue(undefined);
 
             const { savePreferences } = require("./globalPreferencesService");
-            await savePreferences({ last_opened_profile: "user1", appearance: "solid", text_size: "default" });
+            await savePreferences({ last_opened_profile: "user1", theme: "dark", appearance: "solid", text_size: "default" });
 
             expect(mockWriteFile).toHaveBeenCalledWith(
                 TEST_PREFS_PATH,
-                JSON.stringify({ last_opened_profile: "user1", appearance: "solid", text_size: "default" }, null, 2),
+                JSON.stringify({ last_opened_profile: "user1", theme: "dark", appearance: "solid", text_size: "default" }, null, 2),
                 { encoding: "utf-8" }
             );
         });
@@ -143,11 +145,10 @@ describe("globalPreferencesService", () => {
             mockWriteFile.mockResolvedValue(undefined);
 
             const { savePreferences } = require("./globalPreferencesService");
-            await savePreferences({ last_opened_profile: "user2", appearance: "solid", text_size: "default" });
+            await savePreferences({ last_opened_profile: "user2", theme: "dark", appearance: "solid", text_size: "default" });
 
             const writtenContent = JSON.parse(mockWriteFile.mock.calls[0][1]);
-            expect(writtenContent).toEqual({ last_opened_profile: "user2", appearance: "solid", text_size: "default" });
-            expect(writtenContent.theme).toBeUndefined();
+            expect(writtenContent).toEqual({ last_opened_profile: "user2", theme: "dark", appearance: "solid", text_size: "default" });
         });
 
         it("should propagate write errors", async () => {
@@ -157,7 +158,7 @@ describe("globalPreferencesService", () => {
 
             const { savePreferences } = require("./globalPreferencesService");
 
-            await expect(savePreferences({ last_opened_profile: "user1", appearance: "solid", text_size: "default" })).rejects.toThrow(
+            await expect(savePreferences({ last_opened_profile: "user1", theme: "dark", appearance: "solid", text_size: "default" })).rejects.toThrow(
                 "Permission denied"
             );
         });
@@ -204,7 +205,7 @@ describe("globalPreferencesService", () => {
             await setLastOpenedProfile("user2");
 
             const writtenContent = JSON.parse(mockWriteFile.mock.calls[0][1]);
-            expect(writtenContent).toEqual({ last_opened_profile: "user2", appearance: "solid", text_size: "default" });
+            expect(writtenContent).toEqual({ last_opened_profile: "user2", theme: "dark", appearance: "solid", text_size: "default" });
         });
 
         it("should set last_opened_profile to null", async () => {
@@ -214,7 +215,7 @@ describe("globalPreferencesService", () => {
             await setLastOpenedProfile(null);
 
             const writtenContent = JSON.parse(mockWriteFile.mock.calls[0][1]);
-            expect(writtenContent).toEqual({ last_opened_profile: null, appearance: "solid", text_size: "default" });
+            expect(writtenContent).toEqual({ last_opened_profile: null, theme: "dark", appearance: "solid", text_size: "default" });
         });
 
         it("should propagate errors from save", async () => {
@@ -241,6 +242,7 @@ describe("globalPreferencesService", () => {
 
             expect(JSON.parse(mockWriteFile.mock.calls[0][1])).toEqual({
                 last_opened_profile: "user1",
+                theme: "dark",
                 appearance: "glass",
                 text_size: "default",
             });
@@ -251,6 +253,7 @@ describe("globalPreferencesService", () => {
         it("should preserve other preferences", async () => {
             mockReadFile.mockResolvedValue(JSON.stringify({
                 last_opened_profile: "user1",
+                theme: "dark",
                 appearance: "glass",
             }));
             mockWriteFile.mockResolvedValue(undefined);
@@ -260,6 +263,7 @@ describe("globalPreferencesService", () => {
 
             expect(JSON.parse(mockWriteFile.mock.calls[0][1])).toEqual({
                 last_opened_profile: "user1",
+                theme: "dark",
                 appearance: "glass",
                 text_size: "larger",
             });
@@ -268,6 +272,7 @@ describe("globalPreferencesService", () => {
         it("should fall back to default for an unknown size", async () => {
             mockReadFile.mockResolvedValue(JSON.stringify({
                 last_opened_profile: null,
+                theme: "dark",
                 appearance: "solid",
                 text_size: "huge",
             }));
@@ -276,6 +281,7 @@ describe("globalPreferencesService", () => {
 
             await expect(loadPreferences()).resolves.toEqual({
                 last_opened_profile: null,
+                theme: "dark",
                 appearance: "solid",
                 text_size: "default",
             });
@@ -291,7 +297,7 @@ describe("globalPreferencesService", () => {
 
             expect(mockWriteFile).toHaveBeenCalledWith(
                 TEST_PREFS_PATH,
-                JSON.stringify({ last_opened_profile: null, appearance: "solid", text_size: "default" }, null, 2),
+                JSON.stringify({ last_opened_profile: null, theme: "dark", appearance: "solid", text_size: "default" }, null, 2),
                 { encoding: "utf-8" }
             );
         });

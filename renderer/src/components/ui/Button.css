@@ -38,7 +38,7 @@
 
 .ui-button--variant-primary {
   background: var(--gradient-accent);
-  color: var(--color-pure-white);
+  color: var(--color-accent-fg);
 }
 
 .ui-button--variant-primary:hover:not(:disabled) {
@@ -60,7 +60,7 @@
 }
 
 .ui-button--variant-subtle:hover:not(:disabled) {
-  color: var(--color-pure-white);
+  color: var(--color-text-primary);
   background-color: var(--color-accent-subtle);
 }
 
@@ -80,7 +80,7 @@
 
 .ui-button--variant-icon:hover:not(:disabled) {
   background-color: var(--color-bg-hover);
-  color: var(--color-pure-white);
+  color: var(--color-text-primary);
 }
 
 .ui-button--variant-pill {
@@ -107,7 +107,7 @@
 
 .ui-button--variant-square {
   background-color: var(--color-bg-btn-secondary);
-  color: var(--color-light-smoke);
+  color: var(--color-text-primary);
   border-radius: var(--radius-buttons-square);
 }
 

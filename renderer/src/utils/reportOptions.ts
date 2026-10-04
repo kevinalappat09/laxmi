@@ -16,10 +16,10 @@ export function chartFontSize(base: number): number {
 }
 
 /**
- * Explicit categorical ramp. Theme tokens are deliberately not used here: several of them
- * alias the same hex value per theme, which silently collapsed the palette to five colors.
+ * Explicit categorical ramps keep series distinct and provide enough contrast on each theme.
+ * Semantic theme tokens are deliberately not used here because several alias the same color.
  */
-const SERIES_COLORS = [
+const DARK_SERIES_COLORS = [
   '#479ffa',
   '#d6fe51',
   '#4ebe96',
@@ -38,9 +38,35 @@ const SERIES_COLORS = [
   '#e26d8b',
 ]
 
+const LIGHT_SERIES_COLORS = [
+  '#2563eb',
+  '#8a6d00',
+  '#13795b',
+  '#c45f2c',
+  '#7656a8',
+  '#c23f6b',
+  '#087f9c',
+  '#a96500',
+  '#4f8a10',
+  '#c7442d',
+  '#6548c7',
+  '#087f7f',
+  '#4472c4',
+  '#8a6d00',
+  '#4c63b6',
+  '#a83f5f',
+]
+
 const OTHER_SERIES_COLOR = '#6b7280'
 
 const SHOW_LINE_SYMBOL_MAX_POINTS = 20
+
+function getSeriesColors(): string[] {
+  if (typeof document !== 'undefined' && document.documentElement.dataset.theme === 'light') {
+    return LIGHT_SERIES_COLORS
+  }
+  return DARK_SERIES_COLORS
+}
 
 function readThemeColor(token: string, fallback: string): string {
   if (typeof window === 'undefined') return fallback
@@ -54,7 +80,7 @@ function readThemeColor(token: string, fallback: string): string {
 
 function getChartPalette() {
   return {
-    seriesColors: SERIES_COLORS,
+    seriesColors: getSeriesColors(),
     incomeColor: readThemeColor('--color-positive', '#4ebe96'),
     expenseColor: readThemeColor('--color-negative', '#ffa16c'),
     gridColor: readThemeColor('--color-border-subtle', 'rgba(255, 255, 255, 0.06)'),
@@ -64,6 +90,7 @@ function getChartPalette() {
     tooltipBorder: readThemeColor('--color-border', '#2a2a2a'),
     tooltipText: readThemeColor('--color-text-primary', '#e6e6e6'),
     pieStroke: readThemeColor('--color-bg-card', '#131313'),
+    shadowColor: readThemeColor('--color-chart-shadow', 'rgba(255, 255, 255, 0.04)'),
   }
 }
 
@@ -74,7 +101,7 @@ export function getSemanticChartColors() {
     income: palette.incomeColor,
     expense: palette.expenseColor,
     neutral: OTHER_SERIES_COLOR,
-    accent: SERIES_COLORS[0],
+    accent: palette.seriesColors[0],
   }
 }
 
@@ -102,6 +129,7 @@ export function mergeSeriesKeys(...keyLists: string[][]): string[] {
  */
 export function assignSeriesColors(keys: string[]): SeriesColorMap {
   const colorMap: SeriesColorMap = {}
+  const seriesColors = getSeriesColors()
   let paletteIndex = 0
 
   keys.forEach((key) => {
@@ -110,7 +138,7 @@ export function assignSeriesColors(keys: string[]): SeriesColorMap {
       return
     }
 
-    colorMap[key] = SERIES_COLORS[paletteIndex % SERIES_COLORS.length]
+    colorMap[key] = seriesColors[paletteIndex % seriesColors.length]
     paletteIndex += 1
   })
 
@@ -120,7 +148,8 @@ export function assignSeriesColors(keys: string[]): SeriesColorMap {
 function resolveColor(key: string, index: number, colorMap?: SeriesColorMap): string {
   if (colorMap?.[key]) return colorMap[key]
   if (key === OTHER_SERIES_KEY) return OTHER_SERIES_COLOR
-  return SERIES_COLORS[index % SERIES_COLORS.length]
+  const seriesColors = getSeriesColors()
+  return seriesColors[index % seriesColors.length]
 }
 
 type Palette = ReturnType<typeof getChartPalette>
@@ -156,7 +185,7 @@ function buildTooltip(
     },
     axisPointer: {
       type: trigger === 'axis' ? 'shadow' : 'none',
-      shadowStyle: { color: 'rgba(255, 255, 255, 0.04)' },
+      shadowStyle: { color: palette.shadowColor },
     },
     formatter: (params: any) => {
       if (trigger === 'item') {
@@ -233,7 +262,7 @@ function buildCartesianBase(
 ): EChartsOption {
   return {
     animation: true,
-    color: SERIES_COLORS,
+    color: palette.seriesColors,
     tooltip: buildTooltip(palette, 'axis', format),
     legend: buildTopLegend(palette),
     grid: { left: 8, right: 16, top: 48, bottom: 8, containLabel: true },
@@ -345,7 +374,7 @@ export function buildBarOption(
         name: seriesName,
         data: data.map((item) => item.value),
         barMaxWidth: 28,
-        itemStyle: { color: options.color ?? SERIES_COLORS[0], borderRadius: [4, 4, 0, 0] },
+        itemStyle: { color: options.color ?? palette.seriesColors[0], borderRadius: [4, 4, 0, 0] },
       },
     ],
   }
@@ -387,7 +416,7 @@ export function buildPercentLineOption(
 ): EChartsOption {
   const palette = getChartPalette()
   const base = buildCartesianBase(palette, data.map((item) => item.label), 'percent')
-  const accent = SERIES_COLORS[0]
+  const accent = palette.seriesColors[0]
 
   return {
     ...base,
@@ -431,7 +460,7 @@ export function buildHorizontalBarOption(
 
   return {
     animation: true,
-    color: SERIES_COLORS,
+    color: palette.seriesColors,
     tooltip: buildTooltip(palette, 'axis'),
     legend: buildTopLegend(palette),
     grid: { left: 8, right: 24, top: 48, bottom: 8, containLabel: true },
@@ -469,7 +498,7 @@ export function buildHorizontalBarOption(
       barMaxWidth: 18,
       emphasis: { focus: 'series' },
       itemStyle: {
-        color: entry.color ?? SERIES_COLORS[index % SERIES_COLORS.length],
+        color: entry.color ?? palette.seriesColors[index % palette.seriesColors.length],
         // Only the outermost segment of a stack gets the rounded cap.
         borderRadius: !stack || index === lastIndex ? [0, 4, 4, 0] : 0,
       },
@@ -488,7 +517,7 @@ export function buildPieOption(
 
   return {
     animation: true,
-    color: SERIES_COLORS,
+    color: palette.seriesColors,
     tooltip: buildTooltip(palette, 'item', valueFormat),
     legend: buildSideLegend(palette),
     title: {

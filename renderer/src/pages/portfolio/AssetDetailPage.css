@@ -166,13 +166,13 @@
 
 .asset-detail__txn-badge--buy,
 .asset-detail__txn-badge--sip {
-  background: rgba(78, 190, 150, 0.15);
+  background: rgba(var(--color-positive-alt-rgb), 0.15);
   color: var(--color-positive);
 }
 
 .asset-detail__txn-badge--sell,
 .asset-detail__txn-badge--redemption {
-  background: rgba(255, 161, 108, 0.15);
+  background: rgba(var(--color-negative-rgb), 0.15);
   color: var(--color-negative);
 }
 
