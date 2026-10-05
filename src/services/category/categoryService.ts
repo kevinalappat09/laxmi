@@ -31,7 +31,7 @@ export class CategoryServiceImpl implements CategoryService {
 
         const now = new Date();
         const category: Category = {
-            category_name: request.category_name,
+            category_name: request.category_name.trim(),
             parent_category_id: request.parent_category_id,
             is_active: true,
             created_on: now,
@@ -59,8 +59,10 @@ export class CategoryServiceImpl implements CategoryService {
 
         const updated: Category = {
             ...existing,
-            category_name: request.category_name ?? existing.category_name,
-            parent_category_id: request.parent_category_id !== undefined ? request.parent_category_id : existing.parent_category_id,
+            category_name: request.category_name?.trim() ?? existing.category_name,
+            parent_category_id: request.parent_category_id !== undefined
+                ? (request.parent_category_id ?? undefined)
+                : existing.parent_category_id,
             is_active: request.is_active !== undefined ? request.is_active : existing.is_active,
             modified_on: new Date(),
         };
@@ -177,6 +179,10 @@ export class CategoryServiceImpl implements CategoryService {
                 throw new Error("A category cannot be its own parent.");
             }
             this.validateParentCategoryExists(request.parent_category_id, db);
+            const repository = new CategoryRepositoryImpl(db);
+            if (repository.getAllChildrenRecursive(categoryId).includes(request.parent_category_id)) {
+                throw new Error("A category cannot be moved beneath one of its descendants.");
+            }
         }
     }
 

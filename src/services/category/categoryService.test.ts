@@ -182,6 +182,17 @@ describe("CategoryServiceImpl", () => {
             );
         });
 
+        test("throws when moving a category beneath one of its descendants", () => {
+            const child = service.createCategory({
+                category_name: "Weekly groceries",
+                parent_category_id: categoryId,
+            });
+
+            expect(() => service.updateCategory(categoryId, {
+                parent_category_id: child.category_id,
+            })).toThrow("A category cannot be moved beneath one of its descendants");
+        });
+
         test("throws when parent category does not exist", () => {
             const request = {
                 parent_category_id: 9999,
@@ -200,6 +211,20 @@ describe("CategoryServiceImpl", () => {
             const updated = service.updateCategory(categoryId, request);
 
             expect(updated.is_active).toBe(false);
+        });
+
+        test("allows moving a child category to the root", () => {
+            const parent = service.createCategory({ category_name: "Food" });
+            const child = service.createCategory({
+                category_name: "Takeaway",
+                parent_category_id: parent.category_id,
+            });
+
+            const updated = service.updateCategory(child.category_id!, {
+                parent_category_id: null,
+            });
+
+            expect(updated.parent_category_id).toBeUndefined();
         });
     });
 
