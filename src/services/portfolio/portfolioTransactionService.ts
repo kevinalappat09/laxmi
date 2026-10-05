@@ -87,7 +87,9 @@ export class PortfolioTransactionServiceImpl implements PortfolioTransactionServ
                         transaction_date: request.transactionDate,
                         transaction_type: laxmiTxn.type === "withdraw" ? TransactionType.Withdraw : TransactionType.Deposit,
                         amount: laxmiTxn.amount,
-                        classification: Classification.Needs,
+                        classification: laxmiTxn.type === "deposit"
+                            ? Classification.Income
+                            : Classification.Needs,
                         note: request.note ?? undefined,
                         is_active: true,
                         created_on: now,
@@ -309,6 +311,11 @@ export class PortfolioTransactionServiceImpl implements PortfolioTransactionServ
                 transaction_date: new Date(updated.transactionDate),
                 transaction_type: desired.type === "withdraw" ? TransactionType.Withdraw : TransactionType.Deposit,
                 amount: desired.amount,
+                classification: desired.type === "deposit"
+                    ? Classification.Income
+                    : current.classification === Classification.Income
+                        ? Classification.Needs
+                        : current.classification,
                 note: updated.note !== existing.note ? (updated.note ?? undefined) : current.note,
                 modified_on: now,
             });
@@ -325,7 +332,9 @@ export class PortfolioTransactionServiceImpl implements PortfolioTransactionServ
                 transaction_date: new Date(updated.transactionDate),
                 transaction_type: desired.type === "withdraw" ? TransactionType.Withdraw : TransactionType.Deposit,
                 amount: desired.amount,
-                classification: Classification.Needs,
+                classification: desired.type === "deposit"
+                    ? Classification.Income
+                    : Classification.Needs,
                 note: updated.note ?? undefined,
                 is_active: true,
                 created_on: now,

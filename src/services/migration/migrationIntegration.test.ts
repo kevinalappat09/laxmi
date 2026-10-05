@@ -5,8 +5,24 @@ import {
     openDatabase,
     initializeSchema,
     getCurrentSchemaVersion,
+    setSchemaVersion,
 } from "../../database/databaseService";
 import { MigrationService } from "./migrationService";
+
+class VersionedMigrationService extends MigrationService {
+    migrateThrough(db: Database.Database, maximumVersion: number): void {
+        const migrations = this.loadMigrations().filter(
+            (migration) => migration.version <= maximumVersion
+        );
+
+        for (const migration of migrations) {
+            db.transaction(() => {
+                migration.up(db);
+                setSchemaVersion(db, migration.version);
+            })();
+        }
+    }
+}
 
 describe("Migration Integration Tests", () => {
     let db: Database.Database;
@@ -143,6 +159,79 @@ describe("Migration Integration Tests", () => {
         expect(transaction.account_id).toBe(1);
         expect(transaction.amount).toBe(100);
         expect(transaction.classification).toBe("needs");
+    });
+
+    it("migrates deposits to income while preserving linked transaction IDs", () => {
+        db = new Database(":memory:");
+        initializeSchema(db);
+
+        const partialMigrationService = new VersionedMigrationService(migrationsDir);
+        partialMigrationService.migrateThrough(db, 15);
+
+        const accountId = db.prepare(`
+            INSERT INTO accounts (
+                institution_name, account_name, account_type, sub_type,
+                color, opened_on, created_on, modified_on, is_active
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).run(
+            "TestBank", "Checking", "Asset", "checking", "#000000",
+            "2024-01-01", "2024-01-01T00:00:00Z", "2024-01-01T00:00:00Z", 1
+        ).lastInsertRowid as number;
+
+        const transactionId = db.prepare(`
+            INSERT INTO transactions (
+                account_id, transaction_date, transaction_type, amount,
+                classification, is_active, created_on, modified_on
+            ) VALUES (?, ?, 'deposit', 100, 'needs', 1, ?, ?)
+        `).run(
+            accountId,
+            "2024-01-15",
+            "2024-01-15T00:00:00Z",
+            "2024-01-15T00:00:00Z"
+        ).lastInsertRowid as number;
+
+        const assetId = db.prepare(`
+            INSERT INTO portfolio_assets (
+                name, category, type, currency, is_active, created_on, modified_on
+            ) VALUES ('Fund', 'EQUITY', 'MUTUAL_FUND', 'INR', 1, ?, ?)
+        `).run("2024-01-15T00:00:00Z", "2024-01-15T00:00:00Z").lastInsertRowid as number;
+
+        db.prepare(`
+            INSERT INTO portfolio_transactions (
+                portfolio_asset_id, transaction_type, quantity, price_per_unit,
+                currency, transaction_date, asset_account_id, source_account_id,
+                linked_transaction_id, created_on, modified_on
+            ) VALUES (?, 'SELL', 1, 100, 'INR', '2024-01-15', ?, ?, ?, ?, ?)
+        `).run(
+            assetId,
+            accountId,
+            accountId,
+            transactionId,
+            "2024-01-15T00:00:00Z",
+            "2024-01-15T00:00:00Z"
+        );
+
+        new MigrationService(migrationsDir).migrate(db);
+
+        const transaction = db.prepare(
+            "SELECT classification FROM transactions WHERE transaction_id = ?"
+        ).get(transactionId) as { classification: string };
+        const portfolioTransaction = db.prepare(
+            "SELECT linked_transaction_id FROM portfolio_transactions LIMIT 1"
+        ).get() as { linked_transaction_id: number };
+
+        expect(transaction.classification).toBe("income");
+        expect(portfolioTransaction.linked_transaction_id).toBe(transactionId);
+        expect(() => db.prepare(`
+            INSERT INTO transactions (
+                account_id, transaction_date, transaction_type, amount,
+                classification, is_active, created_on, modified_on
+            ) VALUES (?, '2024-02-01', 'deposit', 50, 'needs', 1, ?, ?)
+        `).run(
+            accountId,
+            "2024-02-01T00:00:00Z",
+            "2024-02-01T00:00:00Z"
+        )).toThrow();
     });
 
     it("should seed categories with valid hierarchy", () => {

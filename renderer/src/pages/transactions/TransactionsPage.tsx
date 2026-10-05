@@ -306,6 +306,7 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
             onChange={(e) => handleFilterChange('classification', e.target.value)}
           >
               <option value="">All</option>
+              <option value={Classification.Income}>Income</option>
               <option value={Classification.Needs}>Needs</option>
               <option value={Classification.Wants}>Wants</option>
               <option value={Classification.Unnecessary}>Unnecessary</option>

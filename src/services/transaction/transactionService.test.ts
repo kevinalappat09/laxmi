@@ -47,7 +47,7 @@ describe("TransactionServiceImpl", () => {
                 amount DECIMAL NOT NULL CHECK(amount > 0),
                 category_id INTEGER REFERENCES categories(category_id),
                 classification TEXT NOT NULL CHECK(
-                    classification IN ('needs', 'wants', 'unnecessary', 'wasteful')
+                    classification IN ('income', 'needs', 'wants', 'unnecessary', 'wasteful')
                 ),
                 payee TEXT,
                 note TEXT,
@@ -112,6 +112,7 @@ describe("TransactionServiceImpl", () => {
             expect(created.transaction_id).toBeGreaterThan(0);
             expect(created.account_id).toBe(accountId);
             expect(created.amount).toBe(100.50);
+            expect(created.classification).toBe(Classification.Income);
             expect(created.is_active).toBe(true);
             expect(created.created_on).toBeDefined();
         });
@@ -175,7 +176,7 @@ describe("TransactionServiceImpl", () => {
             );
         });
 
-        test("throws when classification is missing", () => {
+        test("derives income when a deposit classification is missing", () => {
             const request = {
                 account_id: accountId,
                 transaction_date: new Date("2024-03-01"),
@@ -183,8 +184,35 @@ describe("TransactionServiceImpl", () => {
                 amount: 100,
             } as any;
 
+            const created = service.createTransaction(request);
+
+            expect(created.classification).toBe(Classification.Income);
+        });
+
+        test("throws when a withdrawal classification is missing", () => {
+            const request = {
+                account_id: accountId,
+                transaction_date: new Date("2024-03-01"),
+                transaction_type: TransactionType.Withdraw,
+                amount: 100,
+            } as any;
+
             expect(() => service.createTransaction(request)).toThrow(
-                "classification is required"
+                "classification is required for withdrawals"
+            );
+        });
+
+        test("rejects income as a withdrawal classification", () => {
+            const request = {
+                account_id: accountId,
+                transaction_date: new Date("2024-03-01"),
+                transaction_type: TransactionType.Withdraw,
+                amount: 100,
+                classification: Classification.Income,
+            };
+
+            expect(() => service.createTransaction(request)).toThrow(
+                "withdrawals must use an expense classification"
             );
         });
 
@@ -285,6 +313,7 @@ describe("TransactionServiceImpl", () => {
             expect(updated.transaction_id).toBe(transactionId);
             expect(updated.amount).toBe(150);
             expect(updated.note).toBe("updated note");
+            expect(updated.classification).toBe(Classification.Income);
             expect(updated.modified_on).toBeDefined();
         });
 

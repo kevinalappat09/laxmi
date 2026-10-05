@@ -19,7 +19,11 @@ import {
     RecurringTransaction,
     UpdateRecurringTransactionRequest,
 } from "../../types/recurringTransaction";
-import { Classification, TransactionType } from "../../types/transaction";
+import {
+    Classification,
+    TransactionType,
+    resolveTransactionClassification,
+} from "../../types/transaction";
 import { profileSessionService } from "../profileSession/profileSessionService";
 import { TransactionServiceImpl } from "../transaction/transactionService";
 import { SQLiteDatabase } from "../../database/databaseService";
@@ -79,7 +83,12 @@ export class RecurringTransactionServiceImpl
             transaction_type: request.transaction_type,
             amount: request.amount,
             category_id: request.category_id,
-            classification: request.classification ?? null,
+            classification: request.portfolio_asset_id
+                ? null
+                : resolveTransactionClassification(
+                    request.transaction_type,
+                    request.classification
+                ),
             payee: request.payee?.trim() || undefined,
             note: request.note?.trim() || undefined,
             frequency: request.frequency,
@@ -128,18 +137,31 @@ export class RecurringTransactionServiceImpl
                 : undefined
         );
 
+        const resolvedPortfolioAssetId = request.portfolio_asset_id !== undefined
+            ? (request.portfolio_asset_id ?? null)
+            : existing.portfolio_asset_id;
+        const resolvedTransactionType = request.transaction_type ?? existing.transaction_type;
+        const requestedClassification = request.classification !== undefined
+            ? request.classification
+            : existing.transaction_type === resolvedTransactionType
+                ? existing.classification
+                : undefined;
+
         const updated: RecurringTransaction = {
             ...existing,
             account_id: request.account_id !== undefined ? (request.account_id ?? null) : existing.account_id,
-            transaction_type: request.transaction_type ?? existing.transaction_type,
+            transaction_type: resolvedTransactionType,
             amount: request.amount ?? existing.amount,
             category_id:
                 request.category_id !== undefined
                     ? request.category_id
                     : existing.category_id,
-            classification: request.classification !== undefined
-                ? (request.classification ?? null)
-                : existing.classification,
+            classification: resolvedPortfolioAssetId
+                ? null
+                : resolveTransactionClassification(
+                    resolvedTransactionType,
+                    requestedClassification
+                ),
             payee:
                 request.payee !== undefined
                     ? request.payee.trim() || undefined
@@ -153,9 +175,7 @@ export class RecurringTransactionServiceImpl
             start_date: request.start_date ?? existing.start_date,
             is_active: request.is_active ?? existing.is_active,
             modified_on: new Date(),
-            portfolio_asset_id: request.portfolio_asset_id !== undefined
-                ? (request.portfolio_asset_id ?? null)
-                : existing.portfolio_asset_id,
+            portfolio_asset_id: resolvedPortfolioAssetId,
             asset_account_id: request.asset_account_id !== undefined
                 ? (request.asset_account_id ?? null)
                 : existing.asset_account_id,
@@ -498,8 +518,8 @@ export class RecurringTransactionServiceImpl
         if (request.amount <= 0) {
             throw new Error("amount must be greater than 0.");
         }
-        if (!request.portfolio_asset_id && !request.classification) {
-            throw new Error("classification is required for non-portfolio recurring transactions.");
+        if (!request.portfolio_asset_id) {
+            resolveTransactionClassification(request.transaction_type, request.classification);
         }
         if (!request.frequency) {
             throw new Error("frequency is required.");

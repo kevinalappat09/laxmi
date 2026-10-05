@@ -273,7 +273,7 @@ describe("TransactionImportServiceImpl.confirmImport", () => {
             expect.objectContaining({
                 account_id: ACCOUNT_ID,
                 amount: 50,
-                classification: Classification.Needs,
+                classification: Classification.Income,
                 payee: "Tesco",
                 note: "weekly shop",
                 category_id: CATEGORY_ID,
@@ -412,6 +412,27 @@ describe("TransactionImportServiceImpl.confirmImport", () => {
 
         expect(result.successCount).toBe(0);
         expect(result.failedRows[0].reason).toContain("Invalid classification");
+    });
+
+    test("normalizes a legacy expense classification on a deposit to income", async () => {
+        await previewFile("25-03-2026,Salary,100.00,,needs,");
+
+        const result = service.confirmImport({ accountId: ACCOUNT_ID, positiveAreDeposits: true, dateFormat: "DD-MM-YYYY" });
+
+        expect(result.successCount).toBe(1);
+        expect(mockSave).toHaveBeenCalledWith(
+            expect.objectContaining({ classification: Classification.Income })
+        );
+    });
+
+    test("rejects income classification on a withdrawal", async () => {
+        await previewFile("25-03-2026,Expense,-100.00,,income,");
+
+        const result = service.confirmImport({ accountId: ACCOUNT_ID, positiveAreDeposits: true, dateFormat: "DD-MM-YYYY" });
+
+        expect(result.successCount).toBe(0);
+        expect(result.failedRows[0].reason).toContain("expense classification");
+        expect(mockSave).not.toHaveBeenCalled();
     });
 
     test("imports multiple valid rows in a single call", async () => {

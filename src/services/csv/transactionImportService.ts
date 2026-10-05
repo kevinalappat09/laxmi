@@ -6,7 +6,7 @@
 
 import fs from "fs";
 import { dialog } from "electron";
-import { Transaction, TransactionType } from "../../types/transaction";
+import { Classification, Transaction, TransactionType } from "../../types/transaction";
 import {
     CSVImportRequest,
     CSVImportResult,
@@ -124,6 +124,22 @@ export class TransactionImportServiceImpl implements TransactionImportService {
                 const transactionType = this.deriveTransactionType(validation.amount, request.positiveAreDeposits);
                 const absoluteAmount = Math.abs(validation.amount);
 
+                if (
+                    transactionType === TransactionType.Withdraw
+                    && validation.classification === Classification.Income
+                ) {
+                    failedRows.push({
+                        rowNumber: row.rowNumber,
+                        rawLine: row.rawLine,
+                        reason: "Withdrawals must use an expense classification.",
+                    });
+                    continue;
+                }
+
+                const classification = transactionType === TransactionType.Deposit
+                    ? Classification.Income
+                    : validation.classification;
+
                 const now = new Date();
                 const transaction: Transaction = {
                     account_id: request.accountId,
@@ -131,7 +147,7 @@ export class TransactionImportServiceImpl implements TransactionImportService {
                     transaction_type: transactionType,
                     amount: absoluteAmount,
                     category_id: categoryId ?? undefined,
-                    classification: validation.classification,
+                    classification,
                     payee: row.payee || undefined,
                     note: row.note || undefined,
                     is_active: true,

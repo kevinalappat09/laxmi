@@ -32,7 +32,7 @@ transaction_date     TEXT NOT NULL              -- stored as YYYY-MM-DD
 transaction_type     TEXT NOT NULL              -- 'withdraw' | 'deposit' | 'transfer'
 amount               DECIMAL NOT NULL CHECK(amount > 0)
 category_id          INTEGER                    -- FK → categories(category_id), nullable
-classification       TEXT NOT NULL              -- 'needs' | 'wants' | 'unnecessary' | 'wasteful'
+classification       TEXT NOT NULL              -- 'income' | 'needs' | 'wants' | 'unnecessary' | 'wasteful'
 payee                TEXT                       -- nullable (added in migration 4)
 note                 TEXT                       -- nullable
 transfer_account_id  INTEGER                    -- FK → accounts(account_id), nullable
@@ -45,7 +45,7 @@ modified_on          TEXT NOT NULL              -- ISO 8601 timestamp
 
 ```
 TransactionType: withdraw | deposit | transfer
-Classification:  needs | wants | unnecessary | wasteful
+Classification:  income | needs | wants | unnecessary | wasteful
 ```
 
 ### 2.3 `CreateTransactionRequest` (what the service accepts)
@@ -57,7 +57,7 @@ Classification:  needs | wants | unnecessary | wasteful
   transaction_type:    TransactionType  // required
   amount:              number        // required, must be > 0
   category_id?:        number        // optional FK to categories
-  classification:      Classification // required
+  classification?:     Classification // derived for deposits; required for withdrawals
   payee?:              string        // optional
   note?:               string        // optional
   transfer_account_id?: number       // optional, must differ from account_id
@@ -66,7 +66,8 @@ Classification:  needs | wants | unnecessary | wasteful
 
 ### 2.4 Validation rules enforced by `TransactionServiceImpl.createTransaction`
 
-- `account_id`, `transaction_date`, `transaction_type`, `amount`, `classification` are required.
+- `account_id`, `transaction_date`, `transaction_type`, and `amount` are required.
+- Deposits are always classified as `income`; withdrawals require an expense classification.
 - `amount > 0`.
 - Account with `account_id` must exist.
 - If `category_id` is provided, category must exist.
@@ -91,7 +92,7 @@ The CSV file the user exports from their bank / other tools and imports into Lax
 | payee | string | Free text, optional/empty allowed |
 | amount | decimal | Always positive in the file; polarity is determined by `positiveAreDeposits` flag |
 | category | string | Category name — must be matched or created |
-| classification | string | One of: `needs`, `wants`, `unnecessary`, `wasteful` |
+| classification | string | One of: `income`, `needs`, `wants`, `unnecessary`, `wasteful`; legacy expense values on deposits are normalized to `income` |
 | note | string | Free text, optional/empty allowed |
 
 ### Polarity flag (`positiveAreDeposits`)
@@ -271,7 +272,7 @@ All data exchange is synchronous in the main process. better-sqlite3 is fully sy
 | `amount > 0` | The DB has a CHECK constraint; the import must store the absolute value and derive `transaction_type` from sign + flag |
 | Category by name | `categories` table has no unique constraint on `category_name`; the import should do a case-insensitive lookup and pick the first match to avoid duplicates |
 | Date format | CSV uses DD-MM-YYYY; must parse to JS `Date` before passing to service |
-| Classification validation | Must be one of the four allowed enum values; invalid values should fail the row |
+| Classification validation | Must be one of the five enum values. Deposits are normalized to `income`; withdrawals using `income` fail the row. |
 | No transfer support | CSV has no `transfer_account_id` column; all imported transactions are `withdraw` or `deposit` |
 | Account must exist | `account_id` comes from the renderer (user selects the account before triggering import) |
 | Duplicate detection | No deduplication logic planned for v1; same row imported twice creates two transactions |

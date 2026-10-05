@@ -131,6 +131,17 @@ export function RecurringDialog({
     [accounts]
   )
 
+  const handleTransactionTypeChange = (
+    nextType: TransactionType.Withdraw | TransactionType.Deposit
+  ) => {
+    setTransactionType(nextType)
+    if (nextType === TransactionType.Deposit) {
+      setClassification(Classification.Income)
+    } else if (classification === Classification.Income) {
+      setClassification(Classification.Needs)
+    }
+  }
+
   useEffect(() => {
     if (isPortfolioSip && portfolioAssets.length === 0) {
       window.financeAPI.portfolio.asset.list()
@@ -388,7 +399,9 @@ export function RecurringDialog({
                 className="recurring-dialog__field"
                 value={transactionType}
                 onChange={(e) =>
-                  setTransactionType(e.target.value as TransactionType.Withdraw | TransactionType.Deposit)
+                  handleTransactionTypeChange(
+                    e.target.value as TransactionType.Withdraw | TransactionType.Deposit
+                  )
                 }
               >
                 <option value={TransactionType.Withdraw}>Withdraw</option>
@@ -424,18 +437,30 @@ export function RecurringDialog({
                 ))}
               </Select>
 
-              <Select
-                id="recurring-classification"
-                label="Classification"
-                className="recurring-dialog__field"
-                value={classification}
-                onChange={(e) => setClassification(e.target.value as Classification)}
-              >
-                <option value={Classification.Needs}>Needs</option>
-                <option value={Classification.Wants}>Wants</option>
-                <option value={Classification.Unnecessary}>Unnecessary</option>
-                <option value={Classification.Wasteful}>Wasteful</option>
-              </Select>
+              {transactionType === TransactionType.Deposit ? (
+                <Select
+                  id="recurring-classification"
+                  label="Classification"
+                  className="recurring-dialog__field"
+                  value={Classification.Income}
+                  disabled
+                >
+                  <option value={Classification.Income}>Income</option>
+                </Select>
+              ) : (
+                <Select
+                  id="recurring-classification"
+                  label="Classification"
+                  className="recurring-dialog__field"
+                  value={classification}
+                  onChange={(e) => setClassification(e.target.value as Classification)}
+                >
+                  <option value={Classification.Needs}>Needs</option>
+                  <option value={Classification.Wants}>Wants</option>
+                  <option value={Classification.Unnecessary}>Unnecessary</option>
+                  <option value={Classification.Wasteful}>Wasteful</option>
+                </Select>
+              )}
             </>
           )}
 

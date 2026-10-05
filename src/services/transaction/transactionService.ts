@@ -12,6 +12,7 @@ import {
     UpdateTransactionRequest,
     TransactionReportQuery,
     ReportRow,
+    resolveTransactionClassification,
 } from "../../types/transaction";
 import { TransactionRepositoryImpl } from "../../repository/transaction/transactionRepository";
 import { AccountRepositoryImpl } from "../../repository/account/accountRepository";
@@ -39,6 +40,10 @@ export class TransactionServiceImpl implements TransactionService {
         }
 
         this.validateCreateRequest(request, db);
+        const classification = resolveTransactionClassification(
+            request.transaction_type,
+            request.classification
+        );
 
         const now = new Date();
         const transaction: Transaction = {
@@ -47,7 +52,7 @@ export class TransactionServiceImpl implements TransactionService {
             transaction_type: request.transaction_type,
             amount: request.amount,
             category_id: request.category_id,
-            classification: request.classification,
+            classification,
             payee: request.payee,
             note: request.note,
             transfer_account_id: request.transfer_account_id,
@@ -74,14 +79,23 @@ export class TransactionServiceImpl implements TransactionService {
         }
 
         this.validateUpdateRequest(request, existing, db);
+        const transactionType = request.transaction_type ?? existing.transaction_type;
+        const classification = resolveTransactionClassification(
+            transactionType,
+            request.classification ?? (
+                existing.transaction_type === transactionType
+                    ? existing.classification
+                    : undefined
+            )
+        );
 
         const updated: Transaction = {
             ...existing,
             transaction_date: request.transaction_date ?? existing.transaction_date,
-            transaction_type: request.transaction_type ?? existing.transaction_type,
+            transaction_type: transactionType,
             amount: request.amount ?? existing.amount,
             category_id: request.category_id ?? existing.category_id,
-            classification: request.classification ?? existing.classification,
+            classification,
             payee: request.payee !== undefined ? request.payee : existing.payee,
             note: request.note ?? existing.note,
             transfer_account_id: request.transfer_account_id ?? existing.transfer_account_id,
@@ -179,10 +193,6 @@ export class TransactionServiceImpl implements TransactionService {
         if (request.amount <= 0) {
             throw new Error("amount must be greater than 0.");
         }
-        if (!request.classification) {
-            throw new Error("classification is required.");
-        }
-
         this.validateAccountExists(request.account_id, db);
 
         if (request.category_id !== undefined && request.category_id !== null) {
@@ -234,4 +244,5 @@ export class TransactionServiceImpl implements TransactionService {
             throw new Error(`Category with ID ${categoryId} does not exist.`);
         }
     }
+
 }

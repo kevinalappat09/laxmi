@@ -371,5 +371,26 @@ describe("RecurringTransactionServiceImpl — Portfolio SIP", () => {
             expect(ptRows).toHaveLength(0);
 
         });
+
+        test("regular recurring deposit is stored and materialized as income", async () => {
+            const recurring = service.createRecurringTransaction({
+                account_id: bankAccountId,
+                transaction_type: TransactionType.Deposit,
+                amount: 5000,
+                classification: Classification.Needs,
+                payee: "Employer",
+                frequency: RecurringFrequency.Monthly,
+                day_of_month: 1,
+                start_date: new Date("2024-01-01"),
+            });
+
+            expect(recurring.classification).toBe(Classification.Income);
+
+            await service.processRecurringTransactions(new Date("2024-01-02"));
+
+            const transaction = db.prepare("SELECT * FROM transactions LIMIT 1").get() as any;
+            expect(transaction.transaction_type).toBe("deposit");
+            expect(transaction.classification).toBe("income");
+        });
     });
 });

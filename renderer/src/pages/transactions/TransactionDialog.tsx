@@ -66,6 +66,15 @@ export function TransactionDialog({
     [categories, categoryPathMap]
   )
 
+  const handleTransactionTypeChange = (nextType: TransactionType) => {
+    setTransactionType(nextType)
+    if (nextType === TransactionType.Deposit) {
+      setClassification(Classification.Income)
+    } else if (classification === Classification.Income) {
+      setClassification(Classification.Needs)
+    }
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -185,7 +194,7 @@ export function TransactionDialog({
             label="Type"
             className="transaction-dialog__field"
             value={transactionType}
-            onChange={(e) => setTransactionType(e.target.value as TransactionType)}
+            onChange={(e) => handleTransactionTypeChange(e.target.value as TransactionType)}
           >
             <option value={TransactionType.Withdraw}>Withdraw</option>
             <option value={TransactionType.Deposit}>Deposit</option>
@@ -244,18 +253,30 @@ export function TransactionDialog({
                 ))}
               </Select>
 
-              <Select
-                id="tx-classification"
-                label="Classification"
-                className="transaction-dialog__field"
-                value={classification}
-                onChange={(e) => setClassification(e.target.value as Classification)}
-              >
-                <option value={Classification.Needs}>Needs</option>
-                <option value={Classification.Wants}>Wants</option>
-                <option value={Classification.Unnecessary}>Unnecessary</option>
-                <option value={Classification.Wasteful}>Wasteful</option>
-              </Select>
+              {transactionType === TransactionType.Deposit ? (
+                <Select
+                  id="tx-classification"
+                  label="Classification"
+                  className="transaction-dialog__field"
+                  value={Classification.Income}
+                  disabled
+                >
+                  <option value={Classification.Income}>Income</option>
+                </Select>
+              ) : (
+                <Select
+                  id="tx-classification"
+                  label="Classification"
+                  className="transaction-dialog__field"
+                  value={classification}
+                  onChange={(e) => setClassification(e.target.value as Classification)}
+                >
+                  <option value={Classification.Needs}>Needs</option>
+                  <option value={Classification.Wants}>Wants</option>
+                  <option value={Classification.Unnecessary}>Unnecessary</option>
+                  <option value={Classification.Wasteful}>Wasteful</option>
+                </Select>
+              )}
             </>
           )}
 

@@ -82,7 +82,7 @@ export class CSVParser {
         if (!classification) {
             return {
                 ok: false,
-                error: `Invalid classification "${row.classification}" — must be one of: needs, wants, unnecessary, wasteful.`,
+                error: `Invalid classification "${row.classification}" — must be one of: income, needs, wants, unnecessary, wasteful.`,
             };
         }
 
@@ -197,6 +197,7 @@ export class CSVParser {
     private parseClassification(raw: string): Classification | null {
         const normalised = raw.trim().toLowerCase();
         const valid: Classification[] = [
+            Classification.Income,
             Classification.Needs,
             Classification.Wants,
             Classification.Unnecessary,
