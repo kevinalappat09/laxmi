@@ -88,6 +88,12 @@ describe("CategoryServiceImpl", () => {
             );
         });
 
+        test("throws when category_name contains the path separator", () => {
+            expect(() => service.createCategory({ category_name: "Food:Groceries" })).toThrow(
+                'category_name cannot contain ":"'
+            );
+        });
+
         test("throws for non-existent parent category", () => {
             const request = {
                 category_name: "Test",
@@ -157,6 +163,12 @@ describe("CategoryServiceImpl", () => {
 
             expect(() => service.updateCategory(categoryId, request)).toThrow(
                 "category_name cannot be empty"
+            );
+        });
+
+        test("throws when updated category_name contains the path separator", () => {
+            expect(() => service.updateCategory(categoryId, { category_name: "Food:Groceries" })).toThrow(
+                'category_name cannot contain ":"'
             );
         });
 

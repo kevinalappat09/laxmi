@@ -15,10 +15,47 @@ export enum TransactionType {
 }
 
 export enum Classification {
+    Income = "income",
     Needs = "needs",
     Wants = "wants",
     Unnecessary = "unnecessary",
     Wasteful = "wasteful",
+}
+
+export const EXPENSE_CLASSIFICATIONS: readonly Classification[] = [
+    Classification.Needs,
+    Classification.Wants,
+    Classification.Unnecessary,
+    Classification.Wasteful,
+];
+
+export function isExpenseClassification(
+    classification: Classification | undefined | null
+): classification is Classification {
+    return classification !== undefined
+        && classification !== null
+        && EXPENSE_CLASSIFICATIONS.includes(classification);
+}
+
+export function resolveTransactionClassification(
+    transactionType: TransactionType,
+    classification?: Classification | null
+): Classification {
+    if (transactionType === TransactionType.Deposit) {
+        return Classification.Income;
+    }
+
+    if (transactionType === TransactionType.Withdraw) {
+        if (!classification) {
+            throw new Error("classification is required for withdrawals.");
+        }
+        if (!isExpenseClassification(classification)) {
+            throw new Error("withdrawals must use an expense classification.");
+        }
+        return classification;
+    }
+
+    return classification ?? Classification.Needs;
 }
 
 export enum GroupByField {
@@ -89,7 +126,8 @@ export interface CreateTransactionRequest {
     transaction_type: TransactionType;
     amount: number;
     category_id?: number;
-    classification: Classification;
+    /** Derived as Income for deposits; required for withdrawals. */
+    classification?: Classification;
     payee?: string;
     note?: string;
     transfer_account_id?: number;

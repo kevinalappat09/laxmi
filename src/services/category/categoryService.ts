@@ -7,6 +7,7 @@
 import { Category, CreateCategoryRequest, UpdateCategoryRequest } from "../../types/category";
 import { CategoryRepositoryImpl } from "../../repository/category/categoryRepository";
 import { profileSessionService } from "../profileSession/profileSessionService";
+import { CATEGORY_PATH_SEPARATOR } from "../../utils/categoryPaths";
 
 export interface CategoryService {
     createCategory(request: CreateCategoryRequest): Category;
@@ -155,6 +156,8 @@ export class CategoryServiceImpl implements CategoryService {
             throw new Error("category_name is required and cannot be empty.");
         }
 
+        this.validateCategoryName(request.category_name);
+
         if (request.parent_category_id !== undefined && request.parent_category_id !== null) {
             this.validateParentCategoryExists(request.parent_category_id, db);
         }
@@ -163,6 +166,10 @@ export class CategoryServiceImpl implements CategoryService {
     private validateUpdateRequest(categoryId: number, request: UpdateCategoryRequest, db: any): void {
         if (request.category_name !== undefined && request.category_name.trim().length === 0) {
             throw new Error("category_name cannot be empty.");
+        }
+
+        if (request.category_name !== undefined) {
+            this.validateCategoryName(request.category_name);
         }
 
         if (request.parent_category_id !== undefined && request.parent_category_id !== null) {
@@ -178,6 +185,12 @@ export class CategoryServiceImpl implements CategoryService {
         const parentCategory = repository.findById(parentId);
         if (!parentCategory) {
             throw new Error(`Parent category with ID ${parentId} does not exist.`);
+        }
+    }
+
+    private validateCategoryName(categoryName: string): void {
+        if (categoryName.includes(CATEGORY_PATH_SEPARATOR)) {
+            throw new Error(`category_name cannot contain "${CATEGORY_PATH_SEPARATOR}".`);
         }
     }
 }

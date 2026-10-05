@@ -13,7 +13,11 @@ import {
     CreateBudgetRequest,
     UpdateBudgetRequest,
 } from "../../types/budget";
-import { Classification, TransactionType } from "../../types/transaction";
+import {
+    Classification,
+    TransactionType,
+    isExpenseClassification,
+} from "../../types/transaction";
 import { profileSessionService } from "../profileSession/profileSessionService";
 
 const BUDGET_TYPE = {
@@ -248,7 +252,7 @@ export class BudgetServiceImpl implements BudgetService {
                     "classification is required for classification budgets."
                 );
             }
-            if (!Object.values(Classification).includes(classification)) {
+            if (!isExpenseClassification(classification)) {
                 throw new Error(`Unsupported classification value: ${classification}`);
             }
             return { classification };

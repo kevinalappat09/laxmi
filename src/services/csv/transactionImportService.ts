@@ -6,7 +6,7 @@
 
 import fs from "fs";
 import { dialog } from "electron";
-import { Transaction, TransactionType } from "../../types/transaction";
+import { Classification, Transaction, TransactionType } from "../../types/transaction";
 import {
     CSVImportRequest,
     CSVImportResult,
@@ -19,6 +19,7 @@ import { CategoryServiceImpl } from "../category/categoryService";
 import { profileSessionService } from "../profileSession/profileSessionService";
 import { CSVParser } from "./csvParser";
 import { MAX_CSV_FILE_BYTES, PREVIEW_ROW_COUNT } from "./csvLimits";
+import { buildCategoryPathLookup } from "../../utils/categoryPaths";
 
 export interface TransactionImportService {
     openAndPreview(): Promise<CSVPreviewResult>;
@@ -96,7 +97,9 @@ export class TransactionImportServiceImpl implements TransactionImportService {
             throw new Error("No active database connection. Open a profile first.");
         }
 
-        const categoryNameMap = this.categoryService.getCategoryNameMap();
+        const categoryPathLookup = buildCategoryPathLookup(
+            this.categoryService.listActiveCategories()
+        );
         const repository = new TransactionRepositoryImpl(db);
         const rows = this.pendingRows;
         const emptyLineCount = this.pendingEmptyCount;
@@ -113,13 +116,29 @@ export class TransactionImportServiceImpl implements TransactionImportService {
                     continue;
                 }
 
-                const categoryId = this.resolveCategoryId(row.category, categoryNameMap, row, failedRows);
+                const categoryId = this.resolveCategoryId(row.category, categoryPathLookup, row, failedRows);
                 if (categoryId === false) {
                     continue;
                 }
 
                 const transactionType = this.deriveTransactionType(validation.amount, request.positiveAreDeposits);
                 const absoluteAmount = Math.abs(validation.amount);
+
+                if (
+                    transactionType === TransactionType.Withdraw
+                    && validation.classification === Classification.Income
+                ) {
+                    failedRows.push({
+                        rowNumber: row.rowNumber,
+                        rawLine: row.rawLine,
+                        reason: "Withdrawals must use an expense classification.",
+                    });
+                    continue;
+                }
+
+                const classification = transactionType === TransactionType.Deposit
+                    ? Classification.Income
+                    : validation.classification;
 
                 const now = new Date();
                 const transaction: Transaction = {
@@ -128,7 +147,7 @@ export class TransactionImportServiceImpl implements TransactionImportService {
                     transaction_type: transactionType,
                     amount: absoluteAmount,
                     category_id: categoryId ?? undefined,
-                    classification: validation.classification,
+                    classification,
                     payee: row.payee || undefined,
                     note: row.note || undefined,
                     is_active: true,
@@ -164,7 +183,7 @@ export class TransactionImportServiceImpl implements TransactionImportService {
             failedRows.push({
                 rowNumber: row.rowNumber,
                 rawLine: row.rawLine,
-                reason: `Unknown category "${categoryName}". Create the category first or leave the field blank.`,
+                reason: `Unknown category path "${categoryName}". Use the full Parent:Child path, create the category first, or leave the field blank.`,
             });
             return false;
         }

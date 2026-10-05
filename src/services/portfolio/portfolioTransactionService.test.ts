@@ -140,6 +140,7 @@ describe("PortfolioTransactionServiceImpl", () => {
             const laxmiTxns = db.prepare(`SELECT * FROM transactions`).all() as any[];
             expect(laxmiTxns).toHaveLength(1);
             expect(laxmiTxns[0].transaction_type).toBe("deposit");
+            expect(laxmiTxns[0].classification).toBe("income");
         });
 
         test("DIVIDEND cash with sourceAccountId: creates deposit on Laxmi account", () => {
@@ -157,6 +158,7 @@ describe("PortfolioTransactionServiceImpl", () => {
             const laxmiTxns = db.prepare(`SELECT * FROM transactions`).all() as any[];
             expect(laxmiTxns).toHaveLength(1);
             expect(laxmiTxns[0].transaction_type).toBe("deposit");
+            expect(laxmiTxns[0].classification).toBe("income");
         });
 
         test("DIVIDEND reinvestment: no Laxmi transaction created", () => {

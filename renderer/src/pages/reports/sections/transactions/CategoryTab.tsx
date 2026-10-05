@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import type { Category } from '../../../../../../src/types/category'
 import { TransactionType, type Transaction } from '../../../../../../src/types/transaction'
+import { buildCategoryPathMap } from '../../../../../../src/utils/categoryPaths'
 import { Button } from '../../../../components/ui/Button'
 import { Select } from '../../../../components/ui/Input'
 import { MultiSelectDropdown } from '../../../../components/ui/MultiSelectDropdown'
@@ -53,6 +54,7 @@ export function CategoryTab({ transactions, categories, fromDate, toDate }: Cate
     () => categories.filter((category): category is Category & { category_id: number } => category.category_id !== undefined),
     [categories]
   )
+  const categoryPathMap = useMemo(() => buildCategoryPathMap(categories), [categories])
 
   const childrenByParent = useMemo(() => {
     const map = new Map<number, number[]>()
@@ -77,9 +79,10 @@ export function CategoryTab({ transactions, categories, fromDate, toDate }: Cate
         .filter((category) => childrenByParent.has(category.category_id))
         .map((category) => ({
           value: String(category.category_id),
-          label: category.category_name,
-        })),
-    [categoriesWithId, childrenByParent]
+          label: categoryPathMap.get(category.category_id) ?? category.category_name,
+        }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    [categoriesWithId, categoryPathMap, childrenByParent]
   )
 
   const scopedLeafCategories = useMemo(() => {
@@ -93,9 +96,9 @@ export function CategoryTab({ transactions, categories, fromDate, toDate }: Cate
     () =>
       scopedLeafCategories.map((category) => ({
         value: String(category.category_id),
-        label: category.category_name,
-      })),
-    [scopedLeafCategories]
+        label: categoryPathMap.get(category.category_id) ?? category.category_name,
+      })).sort((a, b) => a.label.localeCompare(b.label)),
+    [categoryPathMap, scopedLeafCategories]
   )
 
   const allowedLeafIdSet = useMemo(() => {
@@ -105,8 +108,11 @@ export function CategoryTab({ transactions, categories, fromDate, toDate }: Cate
   }, [scopedLeafCategories, selectedLeafIds])
 
   const leafNameById = useMemo(
-    () => new Map(leafCategories.map((category) => [category.category_id, category.category_name])),
-    [leafCategories]
+    () => new Map(leafCategories.map((category) => [
+      category.category_id,
+      categoryPathMap.get(category.category_id) ?? category.category_name,
+    ])),
+    [categoryPathMap, leafCategories]
   )
 
   const resolveLeafName = useMemo(

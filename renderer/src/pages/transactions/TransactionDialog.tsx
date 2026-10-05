@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import type { Account } from '../../../../src/types/account'
 import type { Category } from '../../../../src/types/category'
 import type { Transaction, CreateTransactionRequest, UpdateTransactionRequest } from '../../../../src/types/transaction'
 import { TransactionType, Classification } from '../../../../src/types/transaction'
+import { buildCategoryPathMap } from '../../../../src/utils/categoryPaths'
 import { Button } from '../../components/ui/Button'
 import { Dialog } from '../../components/ui/Dialog'
 import { Input, Select } from '../../components/ui/Input'
@@ -55,6 +56,24 @@ export function TransactionDialog({
   const [note, setNote] = useState(transaction?.note ?? '')
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const categoryPathMap = useMemo(() => buildCategoryPathMap(categories), [categories])
+  const categoryOptions = useMemo(
+    () => [...categories].sort((a, b) => {
+      const aPath = a.category_id === undefined ? a.category_name : categoryPathMap.get(a.category_id) ?? a.category_name
+      const bPath = b.category_id === undefined ? b.category_name : categoryPathMap.get(b.category_id) ?? b.category_name
+      return aPath.localeCompare(bPath)
+    }),
+    [categories, categoryPathMap]
+  )
+
+  const handleTransactionTypeChange = (nextType: TransactionType) => {
+    setTransactionType(nextType)
+    if (nextType === TransactionType.Deposit) {
+      setClassification(Classification.Income)
+    } else if (classification === Classification.Income) {
+      setClassification(Classification.Needs)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -175,7 +194,7 @@ export function TransactionDialog({
             label="Type"
             className="transaction-dialog__field"
             value={transactionType}
-            onChange={(e) => setTransactionType(e.target.value as TransactionType)}
+            onChange={(e) => handleTransactionTypeChange(e.target.value as TransactionType)}
           >
             <option value={TransactionType.Withdraw}>Withdraw</option>
             <option value={TransactionType.Deposit}>Deposit</option>
@@ -225,25 +244,39 @@ export function TransactionDialog({
                 onChange={(e) => setCategoryId(e.target.value)}
               >
                 <option value="">No category</option>
-                {categories.map((c) => (
+                {categoryOptions.map((c) => (
                   <option key={c.category_id} value={c.category_id}>
-                    {c.category_name}
+                    {c.category_id === undefined
+                      ? c.category_name
+                      : categoryPathMap.get(c.category_id) ?? c.category_name}
                   </option>
                 ))}
               </Select>
 
-              <Select
-                id="tx-classification"
-                label="Classification"
-                className="transaction-dialog__field"
-                value={classification}
-                onChange={(e) => setClassification(e.target.value as Classification)}
-              >
-                <option value={Classification.Needs}>Needs</option>
-                <option value={Classification.Wants}>Wants</option>
-                <option value={Classification.Unnecessary}>Unnecessary</option>
-                <option value={Classification.Wasteful}>Wasteful</option>
-              </Select>
+              {transactionType === TransactionType.Deposit ? (
+                <Select
+                  id="tx-classification"
+                  label="Classification"
+                  className="transaction-dialog__field"
+                  value={Classification.Income}
+                  disabled
+                >
+                  <option value={Classification.Income}>Income</option>
+                </Select>
+              ) : (
+                <Select
+                  id="tx-classification"
+                  label="Classification"
+                  className="transaction-dialog__field"
+                  value={classification}
+                  onChange={(e) => setClassification(e.target.value as Classification)}
+                >
+                  <option value={Classification.Needs}>Needs</option>
+                  <option value={Classification.Wants}>Wants</option>
+                  <option value={Classification.Unnecessary}>Unnecessary</option>
+                  <option value={Classification.Wasteful}>Wasteful</option>
+                </Select>
+              )}
             </>
           )}
 

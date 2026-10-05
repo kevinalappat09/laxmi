@@ -353,6 +353,20 @@ describe("CSVParser", () => {
 
             expect(csv).toContain("wasteful");
         });
+
+        test("includes the full category path when a transaction has a category", () => {
+            const tx = makeTransaction({ category_id: 42 });
+            const csv = parser.serialise([tx], true, new Map([[42, "Food:Groceries"]]));
+
+            expect(csv.split(",")[3]).toBe("Food:Groceries");
+        });
+
+        test("leaves the category field blank when its path cannot be resolved", () => {
+            const tx = makeTransaction({ category_id: 42 });
+            const csv = parser.serialise([tx], true);
+
+            expect(csv.split(",")[3]).toBe("");
+        });
     });
 
     /* ------------------------------------------------------------------ */
@@ -380,6 +394,12 @@ describe("CSVParser", () => {
             const valid = ["needs", "wants", "unnecessary", "wasteful"];
 
             expect(valid).toContain(classificationField);
+        });
+
+        test("uses a full nested category path in the example", () => {
+            const template = parser.generateTemplate();
+
+            expect(template.split(",")[3]).toBe("Food:Groceries");
         });
     });
 });

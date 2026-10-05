@@ -25,6 +25,8 @@ import { profileSessionService } from "../profileSession/profileSessionService";
 import { CategoryServiceImpl } from "../category/categoryService";
 import { TransactionRepositoryImpl } from "../../repository/transaction/transactionRepository";
 import { TransactionType, Classification } from "../../types/transaction";
+import { Category } from "../../types/category";
+import { CSVParser } from "./csvParser";
 
 const mockDialog = dialog as jest.Mocked<typeof dialog>;
 const mockFs = fs as jest.Mocked<typeof fs>;
@@ -41,6 +43,18 @@ const VALID_ROW = "25-03-2026,Tesco,50.00,Food,needs,weekly shop";
 
 const CATEGORY_ID = 42;
 const ACCOUNT_ID = 1;
+
+function category(categoryId: number, categoryName: string, parentCategoryId?: number): Category {
+    const now = new Date("2026-01-01T00:00:00.000Z");
+    return {
+        category_id: categoryId,
+        category_name: categoryName,
+        parent_category_id: parentCategoryId,
+        is_active: true,
+        created_on: now,
+        modified_on: now,
+    };
+}
 
 function makeMockDb(): any {
     return {
@@ -158,7 +172,7 @@ describe("TransactionImportServiceImpl.confirmImport", () => {
     beforeEach(() => {
         mockSave = jest.fn();
         (CategoryServiceImpl as jest.Mock).mockImplementation(() => ({
-            getCategoryNameMap: () => new Map([["food", CATEGORY_ID]]),
+            listActiveCategories: () => [category(CATEGORY_ID, "Food")],
         }));
         (TransactionRepositoryImpl as jest.Mock).mockImplementation(() => ({
             save: mockSave,
@@ -259,7 +273,7 @@ describe("TransactionImportServiceImpl.confirmImport", () => {
             expect.objectContaining({
                 account_id: ACCOUNT_ID,
                 amount: 50,
-                classification: Classification.Needs,
+                classification: Classification.Income,
                 payee: "Tesco",
                 note: "weekly shop",
                 category_id: CATEGORY_ID,
@@ -273,6 +287,74 @@ describe("TransactionImportServiceImpl.confirmImport", () => {
 
         service.confirmImport({ accountId: ACCOUNT_ID, positiveAreDeposits: true, dateFormat: "DD-MM-YYYY" });
 
+        expect(mockSave).toHaveBeenCalledWith(
+            expect.objectContaining({ category_id: CATEGORY_ID })
+        );
+    });
+
+    test("resolves a nested category by its case-insensitive full path", async () => {
+        (CategoryServiceImpl as jest.Mock).mockImplementation(() => ({
+            listActiveCategories: () => [
+                category(1, "Food"),
+                category(CATEGORY_ID, "Groceries", 1),
+            ],
+        }));
+        service = new TransactionImportServiceImpl();
+        await previewFile("25-03-2026,Test,50.00,FOOD:GROCERIES,needs,");
+
+        service.confirmImport({ accountId: ACCOUNT_ID, positiveAreDeposits: true, dateFormat: "DD-MM-YYYY" });
+
+        expect(mockSave).toHaveBeenCalledWith(
+            expect.objectContaining({ category_id: CATEGORY_ID })
+        );
+    });
+
+    test("rejects a child-only category name when the category is nested", async () => {
+        (CategoryServiceImpl as jest.Mock).mockImplementation(() => ({
+            listActiveCategories: () => [
+                category(1, "Food"),
+                category(CATEGORY_ID, "Groceries", 1),
+            ],
+        }));
+        service = new TransactionImportServiceImpl();
+        await previewFile("25-03-2026,Test,50.00,Groceries,needs,");
+
+        const result = service.confirmImport({ accountId: ACCOUNT_ID, positiveAreDeposits: true, dateFormat: "DD-MM-YYYY" });
+
+        expect(result.successCount).toBe(0);
+        expect(result.failedRows[0].reason).toContain("full Parent:Child path");
+        expect(mockSave).not.toHaveBeenCalled();
+    });
+
+    test("round-trips an exported nested category path through import", async () => {
+        (CategoryServiceImpl as jest.Mock).mockImplementation(() => ({
+            listActiveCategories: () => [
+                category(1, "Food"),
+                category(CATEGORY_ID, "Groceries", 1),
+            ],
+        }));
+        service = new TransactionImportServiceImpl();
+        const now = new Date("2026-03-25T00:00:00.000Z");
+        const csv = new CSVParser().serialise([{
+            account_id: ACCOUNT_ID,
+            transaction_date: now,
+            transaction_type: TransactionType.Withdraw,
+            amount: 50,
+            category_id: CATEGORY_ID,
+            classification: Classification.Needs,
+            is_active: true,
+            created_on: now,
+            modified_on: now,
+        }], true, new Map([[CATEGORY_ID, "Food:Groceries"]]));
+        await previewFile(csv);
+
+        const result = service.confirmImport({
+            accountId: ACCOUNT_ID,
+            positiveAreDeposits: true,
+            dateFormat: "DD-MM-YYYY",
+        });
+
+        expect(result.successCount).toBe(1);
         expect(mockSave).toHaveBeenCalledWith(
             expect.objectContaining({ category_id: CATEGORY_ID })
         );
@@ -330,6 +412,27 @@ describe("TransactionImportServiceImpl.confirmImport", () => {
 
         expect(result.successCount).toBe(0);
         expect(result.failedRows[0].reason).toContain("Invalid classification");
+    });
+
+    test("normalizes a legacy expense classification on a deposit to income", async () => {
+        await previewFile("25-03-2026,Salary,100.00,,needs,");
+
+        const result = service.confirmImport({ accountId: ACCOUNT_ID, positiveAreDeposits: true, dateFormat: "DD-MM-YYYY" });
+
+        expect(result.successCount).toBe(1);
+        expect(mockSave).toHaveBeenCalledWith(
+            expect.objectContaining({ classification: Classification.Income })
+        );
+    });
+
+    test("rejects income classification on a withdrawal", async () => {
+        await previewFile("25-03-2026,Expense,-100.00,,income,");
+
+        const result = service.confirmImport({ accountId: ACCOUNT_ID, positiveAreDeposits: true, dateFormat: "DD-MM-YYYY" });
+
+        expect(result.successCount).toBe(0);
+        expect(result.failedRows[0].reason).toContain("expense classification");
+        expect(mockSave).not.toHaveBeenCalled();
     });
 
     test("imports multiple valid rows in a single call", async () => {

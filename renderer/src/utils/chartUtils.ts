@@ -405,6 +405,7 @@ export function collapsePivotToTopN(pivot: PivotResult, limit: number = TOP_N_SE
 }
 
 export const CLASSIFICATION_OPTIONS: Classification[] = [
+  Classification.Income,
   Classification.Needs,
   Classification.Wants,
   Classification.Unnecessary,
