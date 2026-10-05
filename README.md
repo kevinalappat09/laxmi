@@ -35,14 +35,14 @@ npm run dist:linux
 Run the AppImage directly:
 
 ```bash
-chmod +x releases/Laxmi-1.1.0-x64.AppImage
-./releases/Laxmi-1.1.0-x64.AppImage
+chmod +x releases/Laxmi-1.2.0-x64.AppImage
+./releases/Laxmi-1.2.0-x64.AppImage
 ```
 
 Or install the Debian package, then launch **Laxmi** from the application menu:
 
 ```bash
-sudo apt install ./releases/Laxmi-1.1.0-x64.deb
+sudo apt install ./releases/Laxmi-1.2.0-x64.deb
 ```
 
 **Windows** (installer):
@@ -51,7 +51,7 @@ sudo apt install ./releases/Laxmi-1.1.0-x64.deb
 npm run dist:win
 ```
 
-Run `releases/Laxmi-Setup-1.1.0.exe`. The installer lets you choose a directory and adds Desktop and Start menu shortcuts. Open **Laxmi** from either shortcut.
+Run `releases/Laxmi-Setup-1.2.0.exe`. The installer lets you choose a directory and adds Desktop and Start menu shortcuts. Open **Laxmi** from either shortcut.
 
 The examples above use the latest published installer version. Local builds use the `version` field in `package.json` in their file names.
 
@@ -59,13 +59,13 @@ The examples above use the latest published installer version. Local builds use 
 
 Published installers are attached to [GitHub Releases](https://github.com/kevinalappat09/laxmi/releases). The local `releases/` directory is not committed.
 
-Set `version` in `package.json` and commit that change. Patch builds such as `1.1.1` and `1.1.2` are not tagged or published. Only designated major releases receive a matching tag and published installers.
+Set `version` in `package.json` and commit that change. Intermediate patch builds such as `1.1.1`, `1.1.2`, and `1.1.3` are not tagged or published. Only designated releases receive a matching tag and published installers.
 
 To publish an installer, tag the commit you want to ship and push that tag:
 
 ```bash
-git tag v1.1.0
-git push origin v1.1.0
+git tag v1.2.0
+git push origin v1.2.0
 ```
 
 The Release workflow builds the Linux AppImage and `.deb` and the Windows installer, then publishes them on that tag. The tag must match `version` in `package.json`.
