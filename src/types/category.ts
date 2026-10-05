@@ -28,6 +28,6 @@ export interface CreateCategoryRequest {
 
 export interface UpdateCategoryRequest {
     category_name?: string;
-    parent_category_id?: number;
+    parent_category_id?: number | null;
     is_active?: boolean;
 }

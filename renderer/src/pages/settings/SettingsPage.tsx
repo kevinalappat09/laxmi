@@ -1,4 +1,5 @@
 import { Card } from '../../components/ui/Card'
+import { CategorySettings } from './CategorySettings'
 import './SettingsPage.css'
 
 export type Appearance = 'solid' | 'glass'
@@ -82,8 +83,17 @@ export function SettingsPage({
     <div className="settings-page">
       <header className="settings-page__header">
         <h1>Settings</h1>
-        <p>Customize how Laxmi looks on this device.</p>
+        <p>Manage your categories and customize how Laxmi looks on this device.</p>
       </header>
+
+      <Card className="settings-page__section">
+        <div className="settings-page__section-heading">
+          <h2>Categories</h2>
+          <p>Create nested categories or update the categories used throughout Laxmi.</p>
+        </div>
+
+        <CategorySettings />
+      </Card>
 
       <Card className="settings-page__section">
         <div className="settings-page__section-heading">
