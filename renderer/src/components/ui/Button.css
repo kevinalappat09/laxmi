@@ -36,13 +36,17 @@
   justify-content: center;
 }
 
-.ui-button--variant-primary {
-  background: var(--gradient-accent);
+.ui-button--variant-primary,
+.ui-button--variant-pill {
+  background: var(--color-accent);
   color: var(--color-accent-fg);
+  border-radius: var(--radius-buttons-pill);
+  padding: 7px 16px;
 }
 
-.ui-button--variant-primary:hover:not(:disabled) {
-  background-color: var(--color-accent-hover);
+.ui-button--variant-primary:hover:not(:disabled),
+.ui-button--variant-pill:hover:not(:disabled) {
+  background: var(--color-accent-hover);
 }
 
 .ui-button--variant-secondary {
@@ -81,17 +85,6 @@
 .ui-button--variant-icon:hover:not(:disabled) {
   background-color: var(--color-bg-hover);
   color: var(--color-text-primary);
-}
-
-.ui-button--variant-pill {
-  background-color: var(--color-accent);
-  color: var(--color-accent-fg);
-  border-radius: var(--radius-buttons-pill);
-  padding: 7px 16px;
-}
-
-.ui-button--variant-pill:hover:not(:disabled) {
-  background-color: var(--color-accent-hover);
 }
 
 .ui-button--variant-ghost {
