@@ -1,58 +1,36 @@
-import { useEffect, useRef, type ReactNode } from 'react'
+import * as DialogPrimitive from '@radix-ui/react-dialog'
+import type { ReactNode } from 'react'
 import { Button } from './Button'
 import './Dialog.css'
 
 interface DialogProps {
-  isOpen: boolean
+  open: boolean
   title: string
-  onClose: () => void
+  onOpenChange: (open: boolean) => void
   children: ReactNode
   className?: string
   panelClassName?: string
   bodyClassName?: string
+  showHeader?: boolean
 }
 
-export function Dialog({
-  isOpen,
-  title,
-  onClose,
-  children,
-  className = '',
-  panelClassName = '',
-  bodyClassName = ''
-}: DialogProps) {
-  const dialogRef = useRef<HTMLDialogElement>(null)
-
-  useEffect(() => {
-    const dialog = dialogRef.current
-    if (!dialog) return
-    if (isOpen && !dialog.open) {
-      dialog.showModal()
-    }
-    if (!isOpen && dialog.open) {
-      dialog.close()
-    }
-  }, [isOpen])
-
-  if (!isOpen) return null
-
+export function Dialog({ open, title, onOpenChange, children, className = '', panelClassName = '', bodyClassName = '', showHeader = true }: DialogProps) {
   return (
-    <dialog
-      ref={dialogRef}
-      className={`ui-dialog ${className}`.trim()}
-      onClick={(event) => {
-        if (event.target === dialogRef.current) onClose()
-      }}
-    >
-      <div className={`ui-dialog__panel ${panelClassName}`.trim()}>
-        <header className="ui-dialog__header">
-          <h2>{title}</h2>
-          <Button type="button" variant="icon" size="icon" onClick={onClose} aria-label="Close dialog">
-            ×
-          </Button>
-        </header>
-        <div className={`ui-dialog__body ${bodyClassName}`.trim()}>{children}</div>
-      </div>
-    </dialog>
+    <DialogPrimitive.Root open={open} onOpenChange={onOpenChange}>
+      <DialogPrimitive.Portal>
+        <DialogPrimitive.Overlay className="ui-dialog__overlay" />
+        <DialogPrimitive.Content className={`ui-dialog__panel ${className} ${panelClassName}`.trim()}>
+          {showHeader ? (
+            <header className="ui-dialog__header">
+              <DialogPrimitive.Title>{title}</DialogPrimitive.Title>
+              <DialogPrimitive.Close asChild>
+                <Button type="button" variant="icon" size="icon" aria-label="Close dialog">×</Button>
+              </DialogPrimitive.Close>
+            </header>
+          ) : <DialogPrimitive.Title className="ui-visually-hidden">{title}</DialogPrimitive.Title>}
+          <div className={`ui-dialog__body ${bodyClassName}`.trim()}>{children}</div>
+        </DialogPrimitive.Content>
+      </DialogPrimitive.Portal>
+    </DialogPrimitive.Root>
   )
 }

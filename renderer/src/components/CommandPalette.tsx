@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Account } from '../../../src/types/account'
-import { Card } from './ui/Card'
+import { Dialog } from './ui/Dialog'
+import { Input } from './ui/Input'
 import type { Page } from '../types/navigation'
 import './CommandPalette.css'
 
@@ -71,7 +72,6 @@ export function CommandPalette({ isOpen, onClose, onAction }: CommandPaletteProp
   const [query, setQuery] = useState('')
   const [accounts, setAccounts] = useState<Account[]>([])
   const [activeIndex, setActiveIndex] = useState(0)
-  const inputRef = useRef<HTMLInputElement>(null)
   const listRef = useRef<HTMLUListElement>(null)
 
   useEffect(() => {
@@ -79,7 +79,6 @@ export function CommandPalette({ isOpen, onClose, onAction }: CommandPaletteProp
       setQuery('')
       setActiveIndex(0)
       window.financeAPI.listActiveAccounts().then(setAccounts).catch(() => setAccounts([]))
-      setTimeout(() => inputRef.current?.focus(), 0)
     }
   }, [isOpen])
 
@@ -124,22 +123,28 @@ export function CommandPalette({ isOpen, onClose, onAction }: CommandPaletteProp
     el?.scrollIntoView({ block: 'nearest' })
   }, [safeIndex])
 
-  if (!isOpen) return null
-
   return (
-    <div className="cmd-overlay" onMouseDown={onClose}>
-      <Card className="cmd-panel" padding="none" onMouseDown={(e) => e.stopPropagation()}>
-        <input
-          ref={inputRef}
-          className="cmd-input"
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => { if (!open) onClose() }}
+      title="Command palette"
+      panelClassName="cmd-panel"
+      bodyClassName="cmd-body"
+      showHeader={false}
+    >
+        <Input
+          id="command-palette-search"
+          label="Command palette search"
+          hideLabel
+          controlClassName="cmd-input"
           type="text"
           placeholder="Type a command or search…"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
-          aria-label="Command palette search"
           autoComplete="off"
           spellCheck={false}
+          autoFocus
         />
         {filtered.length === 0 ? (
           <div className="cmd-empty">No results for "{query}"</div>
@@ -164,7 +169,6 @@ export function CommandPalette({ isOpen, onClose, onAction }: CommandPaletteProp
             ))}
           </ul>
         )}
-      </Card>
-    </div>
+    </Dialog>
   )
 }

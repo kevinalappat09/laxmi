@@ -238,12 +238,12 @@ export function TransactionDialog({ asset: preselectedAsset, transaction, defaul
 
   return (
     <Dialog
-      isOpen
+      open
       className="txn-dialog"
       panelClassName="txn-dialog__panel"
       bodyClassName="txn-dialog__body"
       title={dialogTitle}
-      onClose={onClose}
+      onOpenChange={(open) => { if (!open) onClose() }}
     >
       <form className="txn-dialog__form" onSubmit={handleSubmit}>
 

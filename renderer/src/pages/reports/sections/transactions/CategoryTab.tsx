@@ -197,12 +197,12 @@ export function CategoryTab({ transactions, categories, fromDate, toDate }: Cate
             label="Categories"
             className="reports-page__field reports-page__field-actions-control"
             options={leafOptions}
-            selectedValues={
+            value={
               selectedLeafIds
                 ? leafOptions.map((option) => option.value).filter((value) => selectedLeafIds.has(Number(value)))
                 : leafOptions.map((option) => option.value)
             }
-            onChange={(values) => {
+            onValueChange={(values) => {
               const next = new Set(values.map(Number))
               setSelectedLeafIds(next.size === leafOptions.length ? null : next)
             }}

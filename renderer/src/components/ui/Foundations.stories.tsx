@@ -5,6 +5,7 @@ import { Card } from './Card'
 import { Checkbox } from './Checkbox'
 import { Popover } from './Popover'
 import { RadioGroup } from './RadioGroup'
+import { Select } from './Input'
 import { Switch } from './Switch'
 import { Tabs } from './Tabs'
 import { Textarea } from './Textarea'
@@ -44,6 +45,10 @@ function CanonicalControlsStory() {
         ]}
       />
       <Textarea id="story-notes" label="Notes" placeholder="Add context" />
+      <Select id="story-account" label="Account" defaultValue="checking">
+        <option value="checking">Kotak Checking Account</option>
+        <option value="savings">Savings Account</option>
+      </Select>
       <Tabs
         ariaLabel="Account summary"
         defaultValue="balance"

@@ -1,22 +1,26 @@
 /* Overlay backdrop */
-.cmd-overlay {
-  position: fixed;
-  inset: 0;
+.ui-dialog__overlay {
   background: var(--color-overlay);
-  display: flex;
-  align-items: flex-start;
-  justify-content: center;
-  padding-top: 15vh;
   z-index: 9999;
 }
 
 /* Floating panel */
 .cmd-panel {
+  top: 15vh;
   width: 560px;
   max-width: calc(100vw - 2rem);
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  transform: translateX(-50%);
+}
+
+.cmd-body {
+  padding: 0;
+}
+
+.cmd-body .ui-field {
+  gap: 0;
 }
 
 /* Search input */

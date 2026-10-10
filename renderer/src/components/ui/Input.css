@@ -26,5 +26,58 @@
 }
 
 .ui-field__control:focus {
-  box-shadow: 0 0 0 2px rgba(var(--color-accent-rgb), 0.35);
+  box-shadow: var(--focus-ring);
+}
+
+.ui-select__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.ui-select__icon {
+  color: var(--color-text-secondary);
+}
+
+.ui-select__content {
+  z-index: 80;
+  min-width: var(--radix-select-trigger-width);
+  max-height: var(--radix-select-content-available-height);
+  overflow: hidden;
+  border: 1px solid var(--color-border-input);
+  border-radius: var(--radius-general);
+  background: var(--color-bg-elevated);
+  box-shadow: var(--shadow-xl);
+}
+
+.ui-select__viewport {
+  padding: var(--spacing-6);
+}
+
+.ui-select__item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+  padding: var(--spacing-6) var(--spacing-32) var(--spacing-6) var(--spacing-10);
+  border-radius: var(--radius-input-sm);
+  color: var(--color-text-primary);
+  outline: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ui-select__item[data-highlighted] {
+  background: var(--color-bg-hover);
+}
+
+.ui-select__item[data-disabled] {
+  color: var(--color-text-disabled);
+  cursor: not-allowed;
+}
+
+.ui-select__indicator {
+  position: absolute;
+  right: var(--spacing-10);
 }

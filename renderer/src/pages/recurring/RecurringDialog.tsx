@@ -14,6 +14,8 @@ import { buildCategoryPathMap } from '../../../../src/utils/categoryPaths'
 import { Button } from '../../components/ui/Button'
 import { Dialog } from '../../components/ui/Dialog'
 import { Input, Select } from '../../components/ui/Input'
+import { Checkbox } from '../../components/ui/Checkbox'
+import { Textarea } from '../../components/ui/Textarea'
 import './RecurringDialog.css'
 
 interface RecurringDialogProps {
@@ -280,25 +282,17 @@ export function RecurringDialog({
 
   return (
     <Dialog
-      isOpen
+      open
       className="recurring-dialog"
       panelClassName="recurring-dialog__panel"
       bodyClassName="recurring-dialog__body"
       title={mode === 'create' ? 'Add Recurring Transaction' : 'Edit Recurring Transaction'}
-      onClose={onClose}
+      onOpenChange={(open) => { if (!open) onClose() }}
     >
       <form className="recurring-dialog__form" onSubmit={handleSubmit}>
         {/* ── Portfolio SIP toggle ─────────────────────────────────────── */}
         <div className="recurring-dialog__sip-toggle">
-          <label className="recurring-dialog__sip-label">
-            <input
-              type="checkbox"
-              checked={isPortfolioSip}
-              onChange={(e) => setIsPortfolioSip(e.target.checked)}
-              className="recurring-dialog__sip-checkbox"
-            />
-            This is a mutual fund SIP
-          </label>
+          <Checkbox id="recurring-portfolio-sip" label="This is a mutual fund SIP" checked={isPortfolioSip} onCheckedChange={(checked) => setIsPortfolioSip(checked === true)} />
         </div>
 
         <div className="recurring-dialog__grid">
@@ -547,18 +541,15 @@ export function RecurringDialog({
           />
 
           {!isPortfolioSip && (
-            <div className="recurring-dialog__field recurring-dialog__field--full">
-              <label htmlFor="recurring-note">
-                Note <span className="recurring-dialog__optional">(optional)</span>
-              </label>
-              <textarea
-                id="recurring-note"
-                value={note}
-                onChange={(e) => setNote(e.target.value)}
-                rows={2}
-                placeholder="Add a note…"
-              />
-            </div>
+            <Textarea
+              id="recurring-note"
+              label="Note (optional)"
+              className="recurring-dialog__field recurring-dialog__field--full"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              rows={2}
+              placeholder="Add a note…"
+            />
           )}
         </div>
 
