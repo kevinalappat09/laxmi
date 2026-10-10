@@ -29,9 +29,6 @@
 
 .notifications-panel__table-wrap {
   overflow-x: auto;
-  border: 1px solid var(--color-border-default);
-  border-radius: var(--radius-general);
-  background: var(--color-bg-card);
 }
 
 .notifications-panel__table {

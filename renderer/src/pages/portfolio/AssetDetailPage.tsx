@@ -3,6 +3,7 @@ import type { AssetAnalytics } from '../../../../src/types/portfolioAnalytics'
 import type { PortfolioAsset } from '../../../../src/types/portfolioAsset'
 import type { PortfolioTransaction } from '../../../../src/types/portfolioTransaction'
 import { Button } from '../../components/ui/Button'
+import { Card } from '../../components/ui/Card'
 import { AssetDialog } from './AssetDialog'
 import { TransactionDialog } from './TransactionDialog'
 import { useNavigation } from '../../contexts/NavigationContext'
@@ -103,7 +104,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
         <h1 className="asset-detail__title">{analytics?.name ?? rawAsset.name}</h1>
       </div>
 
-      <div className="asset-detail__section">
+      <Card className="asset-detail__section">
         <div className="asset-detail__section-header">
           <h2 className="asset-detail__section-title">Fund details</h2>
           <Button variant="secondary" size="sm" onClick={() => setEditing(true)}>Edit</Button>
@@ -131,11 +132,11 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
             </dd>
           </div>
         </dl>
-      </div>
+      </Card>
 
       {/* Metrics grid — only shown once there are holdings */}
       {analytics && (
-        <div className="asset-detail__metrics">
+        <Card className="asset-detail__metrics" padding="none">
           <MetricTile label="Current NAV" value={formatCurrency(analytics.currentNav)} />
           <MetricTile
             label="Day Gain/Loss"
@@ -154,11 +155,11 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
           <MetricTile label="Realized P&L" value={formatCurrency(analytics.realizedPl)} />
           <MetricTile label="XIRR" value={formatSignedPercent(analytics.xirr != null ? analytics.xirr * 100 : null)} />
           <MetricTile label="CAGR" value={formatSignedPercent(analytics.cagr != null ? analytics.cagr * 100 : null)} />
-        </div>
+        </Card>
       )}
 
       {/* Transactions */}
-      <div className="asset-detail__section">
+      <Card className="asset-detail__section">
         <div className="asset-detail__section-header">
           <h2 className="asset-detail__section-title">Transactions</h2>
           <div style={{ display: 'flex', gap: 8 }}>
@@ -212,7 +213,7 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
             </tbody>
           </table>
         )}
-      </div>
+      </Card>
 
       {txnDialog && rawAsset && (
         <TransactionDialog

@@ -85,9 +85,6 @@
 .portfolio-summary-bar {
   display: flex;
   gap: 0;
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
   margin-bottom: 20px;
   overflow: hidden;
 }
@@ -126,10 +123,7 @@
 }
 
 .portfolio-chart-card {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 10px;
-  padding: 14px 16px;
+  min-width: 0;
 }
 
 .portfolio-chart-card--full {
@@ -167,23 +161,8 @@
 }
 
 .portfolio-range-btn {
-  background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 5px;
   padding: 3px 8px;
   font-size: 0.75rem;
-  font-weight: 500;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  font-family: inherit;
-  transition: background 0.12s, color 0.12s;
-}
-
-.portfolio-range-btn--active,
-.portfolio-range-btn:hover {
-  background: var(--color-accent);
-  border-color: var(--color-accent);
-  color: var(--color-accent-fg);
 }
 
 /* ── Sub-category tabs ── */
