@@ -144,6 +144,7 @@ release/
 # Renderer specific (Vite/React)
 renderer/node_modules/
 renderer/dist/
+renderer/storybook-static/
 renderer/coverage/
 renderer/.eslintcache
 renderer/.env*

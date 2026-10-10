@@ -1,0 +1,16 @@
+---
+description: Enforce Laxmi's shared frontend design system
+globs: renderer/src/**/*.{ts,tsx,css}
+alwaysApply: false
+---
+
+# Frontend design-system rules
+
+- Read `renderer/DESIGN.md` and use the `laxmi-ui` skill.
+- Import reusable controls from `components/ui`; never import Radix directly elsewhere.
+- Prefer controlled APIs: `value/onValueChange` and `open/onOpenChange`.
+- Use semantic tokens from `styles/tokens.css` and `styles/themes.css`.
+- Do not add literal colors, border radii, shadows, or page-local control styles.
+- Add or update a Storybook story for every shared visual component.
+- Cover keyboard and accessible-name behavior in renderer tests.
+- Run `npm run verify:frontend` before completing the change.
