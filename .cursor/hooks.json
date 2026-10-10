@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "matcher": "\\bgit\\s+(commit|push)\\b",
+        "command": "node .cursor/hooks/guard-frontend-commit.mjs",
+        "timeout": 30,
+        "failClosed": true
+      }
+    ]
+  }
+}
