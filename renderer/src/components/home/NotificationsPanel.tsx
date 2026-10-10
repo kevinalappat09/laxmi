@@ -2,6 +2,7 @@ import { RecurringFrequency } from '../../../../src/types/recurringTransaction'
 import { TransactionType } from '../../../../src/types/transaction'
 import type { AppNotification } from '../../types/notifications'
 import { formatCurrency, formatDate } from '../../utils/formatters'
+import { Card } from '../ui/Card'
 import './NotificationsPanel.css'
 
 interface NotificationsPanelProps {
@@ -152,7 +153,7 @@ export function NotificationsPanel({ notifications, isLoading = false, error = n
       {isLoading ? (
         <div className="notifications-panel__loading">Loading alerts...</div>
       ) : (
-        <div className="notifications-panel__table-wrap">
+        <Card className="notifications-panel__table-wrap" padding="none">
           <table className="notifications-panel__table">
             <thead>
               <tr>
@@ -186,7 +187,7 @@ export function NotificationsPanel({ notifications, isLoading = false, error = n
               ))}
             </tbody>
           </table>
-        </div>
+        </Card>
       )}
     </section>
   )

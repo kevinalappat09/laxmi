@@ -14,9 +14,6 @@
 .cmd-panel {
   width: 560px;
   max-width: calc(100vw - 2rem);
-  background: var(--color-bg-surface);
-  border-radius: 12px;
-  box-shadow: 0 20px 60px var(--color-dialog-shadow);
   overflow: hidden;
   display: flex;
   flex-direction: column;

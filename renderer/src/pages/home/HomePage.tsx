@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AccountSubType, type Account } from '../../../../src/types/account'
-import type { Transaction } from '../../../../src/types/transaction'
 import { TransactionType } from '../../../../src/types/transaction'
+import { computeAccountBalance } from '../../../../src/utils/balanceUtils'
 import { useNavigation } from '../../contexts/NavigationContext'
 import { Button } from '../../components/ui/Button'
 import { Card } from '../../components/ui/Card'
@@ -9,14 +9,6 @@ import { NotificationsPanel } from '../../components/home/NotificationsPanel'
 import { useNotifications } from '../../hooks/useNotifications'
 import { formatCurrency } from '../../utils/formatters'
 import './HomePage.css'
-
-function computeBalance(transactions: Transaction[]): number {
-  return transactions.reduce((sum, tx) => {
-    if (tx.transaction_type === TransactionType.Deposit) return sum + tx.amount
-    if (tx.transaction_type === TransactionType.Withdraw) return sum - tx.amount
-    return sum
-  }, 0)
-}
 
 interface AccountWithBalance {
   account: Account
@@ -137,8 +129,9 @@ export function HomePage({ currentProfile, onSwitchProfile }: HomePageProps) {
               const balance =
                 account.sub_type === AccountSubType.Investment
                   ? await window.financeAPI.portfolio.analytics.valueByAccount(account.account_id)
-                  : computeBalance(
-                      await window.financeAPI.getTransactionsByAccount(account.account_id)
+                  : computeAccountBalance(
+                      await window.financeAPI.getTransactionsAffectingAccount(account.account_id),
+                      account.account_id
                     )
               if (!isMounted) return
               setAccountsWithBalance((prev) =>

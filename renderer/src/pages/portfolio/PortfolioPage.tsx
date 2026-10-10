@@ -10,6 +10,7 @@ import type { PortfolioAsset } from '../../../../src/types/portfolioAsset'
 import type { AssetSubCategory } from '../../../../src/types/portfolioAsset'
 import type { PriceRefreshResult, PortfolioSummaryAnalytics, AssetAnalytics, PortfolioValuePoint } from '../../../../src/types/portfolioAnalytics'
 import { Button } from '../../components/ui/Button'
+import { Card } from '../../components/ui/Card'
 import { chartFontSize } from '../../utils/reportOptions'
 import { AssetDialog } from './AssetDialog'
 import { TransactionDialog } from './TransactionDialog'
@@ -306,7 +307,7 @@ function SummaryBar({ summary }: { summary: PortfolioSummaryAnalytics }) {
   const dayColor = (summary.dayGainLoss ?? 0) >= 0 ? 'var(--color-positive, #16a34a)' : 'var(--color-error)'
 
   return (
-    <div className="portfolio-summary-bar">
+    <Card className="portfolio-summary-bar" padding="none">
       <SummaryTile label="Total Value" value={formatCurrency(summary.totalCurrentValue, 0)} />
       <SummaryTile
         label="Day Gain/Loss"
@@ -319,7 +320,7 @@ function SummaryBar({ summary }: { summary: PortfolioSummaryAnalytics }) {
         color={plColor}
       />
       <SummaryTile label="XIRR" value={formatPercent(summary.xirr != null ? summary.xirr * 100 : null)} />
-    </div>
+    </Card>
   )
 }
 
@@ -372,10 +373,10 @@ function AllocationChart({ summary }: { summary: PortfolioSummaryAnalytics }) {
   }
 
   return (
-    <div className="portfolio-chart-card">
+    <Card className="portfolio-chart-card" padding="tight">
       <p className="portfolio-chart-card__title">Allocation by Category</p>
       <ReactECharts option={option} style={{ height: 180 }} />
-    </div>
+    </Card>
   )
 }
 
@@ -412,10 +413,10 @@ function MonthlyChart({ summary }: { summary: PortfolioSummaryAnalytics }) {
   }
 
   return (
-    <div className="portfolio-chart-card">
+    <Card className="portfolio-chart-card" padding="tight">
       <p className="portfolio-chart-card__title">Invested per Month</p>
       <ReactECharts option={option} style={{ height: 180 }} />
-    </div>
+    </Card>
   )
 }
 
@@ -432,17 +433,17 @@ function ValueHistoryChart({ data, range, onRangeChange }: {
 
   if (data.length === 0) {
     return (
-      <div className="portfolio-chart-card portfolio-chart-card--full">
+      <Card className="portfolio-chart-card portfolio-chart-card--full" padding="tight">
         <div className="portfolio-chart-card__header">
           <p className="portfolio-chart-card__title">Portfolio Value</p>
           <div className="portfolio-chart-card__range-btns">
             {RANGES.map(r => (
-              <button key={r} className={`portfolio-range-btn${range === r ? ' portfolio-range-btn--active' : ''}`} onClick={() => onRangeChange(r)}>{r}</button>
+              <Button key={r} variant={range === r ? 'primary' : 'subtle'} size="sm" className="portfolio-range-btn" onClick={() => onRangeChange(r)}>{r}</Button>
             ))}
           </div>
         </div>
         <p className="portfolio-chart-card__empty">Start tracking your portfolio by adding a fund and its first transaction.</p>
-      </div>
+      </Card>
     )
   }
 
@@ -481,17 +482,17 @@ function ValueHistoryChart({ data, range, onRangeChange }: {
   }
 
   return (
-    <div className="portfolio-chart-card portfolio-chart-card--full">
+    <Card className="portfolio-chart-card portfolio-chart-card--full" padding="tight">
       <div className="portfolio-chart-card__header">
         <p className="portfolio-chart-card__title">Portfolio Value</p>
         <div className="portfolio-chart-card__range-btns">
           {RANGES.map(r => (
-            <button key={r} className={`portfolio-range-btn${range === r ? ' portfolio-range-btn--active' : ''}`} onClick={() => onRangeChange(r)}>{r}</button>
+            <Button key={r} variant={range === r ? 'primary' : 'subtle'} size="sm" className="portfolio-range-btn" onClick={() => onRangeChange(r)}>{r}</Button>
           ))}
         </div>
       </div>
       <ReactECharts option={option} style={{ height: 220 }} />
-    </div>
+    </Card>
   )
 }
 

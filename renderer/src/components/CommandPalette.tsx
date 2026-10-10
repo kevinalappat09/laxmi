@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Account } from '../../../src/types/account'
+import { Card } from './ui/Card'
 import type { Page } from '../types/navigation'
 import './CommandPalette.css'
 
@@ -127,7 +128,7 @@ export function CommandPalette({ isOpen, onClose, onAction }: CommandPaletteProp
 
   return (
     <div className="cmd-overlay" onMouseDown={onClose}>
-      <div className="cmd-panel" onMouseDown={(e) => e.stopPropagation()}>
+      <Card className="cmd-panel" padding="none" onMouseDown={(e) => e.stopPropagation()}>
         <input
           ref={inputRef}
           className="cmd-input"
@@ -163,7 +164,7 @@ export function CommandPalette({ isOpen, onClose, onAction }: CommandPaletteProp
             ))}
           </ul>
         )}
-      </div>
+      </Card>
     </div>
   )
 }
