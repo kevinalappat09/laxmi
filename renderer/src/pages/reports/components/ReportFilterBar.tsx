@@ -107,12 +107,12 @@ export function ReportFilterBar({ supports }: ReportFilterBarProps) {
               label="Account"
               className="reports-page__field reports-page__field-actions-control"
               options={accountOptions}
-              selectedValues={
+              value={
                 selectedAccountIds
                   ? Array.from(selectedAccountIds, String)
                   : accountOptions.map((option) => option.value)
               }
-              onChange={(values) => {
+              onValueChange={(values) => {
                 const next = new Set(values.map(Number))
                 setSelectedAccountIds(next.size === accountOptions.length ? null : next)
               }}
@@ -148,12 +148,12 @@ export function ReportFilterBar({ supports }: ReportFilterBarProps) {
               label="Classification"
               className="reports-page__field reports-page__field-actions-control"
               options={classificationOptions}
-              selectedValues={
+              value={
                 selectedClassifications
                   ? Array.from(selectedClassifications)
                   : classificationOptions.map((option) => option.value)
               }
-              onChange={(values) => {
+              onValueChange={(values) => {
                 const next = new Set(values as Classification[])
                 setSelectedClassifications(next.size === classificationOptions.length ? null : next)
               }}

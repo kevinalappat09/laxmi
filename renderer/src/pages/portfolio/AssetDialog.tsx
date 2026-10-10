@@ -104,12 +104,12 @@ function AssetCreateDialog({ onClose, onSaved }: { onClose: () => void; onSaved:
 
   return (
     <Dialog
-      isOpen
+      open
       className="asset-dialog"
       panelClassName="asset-dialog__panel"
       bodyClassName="asset-dialog__body"
       title="Add Fund"
-      onClose={onClose}
+      onOpenChange={(open) => { if (!open) onClose() }}
     >
       {step === 1 && (
         <div className="asset-dialog__step">
@@ -306,12 +306,12 @@ function AssetEditDialog({
 
   return (
     <Dialog
-      isOpen
+      open
       className="asset-dialog"
       panelClassName="asset-dialog__panel"
       bodyClassName="asset-dialog__body"
       title="Edit Fund"
-      onClose={onClose}
+      onOpenChange={(open) => { if (!open) onClose() }}
     >
       {changingScheme ? (
         <div className="asset-dialog__step">

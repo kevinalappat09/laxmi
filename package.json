@@ -1,7 +1,7 @@
 {
   "name": "laxmi",
   "productName": "Laxmi",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Local-first, open-source, opinionated personal finance management software.",
   "main": "dist/main.js",
   "type": "commonjs",

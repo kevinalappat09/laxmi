@@ -161,12 +161,12 @@ export function AccountDialog({ mode, account, onClose, onSaved }: AccountDialog
 
   return (
     <Dialog
-      isOpen
+      open
       className="account-dialog"
       panelClassName="account-dialog__panel"
       bodyClassName="account-dialog__body"
       title={mode === 'create' ? 'Add Account' : 'Edit Account'}
-      onClose={onClose}
+      onOpenChange={(open) => { if (!open) onClose() }}
     >
       <form className="account-dialog__form" onSubmit={handleSubmit}>
         {/* Type selector strip */}

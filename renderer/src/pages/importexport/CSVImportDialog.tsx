@@ -155,12 +155,12 @@ export function CSVImportDialog({ accounts, onClose }: CSVImportDialogProps) {
 
   return (
     <Dialog
-      isOpen
+      open
       className="csv-import-dialog"
       panelClassName="csv-import-dialog__panel"
       bodyClassName="csv-import-dialog__body-wrap"
       title="Import Transactions from CSV"
-      onClose={onClose}
+      onOpenChange={(open) => { if (!open) onClose() }}
     >
       <div className="csv-import-dialog__body">
 

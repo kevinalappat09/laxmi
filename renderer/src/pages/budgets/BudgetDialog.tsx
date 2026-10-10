@@ -127,12 +127,12 @@ export function BudgetDialog({
 
   return (
     <Dialog
-      isOpen
+      open
       className="budget-dialog"
       panelClassName="budget-dialog__panel"
       bodyClassName="budget-dialog__body"
       title={mode === 'create' ? 'Add Budget' : 'Edit Budget'}
-      onClose={onClose}
+      onOpenChange={(open) => { if (!open) onClose() }}
     >
       <form className="budget-dialog__form" onSubmit={handleSubmit}>
         <Input

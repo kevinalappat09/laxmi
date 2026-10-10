@@ -218,8 +218,8 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
                 value: String(account.account_id),
                 label: account.account_name,
               }))}
-              selectedValues={filters.accountIds}
-              onChange={(values) => handleMultiSelectFilterChange('accountIds', values)}
+              value={filters.accountIds}
+              onValueChange={(values) => handleMultiSelectFilterChange('accountIds', values)}
               placeholder="All accounts"
               allSelectedLabel="All accounts"
             />
@@ -319,8 +319,8 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
               label="Category"
               className="transactions-page__filter-group transactions-page__filter-with-actions-control"
               options={categoryOptions}
-              selectedValues={filters.categoryIds}
-              onChange={(values) => handleMultiSelectFilterChange('categoryIds', values)}
+              value={filters.categoryIds}
+              onValueChange={(values) => handleMultiSelectFilterChange('categoryIds', values)}
               placeholder="All categories"
               allSelectedLabel="All categories"
             />

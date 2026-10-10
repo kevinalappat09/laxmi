@@ -10,7 +10,7 @@ const visualTokenFiles = new Set([
   path.join(rendererRoot, 'styles', 'themes.css'),
 ])
 // Transitional ceilings ratchet down in each v1.2.x migration PR; they prevent new debt now.
-const limits = { rawControlsOutsideUi: 49, literalColorsOutsideTokens: 34, literalRadiiOutsideTokens: 95 }
+const limits = { rawControlsOutsideUi: 45, literalColorsOutsideTokens: 32, literalRadiiOutsideTokens: 95 }
 
 async function listFiles(directory) {
   const entries = await readdir(directory, { withFileTypes: true })

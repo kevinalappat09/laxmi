@@ -7,6 +7,7 @@ import { buildCategoryPathMap } from '../../../../src/utils/categoryPaths'
 import { Button } from '../../components/ui/Button'
 import { Dialog } from '../../components/ui/Dialog'
 import { Input, Select } from '../../components/ui/Input'
+import { Textarea } from '../../components/ui/Textarea'
 import './TransactionDialog.css'
 
 function toDateInputValue(date: Date | string): string {
@@ -143,12 +144,12 @@ export function TransactionDialog({
 
   return (
     <Dialog
-      isOpen
+      open
       className="transaction-dialog"
       panelClassName="transaction-dialog__panel"
       bodyClassName="transaction-dialog__body"
       title={mode === 'create' ? 'Add Transaction' : 'Edit Transaction'}
-      onClose={onClose}
+      onOpenChange={(open) => { if (!open) onClose() }}
     >
       <form className="transaction-dialog__form" onSubmit={handleSubmit}>
         <div className="transaction-dialog__grid">
@@ -280,16 +281,15 @@ export function TransactionDialog({
             </>
           )}
 
-          <div className="transaction-dialog__field transaction-dialog__field--full">
-            <label htmlFor="tx-note">Note <span className="transaction-dialog__optional">(optional)</span></label>
-            <textarea
-              id="tx-note"
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder="Add a note…"
-              rows={2}
-            />
-          </div>
+          <Textarea
+            id="tx-note"
+            label="Note (optional)"
+            className="transaction-dialog__field transaction-dialog__field--full"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Add a note…"
+            rows={2}
+          />
         </div>
 
         {error && <p className="transaction-dialog__error">{error}</p>}
