@@ -1,6 +1,6 @@
 import type { EChartsOption } from 'echarts'
 import ReactECharts from 'echarts-for-react'
-import { Card } from '../../../components/ui/Card'
+import { Card } from '../../../components/ui'
 import { CHART_HEIGHT } from '../../../utils/reportOptions'
 
 interface ReportChartCardProps {

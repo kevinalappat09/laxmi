@@ -1,17 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import ReactECharts from 'echarts-for-react'
-
-function readVar(token: string, fallback: string): string {
-  if (typeof window === 'undefined') return fallback
-  const v = getComputedStyle(document.documentElement).getPropertyValue(token).trim()
-  return v || fallback
-}
 import type { PortfolioAsset } from '../../../../src/types/portfolioAsset'
 import type { AssetSubCategory } from '../../../../src/types/portfolioAsset'
 import type { PriceRefreshResult, PortfolioSummaryAnalytics, AssetAnalytics, PortfolioValuePoint } from '../../../../src/types/portfolioAnalytics'
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
-import { chartFontSize } from '../../utils/reportOptions'
+import { AlertDialog, Button, Card, EmptyState, PageHeader, SegmentedControl, StatusMessage, TableContainer } from '../../components/ui'
+import { chartFontSize, getChartPalette } from '../../utils/reportOptions'
 import { AssetDialog } from './AssetDialog'
 import { TransactionDialog } from './TransactionDialog'
 import { useNavigation } from '../../contexts/NavigationContext'
@@ -155,21 +148,22 @@ export function PortfolioPage() {
   return (
     <div className="portfolio-page">
       {/* ── Header ── */}
-      <div className="portfolio-page__header">
-        <h1 className="portfolio-page__title">Portfolio</h1>
-        <div className="portfolio-page__header-actions">
+      <PageHeader
+        title="Portfolio"
+        actions={(
+          <>
           <Button variant="pill" onClick={handleRefreshAll} disabled={isRefreshing}>
             {isRefreshing ? '↻ Fetching Current Prices…' : '↻ Fetch Current Prices'}
           </Button>
           <Button variant="pill" onClick={() => setTxnDialog({ defaultType: 'BUY' })}>+ Add Transaction</Button>
-        </div>
-      </div>
+          </>
+        )}
+      />
 
       {refreshWarning && (
-        <div className="portfolio-page__warning-banner">
-          <span>Price refresh failed for: {refreshWarning.failedAssets.map(a => a.name).join(', ')}</span>
-          <button className="portfolio-page__warning-dismiss" onClick={() => setRefreshWarning(null)}>✕</button>
-        </div>
+        <StatusMessage tone="warning" className="portfolio-page__warning-banner" onDismiss={() => setRefreshWarning(null)} dismissLabel="Dismiss price refresh warning">
+          Price refresh failed for: {refreshWarning.failedAssets.map(a => a.name).join(', ')}
+        </StatusMessage>
       )}
 
       {isLoading && <p className="portfolio-page__loading">Loading…</p>}
@@ -184,11 +178,12 @@ export function PortfolioPage() {
 
           {/* ── Empty state ── */}
           {assets.length === 0 && (
-            <div className="portfolio-page__empty">
-              <p className="portfolio-page__empty-title">No transactions yet</p>
-              <p className="portfolio-page__empty-subtitle">Add your first transaction to start tracking your portfolio.</p>
-              <Button variant="pill" onClick={() => setTxnDialog({ defaultType: 'BUY' })}>+ Add Transaction</Button>
-            </div>
+            <EmptyState
+              className="portfolio-page__empty"
+              title="No transactions yet"
+              description="Add your first transaction to start tracking your portfolio."
+              action={<Button variant="pill" onClick={() => setTxnDialog({ defaultType: 'BUY' })}>+ Add Transaction</Button>}
+            />
           )}
 
           {/* ── Charts ── */}
@@ -209,19 +204,10 @@ export function PortfolioPage() {
           {/* ── Tabbed fund list ── */}
           {assets.length > 0 && (
             <div className="portfolio-page__fund-section">
-              <div className="portfolio-page__tabs">
-                {visibleTabs.map(tab => (
-                  <button
-                    key={tab}
-                    className={`portfolio-page__tab${activeTab === tab ? ' portfolio-page__tab--active' : ''}`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {TAB_LABELS[tab]}
-                  </button>
-                ))}
-              </div>
+              <SegmentedControl className="portfolio-page__tabs" ariaLabel="Portfolio category" value={activeTab} onValueChange={(value) => setActiveTab(value as typeof activeTab)} options={visibleTabs.map((tab) => ({ value: tab, label: TAB_LABELS[tab] }))} />
 
-              <table className="portfolio-page__table">
+              <TableContainer>
+                <table className="portfolio-page__table">
                 <thead>
                   <tr>
                     <th>Fund</th>
@@ -253,28 +239,20 @@ export function PortfolioPage() {
                     <SubtotalRow assets={filteredAssets.map(a => analyticsMap.get(a.id)).filter((a): a is AssetAnalytics => a != null)} />
                   )}
                 </tbody>
-              </table>
+                </table>
+              </TableContainer>
             </div>
           )}
 
           {/* ── Delete confirmation ── */}
-          {deletingAssetId != null && (() => {
-            const asset = assets.find(a => a.id === deletingAssetId)
-            return (
-              <div className="portfolio-page__confirm-overlay">
-                <div className="portfolio-page__confirm-dialog">
-                  <p className="portfolio-page__confirm-title">Remove fund?</p>
-                  <p className="portfolio-page__confirm-body">
-                    "{asset?.name}" will be removed from your portfolio. This cannot be undone.
-                  </p>
-                  <div className="portfolio-page__confirm-actions">
-                    <Button variant="secondary" onClick={() => setDeletingAssetId(null)}>Cancel</Button>
-                    <Button variant="danger" onClick={() => handleDeleteAsset(deletingAssetId)}>Remove</Button>
-                  </div>
-                </div>
-              </div>
-            )
-          })()}
+          <AlertDialog
+            open={deletingAssetId != null}
+            onOpenChange={(open) => { if (!open) setDeletingAssetId(null) }}
+            title="Remove fund?"
+            description={`"${assets.find((asset) => asset.id === deletingAssetId)?.name ?? 'This fund'}" will be removed from your portfolio. This cannot be undone.`}
+            confirmLabel="Remove"
+            onConfirm={() => { if (deletingAssetId != null) void handleDeleteAsset(deletingAssetId) }}
+          />
         </>
       )}
 
@@ -303,8 +281,8 @@ export function PortfolioPage() {
 /* ------------------------------------------------------------------ */
 
 function SummaryBar({ summary }: { summary: PortfolioSummaryAnalytics }) {
-  const plColor = summary.totalUnrealizedPl >= 0 ? 'var(--color-positive, #16a34a)' : 'var(--color-error)'
-  const dayColor = (summary.dayGainLoss ?? 0) >= 0 ? 'var(--color-positive, #16a34a)' : 'var(--color-error)'
+  const plColor = summary.totalUnrealizedPl >= 0 ? 'var(--color-positive)' : 'var(--color-error)'
+  const dayColor = (summary.dayGainLoss ?? 0) >= 0 ? 'var(--color-positive)' : 'var(--color-error)'
 
   return (
     <Card className="portfolio-summary-bar" padding="none">
@@ -343,24 +321,17 @@ function AllocationChart({ summary }: { summary: PortfolioSummaryAnalytics }) {
     value: Math.round(c.value),
   }))
 
-  const accent   = readVar('--color-accent', '#d6fe51')
-  const positive = readVar('--color-positive', '#4ebe96')
-  const negative = readVar('--color-negative', '#ffa16c')
-  const blue     = readVar('--color-cosmic-blue', '#479ffa')
-  const textSec  = readVar('--color-text-secondary', '#868f97')
-  const bgInput  = readVar('--color-bg-input', '#191919')
-  const border   = readVar('--color-border', '#2a2a2a')
-  const textPri  = readVar('--color-text-primary', '#e6e6e6')
+  const palette = getChartPalette()
 
   const option = {
     tooltip: {
       trigger: 'item',
       formatter: '{b}: {d}%',
-      backgroundColor: bgInput,
-      borderColor: border,
-      textStyle: { color: textPri, fontSize: chartFontSize(14) },
+      backgroundColor: palette.tooltipBg,
+      borderColor: palette.tooltipBorder,
+      textStyle: { color: palette.tooltipText, fontSize: chartFontSize(14) },
     },
-    legend: { orient: 'vertical', right: 10, top: 'middle', textStyle: { fontSize: chartFontSize(14), color: textSec } },
+    legend: { orient: 'vertical', right: 10, top: 'middle', textStyle: { fontSize: chartFontSize(14), color: palette.axisTextColor } },
     series: [{
       type: 'pie',
       radius: ['40%', '70%'],
@@ -369,7 +340,7 @@ function AllocationChart({ summary }: { summary: PortfolioSummaryAnalytics }) {
       label: { show: false },
       emphasis: { label: { show: true, fontSize: chartFontSize(14), fontWeight: 'bold' } },
     }],
-    color: [accent, blue, positive, negative],
+    color: [palette.accentColor, palette.blueColor, palette.incomeColor, palette.expenseColor],
   }
 
   return (
@@ -391,24 +362,19 @@ function MonthlyChart({ summary }: { summary: PortfolioSummaryAnalytics }) {
   })
   const amounts = summary.monthlyInvestments.map(m => Math.round(m.amount))
 
-  const accent  = readVar('--color-accent', '#d6fe51')
-  const textSec = readVar('--color-text-secondary', '#868f97')
-  const grid    = readVar('--color-border-subtle', 'rgba(255,255,255,0.06)')
-  const bgInput = readVar('--color-bg-input', '#191919')
-  const border  = readVar('--color-border', '#2a2a2a')
-  const textPri = readVar('--color-text-primary', '#e6e6e6')
+  const palette = getChartPalette()
 
   const option = {
     tooltip: {
       trigger: 'axis',
       formatter: (p: any) => `${p[0].name}: ${formatCurrency(p[0].value, 0)}`,
-      backgroundColor: bgInput,
-      borderColor: border,
-      textStyle: { color: textPri, fontSize: chartFontSize(14) },
+      backgroundColor: palette.tooltipBg,
+      borderColor: palette.tooltipBorder,
+      textStyle: { color: palette.tooltipText, fontSize: chartFontSize(14) },
     },
-    xAxis: { type: 'category', data: months, axisLabel: { fontSize: chartFontSize(14), color: textSec }, axisLine: { lineStyle: { color: grid } } },
-    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatCurrencyCompact(v), fontSize: chartFontSize(14), color: textSec }, splitLine: { lineStyle: { color: grid } } },
-    series: [{ type: 'bar', data: amounts, itemStyle: { color: accent, borderRadius: [3, 3, 0, 0] } }],
+    xAxis: { type: 'category', data: months, axisLabel: { fontSize: chartFontSize(14), color: palette.axisTextColor }, axisLine: { lineStyle: { color: palette.gridColor } } },
+    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatCurrencyCompact(v), fontSize: chartFontSize(14), color: palette.axisTextColor }, splitLine: { lineStyle: { color: palette.gridColor } } },
+    series: [{ type: 'bar', data: amounts, itemStyle: { color: palette.accentColor, borderRadius: [3, 3, 0, 0] } }],
     grid: { left: 64, right: 10, top: 20, bottom: 42 },
   }
 
@@ -451,19 +417,14 @@ function ValueHistoryChart({ data, range, onRangeChange }: {
   const invested = data.map(d => Math.round(d.invested))
   const values   = data.map(d => Math.round(d.currentValue))
 
-  const accent  = readVar('--color-accent', '#d6fe51')
-  const textSec = readVar('--color-text-secondary', '#868f97')
-  const grid    = readVar('--color-border-subtle', 'rgba(255,255,255,0.06)')
-  const bgInput = readVar('--color-bg-input', '#191919')
-  const border  = readVar('--color-border', '#2a2a2a')
-  const textPri = readVar('--color-text-primary', '#e6e6e6')
+  const palette = getChartPalette()
 
   const option = {
     tooltip: {
       trigger: 'axis',
-      backgroundColor: bgInput,
-      borderColor: border,
-      textStyle: { color: textPri, fontSize: chartFontSize(14) },
+      backgroundColor: palette.tooltipBg,
+      borderColor: palette.tooltipBorder,
+      textStyle: { color: palette.tooltipText, fontSize: chartFontSize(14) },
       formatter: (params: any) => {
         const d = params[0].name
         const inv = params.find((p: any) => p.seriesName === 'Invested')?.value ?? 0
@@ -471,12 +432,12 @@ function ValueHistoryChart({ data, range, onRangeChange }: {
         return `${d}<br/>Invested: ${formatCurrency(inv, 0)}<br/>Current: ${formatCurrency(val, 0)}`
       },
     },
-    legend: { bottom: 0, data: ['Invested', 'Current Value'], textStyle: { color: textSec, fontSize: chartFontSize(14) } },
-    xAxis: { type: 'category', data: dates, axisLabel: { fontSize: chartFontSize(14), rotate: 30, color: textSec }, axisLine: { lineStyle: { color: grid } } },
-    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatCurrencyCompact(v), fontSize: chartFontSize(14), color: textSec }, splitLine: { lineStyle: { color: grid } } },
+    legend: { bottom: 0, data: ['Invested', 'Current Value'], textStyle: { color: palette.axisTextColor, fontSize: chartFontSize(14) } },
+    xAxis: { type: 'category', data: dates, axisLabel: { fontSize: chartFontSize(14), rotate: 30, color: palette.axisTextColor }, axisLine: { lineStyle: { color: palette.gridColor } } },
+    yAxis: { type: 'value', axisLabel: { formatter: (v: number) => formatCurrencyCompact(v), fontSize: chartFontSize(14), color: palette.axisTextColor }, splitLine: { lineStyle: { color: palette.gridColor } } },
     series: [
-      { name: 'Invested', type: 'line', data: invested, step: 'end', lineStyle: { color: textSec }, itemStyle: { color: textSec }, areaStyle: { color: 'rgba(134,143,151,0.08)' }, symbol: 'none' },
-      { name: 'Current Value', type: 'line', data: values, smooth: true, lineStyle: { color: accent }, itemStyle: { color: accent }, areaStyle: { color: `rgba(${readVar('--color-accent-rgb', '214,254,81')},0.08)` }, symbol: 'none' },
+      { name: 'Invested', type: 'line', data: invested, step: 'end', lineStyle: { color: palette.axisTextColor }, itemStyle: { color: palette.axisTextColor }, areaStyle: { color: palette.neutralAreaColor }, symbol: 'none' },
+      { name: 'Current Value', type: 'line', data: values, smooth: true, lineStyle: { color: palette.accentColor }, itemStyle: { color: palette.accentColor }, areaStyle: { color: palette.accentAreaColor }, symbol: 'none' },
     ],
     grid: { left: 72, right: 20, top: 20, bottom: 64 },
   }
@@ -511,14 +472,14 @@ interface FundRowProps {
 }
 
 function FundRow({ analytics: a, rawAsset, onRowClick, onEdit, onBuy, onSell, onDelete }: FundRowProps) {
-  const plColor = (a?.unrealizedPl ?? 0) >= 0 ? 'var(--color-positive, #16a34a)' : 'var(--color-error)'
-  const dayColor = (a?.dayGainLoss ?? 0) >= 0 ? 'var(--color-positive, #16a34a)' : 'var(--color-error)'
+  const plColor = (a?.unrealizedPl ?? 0) >= 0 ? 'var(--color-positive)' : 'var(--color-error)'
+  const dayColor = (a?.dayGainLoss ?? 0) >= 0 ? 'var(--color-positive)' : 'var(--color-error)'
   const staleness = getStalenessLabel(rawAsset)
 
   return (
-    <tr className="portfolio-page__row portfolio-page__row--clickable" onClick={onRowClick}>
+    <tr className="portfolio-page__row">
       <td className="portfolio-page__cell-name">
-        <span className="portfolio-page__fund-name">{rawAsset.name}</span>
+        <Button variant="subtle" className="portfolio-page__fund-link" onClick={onRowClick}>{rawAsset.name}</Button>
         {rawAsset.subCategory && <span className="portfolio-page__fund-tag">{TAB_LABELS[rawAsset.subCategory] ?? rawAsset.subCategory}</span>}
         {a == null
           ? <span className="portfolio-page__staleness portfolio-page__staleness--never">No transactions yet</span>
@@ -548,7 +509,7 @@ function FundRow({ analytics: a, rawAsset, onRowClick, onEdit, onBuy, onSell, on
       </td>
       <td className="portfolio-page__col-right">{a ? formatPercent(a.xirr != null ? a.xirr * 100 : null) : '—'}</td>
       <td className="portfolio-page__col-right" style={{ color: a ? dayColor : undefined }}>{a ? formatSignedCurrency(a.dayGainLoss) : '—'}</td>
-      <td className="portfolio-page__col-actions" onClick={e => e.stopPropagation()}>
+      <td className="portfolio-page__col-actions">
         <div className="portfolio-page__action-group">
           <Button variant="secondary" size="sm" onClick={onEdit}>Edit</Button>
           <Button variant="secondary" size="sm" onClick={onBuy}>Buy More</Button>
@@ -568,7 +529,7 @@ function SubtotalRow({ assets }: { assets: AssetAnalytics[] }) {
   const totalInvested = assets.reduce((s, a) => s + a.totalInvested, 0)
   const totalCurrent  = assets.reduce((s, a) => s + a.currentValue, 0)
   const totalPl       = assets.reduce((s, a) => s + a.unrealizedPl, 0)
-  const plColor       = totalPl >= 0 ? 'var(--color-positive, #16a34a)' : 'var(--color-error)'
+  const plColor       = totalPl >= 0 ? 'var(--color-positive)' : 'var(--color-error)'
 
   return (
     <tr className="portfolio-page__subtotal-row">

@@ -1,6 +1,4 @@
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
-import { Input } from '../../components/ui/Input'
+import { Button, Card, Input } from '../../components/ui'
 import laxmiIcon from '../../assets/laxmi-icon.png'
 import './ProfileSelectionPage.css'
 
@@ -23,8 +21,9 @@ export function ProfileSelectionPage({
 }: ProfileSelectionPageProps) {
   return (
     <div className="profile-page">
-      <button
-        type="button"
+      <Button
+        variant="icon"
+        size="icon"
         className="profile-page__close"
         onClick={() => window.windowAPI.close()}
         title="Close"
@@ -33,7 +32,7 @@ export function ProfileSelectionPage({
         <svg width="12" height="12" viewBox="0 0 12 12" fill="none" aria-hidden="true">
           <path d="M1 1L11 11M11 1L1 11" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
         </svg>
-      </button>
+      </Button>
       <div className="profile-page__container">
         <img src={laxmiIcon} alt="Laxmi" className="profile-page__logo" />
         <h1 className="profile-page__title">Select a Profile</h1>

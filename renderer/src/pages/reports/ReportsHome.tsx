@@ -1,7 +1,6 @@
 import { useMemo } from 'react'
 import { BudgetStatus } from '../../../../src/types/budget'
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
+import { Button, Card } from '../../components/ui'
 import { useNavigation } from '../../contexts/NavigationContext'
 import { formatCurrency, formatPercent, formatSignedCurrency } from '../../utils/formatters'
 import { computeSavings } from '../../utils/savingsUtils'

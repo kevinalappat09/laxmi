@@ -1,9 +1,7 @@
 import { useEffect, useState } from 'react'
 import { AccountSubType, AccountType } from '../../../../src/types/account'
 import type { Account, CreateAccountRequest, UpdateAccountRequest } from '../../../../src/types/account'
-import { Button } from '../../components/ui/Button'
-import { Dialog } from '../../components/ui/Dialog'
-import { Input } from '../../components/ui/Input'
+import { Button, Dialog, Input, RadioGroup, SegmentedControl } from '../../components/ui'
 import './AccountDialog.css'
 
 const PALETTE = [
@@ -170,18 +168,13 @@ export function AccountDialog({ mode, account, onClose, onSaved }: AccountDialog
     >
       <form className="account-dialog__form" onSubmit={handleSubmit}>
         {/* Type selector strip */}
-        <div className="account-dialog__type-strip">
-          {ACCOUNT_TYPES.map(({ label, subType: st }) => (
-            <button
-              key={st}
-              type="button"
-              className={`account-dialog__type-btn${subType === st ? ' account-dialog__type-btn--active' : ''}`}
-              onClick={() => setSubType(st)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl
+          className="account-dialog__type-strip"
+          ariaLabel="Account type"
+          value={subType}
+          onValueChange={(value) => setSubType(value as AccountSubType)}
+          options={ACCOUNT_TYPES.map(({ label, subType: value }) => ({ label, value }))}
+        />
 
         {/* Fields based on selected type */}
         {isInvestment ? (
@@ -218,23 +211,20 @@ export function AccountDialog({ mode, account, onClose, onSaved }: AccountDialog
 
         <div className="account-dialog__field">
           <label>Color</label>
-          <div className="account-dialog__color-picker">
-            {PALETTE.map(({ hex, label }) => (
-              <label key={hex} className="account-dialog__color-option" title={label}>
-                <input
-                  type="radio"
-                  name="color"
-                  value={hex}
-                  checked={color === hex}
-                  onChange={() => setColor(hex)}
-                />
-                <span
-                  className={`account-dialog__color-circle${color === hex ? ' account-dialog__color-circle--selected' : ''}`}
-                  style={{ backgroundColor: hex }}
-                />
-              </label>
-            ))}
-          </div>
+          <RadioGroup
+            className="account-dialog__color-picker"
+            label="Color"
+            hideLabel
+            variant="swatches"
+            name="color"
+            value={color}
+            onValueChange={setColor}
+            options={PALETTE.map(({ hex, label }) => ({
+              value: hex,
+              label,
+              visual: <span className={`account-dialog__color-circle${color === hex ? ' account-dialog__color-circle--selected' : ''}`} style={{ backgroundColor: hex }} />,
+            }))}
+          />
         </div>
 
         <Input

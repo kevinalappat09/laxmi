@@ -5,9 +5,7 @@ import type {
   CSVImportResult,
   CSVTransactionRow,
 } from '../../../../src/types/csvImport'
-import { Button } from '../../components/ui/Button'
-import { Dialog } from '../../components/ui/Dialog'
-import { Select } from '../../components/ui/Input'
+import { Button, Dialog, RadioGroup, Select } from '../../components/ui'
 import './CSVImportDialog.css'
 
 type DialogState = 'idle' | 'previewing' | 'result'
@@ -234,29 +232,16 @@ export function CSVImportDialog({ accounts, onClose }: CSVImportDialogProps) {
 
             {/* Polarity */}
             <div className="csv-import-dialog__section">
-              <label className="csv-import-dialog__label">Amount Convention</label>
-              <div className="csv-import-dialog__radio-group">
-                <label className="csv-import-dialog__radio">
-                  <input
-                    type="radio"
-                    name="import-polarity"
-                    checked={positiveAreDeposits}
-                    onChange={() => setPositiveAreDeposits(true)}
-                    disabled={state === 'result'}
-                  />
-                  Positives are deposits
-                </label>
-                <label className="csv-import-dialog__radio">
-                  <input
-                    type="radio"
-                    name="import-polarity"
-                    checked={!positiveAreDeposits}
-                    onChange={() => setPositiveAreDeposits(false)}
-                    disabled={state === 'result'}
-                  />
-                  Positives are withdrawals
-                </label>
-              </div>
+              <RadioGroup
+                label="Amount Convention"
+                name="import-polarity"
+                value={positiveAreDeposits ? 'deposit' : 'withdraw'}
+                onValueChange={(value) => setPositiveAreDeposits(value === 'deposit')}
+                options={[
+                  { value: 'deposit', label: 'Positives are deposits', disabled: state === 'result' },
+                  { value: 'withdraw', label: 'Positives are withdrawals', disabled: state === 'result' },
+                ]}
+              />
             </div>
 
             {/* Template */}

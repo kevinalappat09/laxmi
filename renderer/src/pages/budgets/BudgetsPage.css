@@ -73,7 +73,7 @@
 
 .budget-card__status {
   height: fit-content;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   font-size: 0.72rem;
   font-weight: 600;
   padding: 4px 8px;
@@ -82,17 +82,17 @@
 }
 
 .budget-card__status--on_track {
-  background: rgba(var(--color-positive-alt-rgb), 0.15);
+  background: var(--color-positive-soft);
   color: var(--color-positive);
 }
 
 .budget-card__status--warning {
-  background: rgba(var(--color-negative-rgb), 0.12);
+  background: var(--color-negative-soft);
   color: var(--color-negative);
 }
 
 .budget-card__status--over_budget {
-  background: rgba(var(--color-negative-rgb), 0.22);
+  background: var(--color-negative-medium);
   color: var(--color-negative);
 }
 
@@ -113,7 +113,7 @@
 .budget-card__progress-track {
   width: 100%;
   height: 8px;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   background: var(--color-bg-input);
   overflow: hidden;
 }

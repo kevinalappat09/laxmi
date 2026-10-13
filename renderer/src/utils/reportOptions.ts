@@ -78,9 +78,11 @@ function readThemeColor(token: string, fallback: string): string {
   return bodyValue || fallback
 }
 
-function getChartPalette() {
+export function getChartPalette() {
   return {
     seriesColors: getSeriesColors(),
+    accentColor: readThemeColor('--color-accent', '#d6fe51'),
+    blueColor: readThemeColor('--color-cosmic-blue', '#479ffa'),
     incomeColor: readThemeColor('--color-positive', '#4ebe96'),
     expenseColor: readThemeColor('--color-negative', '#ffa16c'),
     gridColor: readThemeColor('--color-border-subtle', 'rgba(255, 255, 255, 0.06)'),
@@ -91,6 +93,8 @@ function getChartPalette() {
     tooltipText: readThemeColor('--color-text-primary', '#e6e6e6'),
     pieStroke: readThemeColor('--color-bg-card', '#131313'),
     shadowColor: readThemeColor('--color-chart-shadow', 'rgba(255, 255, 255, 0.04)'),
+    neutralAreaColor: readThemeColor('--color-chart-neutral-area', 'rgba(134, 143, 151, 0.08)'),
+    accentAreaColor: readThemeColor('--color-chart-accent-area', 'rgba(214, 254, 81, 0.08)'),
   }
 }
 

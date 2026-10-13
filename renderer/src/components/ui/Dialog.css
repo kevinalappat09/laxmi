@@ -20,7 +20,7 @@
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(115%);
   backdrop-filter: blur(var(--glass-blur)) saturate(115%);
   border-radius: var(--radius-cards);
-  box-shadow: 0 20px 60px var(--color-dialog-shadow);
+  box-shadow: var(--shadow-dialog);
   border: 1px solid var(--color-border-subtle);
 }
 
@@ -65,15 +65,4 @@
 
 .ui-dialog__body {
   padding: var(--spacing-20) var(--spacing-24) var(--spacing-24);
-}
-.ui-visually-hidden {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }

@@ -53,13 +53,13 @@
 }
 
 .ui-radio-group__item {
-  border-radius: 50%;
+  border-radius: var(--radius-round);
 }
 
 .ui-radio-group__indicator {
   width: 8px;
   height: 8px;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   background: var(--color-accent-fg);
 }
 
@@ -84,7 +84,7 @@
   display: block;
   width: 16px;
   height: 16px;
-  border-radius: 50%;
+  border-radius: var(--radius-round);
   background: var(--color-text-primary);
   transform: translateX(2px);
   transition: transform var(--motion-fast) ease;
@@ -132,6 +132,63 @@
   background: var(--color-bg-elevated);
   color: var(--color-text-primary);
   box-shadow: var(--shadow-xl);
+}
+
+.ui-radio-group__root {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-10);
+}
+
+.ui-radio-group__copy {
+  display: grid;
+  gap: var(--spacing-6);
+}
+
+.ui-radio-group__copy strong { color: var(--color-text-primary); }
+.ui-radio-group__copy small { color: var(--color-text-secondary); font-size: var(--text-body); line-height: var(--leading-body); }
+
+.ui-radio-group--cards .ui-radio-group__root {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--spacing-14);
+}
+
+.ui-radio-group--cards .ui-radio-group__option {
+  min-height: 112px;
+  padding: var(--spacing-18);
+  align-items: flex-start;
+  border: 1px solid var(--color-border-default);
+  border-radius: var(--radius-general);
+  background: var(--color-bg-input);
+}
+
+.ui-radio-group--cards .ui-radio-group__option:hover { border-color: var(--color-border-strong); }
+.ui-radio-group--cards .ui-radio-group__option:has(.ui-radio-group__item[data-state='checked']) {
+  border-color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+
+.ui-radio-group__option--disabled,
+.ui-radio-group__option--disabled .ui-radio-group__item {
+  cursor: not-allowed;
+}
+
+.ui-radio-group__option--disabled {
+  opacity: 0.55;
+}
+
+.ui-radio-group--cards .ui-radio-group__option--disabled:hover {
+  border-color: var(--color-border-default);
+}
+
+.ui-radio-group--swatches .ui-radio-group__item { position: absolute; opacity: 0; }
+.ui-radio-group--swatches .ui-radio-group__option { position: relative; }
+.ui-radio-group--swatches .ui-radio-group__option:has(.ui-radio-group__item:focus-visible) { box-shadow: var(--focus-ring); }
+.ui-radio-group--swatches .ui-radio-group__copy { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+@media (max-width: 700px) {
+  .ui-radio-group--cards .ui-radio-group__root { grid-template-columns: 1fr; }
 }
 
 .ui-textarea {

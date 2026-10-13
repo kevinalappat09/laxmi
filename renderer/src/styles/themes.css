@@ -68,11 +68,27 @@
   --color-error: var(--color-solar-flare);
   --color-error-rgb: 255, 161, 108;
   --color-transfer: var(--color-vibrant-gradient-1);
+  --color-warning: var(--color-solar-flare);
+  --color-window-close: #c42b1c;
+  --color-on-window-close: #ffffff;
+  --color-positive-soft: rgba(78, 190, 150, 0.15);
+  --color-positive-faint: rgba(78, 190, 150, 0.06);
+  --color-positive-muted: rgba(78, 190, 150, 0.08);
+  --color-negative-soft: rgba(255, 161, 108, 0.12);
+  --color-negative-medium: rgba(255, 161, 108, 0.22);
+  --color-negative-faint: rgba(255, 161, 108, 0.06);
+  --color-negative-ultra-faint: rgba(255, 161, 108, 0.05);
+  --color-negative-tint: rgba(255, 161, 108, 0.1);
+  --color-negative-border: rgba(255, 161, 108, 0.4);
+  --color-transfer-soft: rgba(71, 159, 250, 0.15);
+  --color-bg-subtle: rgba(255, 255, 255, 0.04);
 
   --color-overlay: rgba(0, 0, 0, 0.45);
   --color-overlay-strong: rgba(0, 0, 0, 0.65);
   --color-dialog-shadow: rgba(0, 0, 0, 0.6);
   --color-chart-shadow: rgba(255, 255, 255, 0.04);
+  --color-chart-neutral-area: rgba(134, 143, 151, 0.08);
+  --color-chart-accent-area: rgba(214, 254, 81, 0.08);
   --shadow-xl: rgba(0, 0, 0, 0.8) 0 0 44px 0;
   --shadow-subtle: rgba(0, 0, 0, 0.85) 0 1px 0 0;
 }
@@ -124,11 +140,27 @@
   --color-error: #c46835;
   --color-error-rgb: 196, 104, 53;
   --color-transfer: #2e7dd8;
+  --color-warning: #b66a15;
+  --color-window-close: #c42b1c;
+  --color-on-window-close: #ffffff;
+  --color-positive-soft: rgba(30, 138, 103, 0.15);
+  --color-positive-faint: rgba(30, 138, 103, 0.06);
+  --color-positive-muted: rgba(30, 138, 103, 0.08);
+  --color-negative-soft: rgba(196, 104, 53, 0.12);
+  --color-negative-medium: rgba(196, 104, 53, 0.22);
+  --color-negative-faint: rgba(196, 104, 53, 0.06);
+  --color-negative-ultra-faint: rgba(196, 104, 53, 0.05);
+  --color-negative-tint: rgba(196, 104, 53, 0.1);
+  --color-negative-border: rgba(196, 104, 53, 0.4);
+  --color-transfer-soft: rgba(46, 125, 216, 0.15);
+  --color-bg-subtle: rgba(0, 0, 0, 0.04);
 
   --color-overlay: rgba(0, 0, 0, 0.24);
   --color-overlay-strong: rgba(0, 0, 0, 0.4);
   --color-dialog-shadow: rgba(0, 0, 0, 0.15);
   --color-chart-shadow: rgba(0, 0, 0, 0.05);
+  --color-chart-neutral-area: rgba(95, 104, 114, 0.08);
+  --color-chart-accent-area: rgba(46, 125, 216, 0.08);
   --shadow-xl: rgba(15, 23, 42, 0.12) 0 12px 32px 0;
   --shadow-subtle: rgba(15, 23, 42, 0.12) 0 1px 0 0;
 }

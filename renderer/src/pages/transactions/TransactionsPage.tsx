@@ -5,11 +5,7 @@ import type { Transaction } from '../../../../src/types/transaction'
 import { TransactionType, Classification } from '../../../../src/types/transaction'
 import { buildCategoryPathMap } from '../../../../src/utils/categoryPaths'
 import { TransactionDialog } from './TransactionDialog'
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
-import { Input, Select } from '../../components/ui/Input'
-import { MultiSelectDropdown } from '../../components/ui/MultiSelectDropdown'
-import { Tag } from '../../components/ui/Tag'
+import { AlertDialog, Button, Card, Input, MultiSelectDropdown, PageHeader, Select, Tag } from '../../components/ui'
 import { formatCurrency, formatDate } from '../../utils/formatters'
 import './TransactionsPage.css'
 
@@ -53,6 +49,7 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS)
   const [dialogMode, setDialogMode] = useState<'create' | 'edit' | null>(null)
   const [selectedTransaction, setSelectedTransaction] = useState<Transaction | undefined>(undefined)
+  const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null)
 
   const accountMap = new Map(accounts.map((a) => [a.account_id, a.account_name]))
   const categoryMap = useMemo(() => buildCategoryPathMap(categories), [categories])
@@ -167,10 +164,11 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
     setDialogMode('edit')
   }
 
-  const handleDeleteClick = async (tx: Transaction) => {
-    if (!window.confirm('Delete this transaction? This cannot be undone.')) return
+  const handleDeleteConfirm = async () => {
+    if (!transactionToDelete) return
     try {
-      await window.financeAPI.deleteTransaction(tx.transaction_id!)
+      await window.financeAPI.deleteTransaction(transactionToDelete.transaction_id!)
+      setTransactionToDelete(null)
       await load()
     } catch (err) {
       console.error(err)
@@ -200,12 +198,9 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
 
   return (
     <div className="transactions-page">
-      <div className="transactions-page__header">
-        <h1>Transactions</h1>
-        <Button variant="pill" className="transactions-page__add-btn" onClick={handleAddClick}>
+      <PageHeader title="Transactions" actions={<Button variant="pill" className="transactions-page__add-btn" onClick={handleAddClick}>
           + Add Transaction
-        </Button>
-      </div>
+        </Button>} />
 
       <Card className="transactions-page__filters">
         <div className="transactions-page__filter-row">
@@ -323,6 +318,8 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
               onValueChange={(values) => handleMultiSelectFilterChange('categoryIds', values)}
               placeholder="All categories"
               allSelectedLabel="All categories"
+              searchable
+              searchPlaceholder="Search categories"
             />
             <div className="transactions-page__filter-actions-buttons">
               <Button
@@ -447,7 +444,7 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
                         variant="danger"
                         size="sm"
                         className="transactions-table__btn-delete"
-                        onClick={() => handleDeleteClick(tx)}
+                        onClick={() => setTransactionToDelete(tx)}
                       >
                         Delete
                       </Button>
@@ -470,6 +467,14 @@ export function TransactionsPage({ autoOpenDialog, onAutoOpenHandled }: Transact
           onSaved={handleDialogSaved}
         />
       )}
+      <AlertDialog
+        open={transactionToDelete !== null}
+        onOpenChange={(open) => !open && setTransactionToDelete(null)}
+        title="Delete transaction?"
+        description="This transaction will be permanently deleted. This cannot be undone."
+        confirmLabel="Delete transaction"
+        onConfirm={() => void handleDeleteConfirm()}
+      />
     </div>
   )
 }

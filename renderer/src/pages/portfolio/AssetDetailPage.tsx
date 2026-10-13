@@ -2,8 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import type { AssetAnalytics } from '../../../../src/types/portfolioAnalytics'
 import type { PortfolioAsset } from '../../../../src/types/portfolioAsset'
 import type { PortfolioTransaction } from '../../../../src/types/portfolioTransaction'
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
+import { Button, Card, PageHeader } from '../../components/ui'
 import { AssetDialog } from './AssetDialog'
 import { TransactionDialog } from './TransactionDialog'
 import { useNavigation } from '../../contexts/NavigationContext'
@@ -93,16 +92,13 @@ export function AssetDetailPage({ assetId }: AssetDetailPageProps) {
     )
   }
 
-  const plColor   = (analytics?.unrealizedPl ?? 0) >= 0 ? 'var(--color-positive, #16a34a)' : 'var(--color-error)'
-  const dayColor  = (analytics?.dayGainLoss ?? 0) >= 0 ? 'var(--color-positive, #16a34a)' : 'var(--color-error)'
+  const plColor   = (analytics?.unrealizedPl ?? 0) >= 0 ? 'var(--color-positive)' : 'var(--color-error)'
+  const dayColor  = (analytics?.dayGainLoss ?? 0) >= 0 ? 'var(--color-positive)' : 'var(--color-error)'
 
   return (
     <div className="asset-detail-page">
       {/* Header */}
-      <div className="asset-detail__header">
-        <Button variant="square" className="asset-detail__back-btn" onClick={goBackToPortfolio}>← Portfolio</Button>
-        <h1 className="asset-detail__title">{analytics?.name ?? rawAsset.name}</h1>
-      </div>
+      <PageHeader title={analytics?.name ?? rawAsset.name} leading={<Button variant="square" className="asset-detail__back-btn" onClick={goBackToPortfolio}>← Portfolio</Button>} />
 
       <Card className="asset-detail__section">
         <div className="asset-detail__section-header">
@@ -249,4 +245,3 @@ function MetricTile({ label, value, color }: { label: string; value: string; col
     </div>
   )
 }
-

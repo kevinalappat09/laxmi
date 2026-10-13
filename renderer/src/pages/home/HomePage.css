@@ -20,7 +20,7 @@
 .home-page__switch-btn {
   padding: 0.4rem 1rem;
   font-size: 0.85rem;
-  border-radius: 6px;
+  border-radius: var(--radius-input-sm);
   background: transparent;
   cursor: pointer;
   color: inherit;
@@ -98,29 +98,30 @@
 }
 
 .account-card {
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: stretch;
-  border-radius: 10px;
+  border-radius: var(--radius-general);
   overflow: hidden;
   cursor: pointer;
   background: var(--color-bg-card);
   text-align: left;
   padding: 0;
-  box-shadow: 0 1px 4px var(--color-dialog-shadow);
+  box-shadow: var(--shadow-card-subtle);
   transition: box-shadow 0.15s, transform 0.1s;
   width: 100%;
 }
 
 .account-card:hover {
-  box-shadow: 0 4px 16px var(--color-dialog-shadow);
+  box-shadow: var(--shadow-card-hover);
   transform: translateY(-2px);
 }
 
 .account-card__color-bar {
   width: 6px;
   flex-shrink: 0;
-  border-radius: 10px 0 0 10px;
+  border-radius: var(--radius-general) var(--radius-none) var(--radius-none) var(--radius-general);
 }
 
 .account-card__body {
@@ -143,6 +144,29 @@
   color: var(--color-text-heading);
 }
 
+.account-card__link {
+  padding: 0;
+  color: var(--color-text-heading);
+  font-size: inherit;
+  font-weight: inherit;
+  text-align: left;
+}
+
+.account-card__link::after {
+  position: absolute;
+  inset: 0;
+  content: '';
+}
+
+.account-card__balance-label {
+  margin: 0 0 var(--spacing-4);
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .account-card__balance {
   margin: 0;
   font-size: 1.15rem;
@@ -152,4 +176,15 @@
 
 .account-card__balance--negative {
   color: var(--color-negative);
+}
+
+.account-card__balance--neutral {
+  color: var(--color-text-primary);
+}
+
+.account-card__credit-limit {
+  margin: var(--spacing-4) 0 0;
+  color: var(--color-text-secondary);
+  font-size: var(--text-caption);
+  font-weight: var(--font-weight-regular);
 }

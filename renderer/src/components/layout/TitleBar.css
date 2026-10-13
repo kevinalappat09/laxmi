@@ -46,9 +46,15 @@
   padding: 0;
 }
 
-.title-bar__btn:focus,
+.title-bar__btn:focus:not(:focus-visible) {
+  outline: none;
+}
+
 .title-bar__btn:focus-visible {
   outline: none;
+  box-shadow: var(--focus-ring);
+  position: relative;
+  z-index: 1;
 }
 
 .title-bar__sidebar-btn {
@@ -65,7 +71,7 @@
 .title-bar__control-btn {
   width: 46px;
   height: 36px;
-  border-radius: 0;
+  border-radius: var(--radius-none);
 }
 
 .title-bar__control-btn:hover {
@@ -74,6 +80,6 @@
 }
 
 .title-bar__close-btn:hover {
-  background-color: #c42b1c;
-  color: #fff;
+  background-color: var(--color-window-close);
+  color: var(--color-on-window-close);
 }

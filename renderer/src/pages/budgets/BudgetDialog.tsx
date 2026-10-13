@@ -10,9 +10,7 @@ import {
 } from '../../../../src/types/budget'
 import { Classification } from '../../../../src/types/transaction'
 import { buildCategoryPathMap } from '../../../../src/utils/categoryPaths'
-import { Button } from '../../components/ui/Button'
-import { Dialog } from '../../components/ui/Dialog'
-import { Input, Select } from '../../components/ui/Input'
+import { Button, Dialog, Input, Select } from '../../components/ui'
 import './BudgetDialog.css'
 
 interface BudgetDialogProps {
@@ -231,11 +229,9 @@ export function BudgetDialog({
         <details className="budget-dialog__advanced">
           <summary>Advanced</summary>
           <div className="budget-dialog__advanced-content">
-            <label htmlFor="budget-warning-threshold">
-              Warning threshold ({warningPercent}%)
-            </label>
-            <input
+            <Input
               id="budget-warning-threshold"
+              label={`Warning threshold (${warningPercent}%)`}
               type="range"
               min="50"
               max="100"

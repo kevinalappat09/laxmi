@@ -38,7 +38,7 @@
 
 .accounts-page__table-wrapper {
   overflow-x: auto;
-  border-radius: 10px;
+  border-radius: var(--radius-general);
 }
 
 .accounts-table {
@@ -66,12 +66,14 @@
   transition: background-color 0.15s ease;
 }
 
-.accounts-table__row--clickable {
-  cursor: pointer;
-}
-
 .accounts-table__row:hover {
   background-color: var(--color-bg-hover);
+}
+
+.accounts-table__account-link {
+  padding: var(--spacing-4) var(--spacing-6);
+  color: var(--color-text-primary);
+  text-align: left;
 }
 
 .accounts-table td {
@@ -85,4 +87,3 @@
   gap: 8px;
   align-items: center;
 }
-

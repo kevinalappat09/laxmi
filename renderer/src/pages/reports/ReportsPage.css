@@ -163,29 +163,29 @@
   min-width: 0;
 }
 
-.reports-metric-card__label {
+.reports-metric-card .ui-metric__label {
   color: var(--color-text-secondary);
   font-size: 0.857rem;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 }
 
-.reports-metric-card__value {
+.reports-metric-card .ui-metric__value {
   color: var(--color-text-heading);
   font-size: var(--text-heading-md, 24px);
   font-weight: var(--font-weight-semibold);
   line-height: 1.2;
 }
 
-.reports-metric-card__value--positive {
-  color: var(--color-positive, #16a34a);
+.reports-metric-card__metric--positive .ui-metric__value {
+  color: var(--color-positive);
 }
 
-.reports-metric-card__value--negative {
+.reports-metric-card__metric--negative .ui-metric__value {
   color: var(--color-error);
 }
 
-.reports-metric-card__caption {
+.reports-metric-card .ui-metric__detail {
   color: var(--color-text-muted);
   font-size: 0.857rem;
   line-height: 1.4;

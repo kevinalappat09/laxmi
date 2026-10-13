@@ -1,4 +1,4 @@
-import { Card } from '../../components/ui/Card'
+import { PageHeader, Panel, RadioGroup } from '../../components/ui'
 import { CategorySettings } from './CategorySettings'
 import './SettingsPage.css'
 
@@ -81,97 +81,23 @@ export function SettingsPage({
 }: SettingsPageProps) {
   return (
     <div className="settings-page">
-      <header className="settings-page__header">
-        <h1>Settings</h1>
-        <p>Manage your categories and customize how Laxmi looks on this device.</p>
-      </header>
+      <PageHeader title="Settings" description="Manage your categories and customize how Laxmi looks on this device." />
 
-      <Card className="settings-page__section">
-        <div className="settings-page__section-heading">
-          <h2>Categories</h2>
-          <p>Create nested categories or update the categories used throughout Laxmi.</p>
-        </div>
-
+      <Panel className="settings-page__section" title="Categories" description="Create nested categories or update the categories used throughout Laxmi.">
         <CategorySettings />
-      </Card>
+      </Panel>
 
-      <Card className="settings-page__section">
-        <div className="settings-page__section-heading">
-          <h2>Theme</h2>
-          <p>Choose the color theme used throughout Laxmi.</p>
-        </div>
+      <Panel className="settings-page__section" title="Theme" description="Choose the color theme used throughout Laxmi.">
+        <RadioGroup label="Theme" hideLabel variant="cards" name="theme" value={theme} onValueChange={(value) => void onThemeChange(value as Theme)} options={themeOptions.map((option) => ({ value: option.value, label: option.title, description: option.description }))} />
+      </Panel>
 
-        <div className="settings-page__options" role="radiogroup" aria-label="Theme">
-          {themeOptions.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              role="radio"
-              aria-checked={theme === option.value}
-              className={`settings-page__option${theme === option.value ? ' settings-page__option--selected' : ''}`}
-              onClick={() => void onThemeChange(option.value)}
-            >
-              <span className="settings-page__option-indicator" aria-hidden="true" />
-              <span>
-                <strong>{option.title}</strong>
-                <small>{option.description}</small>
-              </span>
-            </button>
-          ))}
-        </div>
-      </Card>
+      <Panel className="settings-page__section" title="Appearance" description="Choose between the standard opaque interface and restrained desktop glass.">
+        <RadioGroup label="Appearance" hideLabel variant="cards" name="appearance" value={appearance} onValueChange={(value) => void onAppearanceChange(value as Appearance)} options={appearanceOptions.map((option) => ({ value: option.value, label: option.title, description: option.description }))} />
+      </Panel>
 
-      <Card className="settings-page__section">
-        <div className="settings-page__section-heading">
-          <h2>Appearance</h2>
-          <p>Choose between the standard opaque interface and restrained desktop glass.</p>
-        </div>
-
-        <div className="settings-page__options" role="radiogroup" aria-label="Appearance">
-          {appearanceOptions.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              role="radio"
-              aria-checked={appearance === option.value}
-              className={`settings-page__option${appearance === option.value ? ' settings-page__option--selected' : ''}`}
-              onClick={() => void onAppearanceChange(option.value)}
-            >
-              <span className="settings-page__option-indicator" aria-hidden="true" />
-              <span>
-                <strong>{option.title}</strong>
-                <small>{option.description}</small>
-              </span>
-            </button>
-          ))}
-        </div>
-      </Card>
-
-      <Card className="settings-page__section">
-        <div className="settings-page__section-heading">
-          <h2>Text size</h2>
-          <p>Increase text on pages, tables, and charts.</p>
-        </div>
-
-        <div className="settings-page__options" role="radiogroup" aria-label="Text size">
-          {textSizeOptions.map((option) => (
-            <button
-              key={option.value}
-              type="button"
-              role="radio"
-              aria-checked={textSize === option.value}
-              className={`settings-page__option${textSize === option.value ? ' settings-page__option--selected' : ''}`}
-              onClick={() => void onTextSizeChange(option.value)}
-            >
-              <span className="settings-page__option-indicator" aria-hidden="true" />
-              <span>
-                <strong>{option.title}</strong>
-                <small>{option.description}</small>
-              </span>
-            </button>
-          ))}
-        </div>
-      </Card>
+      <Panel className="settings-page__section" title="Text size" description="Increase text on pages, tables, and charts.">
+        <RadioGroup label="Text size" hideLabel variant="cards" name="text-size" value={textSize} onValueChange={(value) => void onTextSizeChange(value as TextSize)} options={textSizeOptions.map((option) => ({ value: option.value, label: option.title, description: option.description }))} />
+      </Panel>
     </div>
   )
 }

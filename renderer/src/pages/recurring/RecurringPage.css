@@ -39,7 +39,7 @@
 
 .recurring-page__table-wrapper {
   overflow-x: auto;
-  border-radius: 10px;
+  border-radius: var(--radius-general);
 }
 
 .recurring-table {

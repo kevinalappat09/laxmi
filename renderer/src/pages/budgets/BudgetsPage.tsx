@@ -8,8 +8,7 @@ import {
   type Budget,
   type BudgetWithSpending,
 } from '../../../../src/types/budget'
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
+import { AlertDialog, Button, Card, PageHeader, SegmentedControl } from '../../components/ui'
 import { formatCurrency } from '../../utils/formatters'
 import { BudgetDialog } from './BudgetDialog'
 import './BudgetsPage.css'
@@ -49,6 +48,7 @@ export function BudgetsPage() {
   const [activeFilter, setActiveFilter] = useState<BudgetFilterType>('all')
   const [dialogMode, setDialogMode] = useState<'create' | 'edit' | null>(null)
   const [selectedBudget, setSelectedBudget] = useState<Budget | undefined>(undefined)
+  const [budgetToDelete, setBudgetToDelete] = useState<BudgetWithSpending | null>(null)
   const categoryPathMap = useMemo(() => buildCategoryPathMap(categories), [categories])
 
   const load = async () => {
@@ -91,11 +91,11 @@ export function BudgetsPage() {
     setDialogMode('edit')
   }
 
-  const handleDelete = async (budget: BudgetWithSpending) => {
-    if (!window.confirm(`Delete "${budget.name}" budget? This cannot be undone.`)) return
-
+  const handleDeleteConfirm = async () => {
+    if (!budgetToDelete) return
     try {
-      await window.financeAPI.deleteBudget(budget.budget_id!)
+      await window.financeAPI.deleteBudget(budgetToDelete.budget_id!)
+      setBudgetToDelete(null)
       await load()
     } catch (err) {
       console.error(err)
@@ -115,50 +115,17 @@ export function BudgetsPage() {
 
   return (
     <div className="budgets-page">
-      <div className="budgets-page__header">
-        <h1>Budgets</h1>
-        <Button variant="pill" className="budgets-page__add-btn" onClick={handleCreate}>
+      <PageHeader title="Budgets" actions={<Button variant="pill" className="budgets-page__add-btn" onClick={handleCreate}>
           + Add Budget
-        </Button>
-      </div>
+        </Button>} />
 
-      <div className="budgets-page__filters">
-        <Button
-          variant={activeFilter === 'all' ? 'pill' : 'secondary'}
-          size="sm"
-          onClick={() => setActiveFilter('all')}
-        >
-          All
-        </Button>
-        <Button
-          variant={activeFilter === BudgetType.Overall ? 'pill' : 'secondary'}
-          size="sm"
-          onClick={() => setActiveFilter(BudgetType.Overall)}
-        >
-          Overall
-        </Button>
-        <Button
-          variant={activeFilter === BudgetType.Account ? 'pill' : 'secondary'}
-          size="sm"
-          onClick={() => setActiveFilter(BudgetType.Account)}
-        >
-          Account
-        </Button>
-        <Button
-          variant={activeFilter === BudgetType.Category ? 'pill' : 'secondary'}
-          size="sm"
-          onClick={() => setActiveFilter(BudgetType.Category)}
-        >
-          Category
-        </Button>
-        <Button
-          variant={activeFilter === BudgetType.Classification ? 'pill' : 'secondary'}
-          size="sm"
-          onClick={() => setActiveFilter(BudgetType.Classification)}
-        >
-          Classification
-        </Button>
-      </div>
+      <SegmentedControl className="budgets-page__filters" size="sm" ariaLabel="Budget type" value={activeFilter} onValueChange={(value) => setActiveFilter(value as BudgetType | 'all')} options={[
+        { value: 'all', label: 'All' },
+        { value: BudgetType.Overall, label: 'Overall' },
+        { value: BudgetType.Account, label: 'Account' },
+        { value: BudgetType.Category, label: 'Category' },
+        { value: BudgetType.Classification, label: 'Classification' },
+      ]} />
 
       {error && <p className="budgets-page__error">{error}</p>}
 
@@ -207,7 +174,7 @@ export function BudgetsPage() {
                     <Button variant="secondary" size="sm" onClick={() => handleEdit(budget)}>
                       Edit
                     </Button>
-                    <Button variant="danger" size="sm" onClick={() => handleDelete(budget)}>
+                    <Button variant="danger" size="sm" onClick={() => setBudgetToDelete(budget)}>
                       Delete
                     </Button>
                   </div>
@@ -228,6 +195,14 @@ export function BudgetsPage() {
           onSaved={handleSaved}
         />
       )}
+      <AlertDialog
+        open={budgetToDelete !== null}
+        onOpenChange={(open) => !open && setBudgetToDelete(null)}
+        title="Delete budget?"
+        description={`Delete “${budgetToDelete?.name ?? ''}” budget? This cannot be undone.`}
+        confirmLabel="Delete budget"
+        onConfirm={() => void handleDeleteConfirm()}
+      />
     </div>
   )
 }

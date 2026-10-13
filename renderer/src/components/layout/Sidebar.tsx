@@ -1,5 +1,6 @@
 import type { Page } from '../../types/navigation'
 import laxmiIcon from '../../assets/laxmi-icon.png'
+import { Button } from '../ui'
 import './Sidebar.css'
 
 interface SidebarProps {
@@ -9,6 +10,18 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isOpen, activePage, onNavigate }: SidebarProps) {
+  const items: Array<{ page: Page; label: string; active: boolean }> = [
+    { page: 'home', label: 'Home', active: activePage === 'home' },
+    { page: 'accounts', label: 'Accounts', active: activePage === 'accounts' || activePage === 'account-detail' },
+    { page: 'transactions', label: 'Transactions', active: activePage === 'transactions' },
+    { page: 'recurring', label: 'Recurring', active: activePage === 'recurring' },
+    { page: 'budgets', label: 'Budgets', active: activePage === 'budgets' },
+    { page: 'reports', label: 'Reports', active: activePage === 'reports' },
+    { page: 'portfolio', label: 'Portfolio', active: activePage === 'portfolio' },
+    { page: 'import-export', label: 'Import / Export', active: activePage === 'import-export' },
+    { page: 'settings', label: 'Settings', active: activePage === 'settings' },
+  ]
+
   return (
     <aside className={`sidebar${isOpen ? '' : ' sidebar--collapsed'}`}>
       <div className="sidebar__brand">
@@ -16,60 +29,17 @@ export function Sidebar({ isOpen, activePage, onNavigate }: SidebarProps) {
         <span>Laxmi</span>
       </div>
       <nav className="sidebar__nav" aria-label="Main navigation">
-        <button
-          className={`sidebar__nav-item${activePage === 'home' ? ' sidebar__nav-item--active' : ''}`}
-          onClick={() => onNavigate('home')}
-        >
-          Home
-        </button>
-        <button
-          className={`sidebar__nav-item${activePage === 'accounts' || activePage === 'account-detail' ? ' sidebar__nav-item--active' : ''}`}
-          onClick={() => onNavigate('accounts')}
-        >
-          Accounts
-        </button>
-        <button
-          className={`sidebar__nav-item${activePage === 'transactions' ? ' sidebar__nav-item--active' : ''}`}
-          onClick={() => onNavigate('transactions')}
-        >
-          Transactions
-        </button>
-        <button
-          className={`sidebar__nav-item${activePage === 'recurring' ? ' sidebar__nav-item--active' : ''}`}
-          onClick={() => onNavigate('recurring')}
-        >
-          Recurring
-        </button>
-        <button
-          className={`sidebar__nav-item${activePage === 'budgets' ? ' sidebar__nav-item--active' : ''}`}
-          onClick={() => onNavigate('budgets')}
-        >
-          Budgets
-        </button>
-        <button
-          className={`sidebar__nav-item${activePage === 'reports' ? ' sidebar__nav-item--active' : ''}`}
-          onClick={() => onNavigate('reports')}
-        >
-          Reports
-        </button>
-        <button
-          className={`sidebar__nav-item${activePage === 'portfolio' ? ' sidebar__nav-item--active' : ''}`}
-          onClick={() => onNavigate('portfolio')}
-        >
-          Portfolio
-        </button>
-        <button
-          className={`sidebar__nav-item${activePage === 'import-export' ? ' sidebar__nav-item--active' : ''}`}
-          onClick={() => onNavigate('import-export')}
-        >
-          Import / Export
-        </button>
-        <button
-          className={`sidebar__nav-item${activePage === 'settings' ? ' sidebar__nav-item--active' : ''}`}
-          onClick={() => onNavigate('settings')}
-        >
-          Settings
-        </button>
+        {items.map((item) => (
+          <Button
+            key={item.page}
+            variant="subtle"
+            className={`sidebar__nav-item${item.active ? ' sidebar__nav-item--active' : ''}`}
+            aria-current={item.active ? 'page' : undefined}
+            onClick={() => onNavigate(item.page)}
+          >
+            {item.label}
+          </Button>
+        ))}
       </nav>
     </aside>
   )

@@ -2,9 +2,7 @@ import { useEffect, useState } from 'react'
 import type { Account } from '../../../../src/types/account'
 import type { CSVExportRequest } from '../../../../src/types/csvImport'
 import { CSVImportDialog } from './CSVImportDialog'
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
-import { Select } from '../../components/ui/Input'
+import { Button, Card, PageHeader, RadioGroup, Select } from '../../components/ui'
 import './ImportExportPage.css'
 
 export function ImportExportPage() {
@@ -50,9 +48,7 @@ export function ImportExportPage() {
 
   return (
     <div className="import-export-page">
-      <div className="import-export-page__header">
-        <h1>Import / Export</h1>
-      </div>
+      <PageHeader title="Import / Export" description="Move transaction data into or out of Laxmi using CSV files." />
 
       <div className="import-export-page__cards">
         {/* Import card */}
@@ -97,29 +93,17 @@ export function ImportExportPage() {
                 )}
             </Select>
 
-            <div className="import-export-card__field">
-              <label>Amount convention</label>
-              <div className="import-export-card__radio-group">
-                <label className="import-export-card__radio">
-                  <input
-                    type="radio"
-                    name="export-polarity"
-                    checked={exportPositiveAreDeposits}
-                    onChange={() => setExportPositiveAreDeposits(true)}
-                  />
-                  Positives are deposits
-                </label>
-                <label className="import-export-card__radio">
-                  <input
-                    type="radio"
-                    name="export-polarity"
-                    checked={!exportPositiveAreDeposits}
-                    onChange={() => setExportPositiveAreDeposits(false)}
-                  />
-                  Positives are withdrawals
-                </label>
-              </div>
-            </div>
+            <RadioGroup
+              className="import-export-card__field"
+              label="Amount convention"
+              name="export-polarity"
+              value={exportPositiveAreDeposits ? 'deposit' : 'withdraw'}
+              onValueChange={(value) => setExportPositiveAreDeposits(value === 'deposit')}
+              options={[
+                { value: 'deposit', label: 'Positives are deposits' },
+                { value: 'withdraw', label: 'Positives are withdrawals' },
+              ]}
+            />
           </div>
 
           {exportResult?.savedPath && (
