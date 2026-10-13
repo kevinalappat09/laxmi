@@ -27,9 +27,9 @@
 }
 
 .profile-page__close:hover {
-  background-color: #c42b1c;
-  border-color: #c42b1c;
-  color: #fff;
+  background-color: var(--color-window-close);
+  border-color: var(--color-window-close);
+  color: var(--color-on-window-close);
 }
 
 .profile-page__close:focus-visible {

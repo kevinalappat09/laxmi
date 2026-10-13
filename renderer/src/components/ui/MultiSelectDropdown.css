@@ -30,6 +30,23 @@
   overflow-y: auto;
 }
 
+.ui-multi-select__menu--searchable {
+  overflow: hidden;
+}
+
+.ui-multi-select__search {
+  margin-bottom: var(--spacing-8);
+}
+
+.ui-multi-select__options {
+  overflow-y: visible;
+}
+
+.ui-multi-select__menu--searchable .ui-multi-select__options {
+  max-height: 190px;
+  overflow-y: auto;
+}
+
 .ui-multi-select__menu .ui-control-label {
   display: flex;
   align-items: center;

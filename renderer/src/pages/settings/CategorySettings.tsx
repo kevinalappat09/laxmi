@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { Category } from '../../../../src/types/category'
 import { buildCategoryPathMap } from '../../../../src/utils/categoryPaths'
-import { Button } from '../../components/ui/Button'
-import { Input, Select } from '../../components/ui/Input'
+import { AlertDialog, Button, Input, Select } from '../../components/ui'
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : 'Something went wrong.'
@@ -19,6 +18,7 @@ export function CategorySettings() {
   const [selectedId, setSelectedId] = useState('')
   const [editName, setEditName] = useState('')
   const [editParentId, setEditParentId] = useState('')
+  const [showDeactivateDialog, setShowDeactivateDialog] = useState(false)
 
   const loadCategories = async () => {
     setLoading(true)
@@ -141,11 +141,6 @@ export function CategorySettings() {
     const category = categories.find((item) => String(item.category_id) === selectedId)
     if (!category) return
 
-    const confirmed = window.confirm(
-      `Deactivate “${categoryPathMap.get(Number(selectedId)) ?? category.category_name}”? Any child categories will also be deactivated.`
-    )
-    if (!confirmed) return
-
     setSaving(true)
     setError(null)
     setMessage(null)
@@ -154,6 +149,7 @@ export function CategorySettings() {
       setSelectedId('')
       setEditName('')
       setEditParentId('')
+      setShowDeactivateDialog(false)
       setMessage(`Deactivated “${category.category_name}”.`)
       await loadCategories()
     } catch (deactivateError) {
@@ -251,7 +247,7 @@ export function CategorySettings() {
               <Button type="submit" variant="primary" disabled={saving}>
                 {saving ? 'Saving…' : 'Save changes'}
               </Button>
-              <Button type="button" variant="danger" disabled={saving} onClick={handleDeactivate}>
+              <Button type="button" variant="danger" disabled={saving} onClick={() => setShowDeactivateDialog(true)}>
                 Deactivate
               </Button>
             </div>
@@ -265,6 +261,14 @@ export function CategorySettings() {
         {!loading && !error && message && <span className="settings-page__success">{message}</span>}
         {!loading && !error && !message && <span>{categories.length} active categories</span>}
       </div>
+      <AlertDialog
+        open={showDeactivateDialog}
+        onOpenChange={setShowDeactivateDialog}
+        title="Deactivate category?"
+        description={`Deactivate “${categoryPathMap.get(Number(selectedId)) ?? editName}”? Any child categories will also be deactivated.`}
+        confirmLabel="Deactivate category"
+        onConfirm={() => void handleDeactivate()}
+      />
     </>
   )
 }

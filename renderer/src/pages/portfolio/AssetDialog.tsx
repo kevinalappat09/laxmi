@@ -1,9 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import type { AssetCategory, AssetSubCategory, PortfolioAsset } from '../../../../src/types/portfolioAsset'
 import type { MfSearchResult } from '../../../../src/types/portfolioAnalytics'
-import { Button } from '../../components/ui/Button'
-import { Dialog } from '../../components/ui/Dialog'
-import { Input } from '../../components/ui/Input'
+import { Button, Dialog, Input, SegmentedControl, Select } from '../../components/ui'
 import './AssetDialog.css'
 
 const SUB_CATEGORIES: { label: string; value: AssetSubCategory | '' }[] = [
@@ -132,12 +130,14 @@ function AssetCreateDialog({ onClose, onSaved }: { onClose: () => void; onSaved:
           {results.length > 0 && (
             <ul className="asset-dialog__results">
               {results.map((r) => (
-                <li
-                  key={r.schemeCode}
-                  className={`asset-dialog__result-item${selected?.schemeCode === r.schemeCode ? ' asset-dialog__result-item--selected' : ''}`}
-                  onClick={() => setSelected(r)}
-                >
-                  {r.schemeName}
+                <li key={r.schemeCode}>
+                  <Button
+                    variant={selected?.schemeCode === r.schemeCode ? 'primary' : 'subtle'}
+                    className="asset-dialog__result-item"
+                    onClick={() => setSelected(r)}
+                  >
+                    {r.schemeName}
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -161,31 +161,20 @@ function AssetCreateDialog({ onClose, onSaved }: { onClose: () => void; onSaved:
 
           <div className="asset-dialog__confirm-field">
             <span className="asset-dialog__confirm-label">Category</span>
-            <div className="asset-dialog__category-strip">
-              {(['EQUITY', 'DEBT'] as AssetCategory[]).map((cat) => (
-                <button
-                  key={cat}
-                  type="button"
-                  className={`asset-dialog__cat-btn${category === cat ? ' asset-dialog__cat-btn--active' : ''}`}
-                  onClick={() => setCategory(cat)}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
+            <SegmentedControl className="asset-dialog__category-strip" ariaLabel="Asset category" value={category} onValueChange={(value) => setCategory(value as AssetCategory)} options={[{ value: 'EQUITY', label: 'EQUITY' }, { value: 'DEBT', label: 'DEBT' }]} />
           </div>
 
           <div className="asset-dialog__confirm-field">
-            <span className="asset-dialog__confirm-label">Sub-category</span>
-            <select
-              className="asset-dialog__select"
+            <Select
+              id="asset-create-sub-category"
+              label="Sub-category"
               value={subCategory}
               onChange={(e) => setSubCategory(e.target.value as AssetSubCategory | '')}
             >
               {SUB_CATEGORIES.map(({ label, value }) => (
                 <option key={value} value={value}>{label}</option>
               ))}
-            </select>
+            </Select>
           </div>
 
           {saveError && <p className="asset-dialog__error">{saveError}</p>}
@@ -331,12 +320,10 @@ function AssetEditDialog({
           {results.length > 0 && (
             <ul className="asset-dialog__results">
               {results.map((r) => (
-                <li
-                  key={r.schemeCode}
-                  className="asset-dialog__result-item"
-                  onClick={() => handlePickScheme(r)}
-                >
-                  {r.schemeName}
+                <li key={r.schemeCode}>
+                  <Button variant="subtle" className="asset-dialog__result-item" onClick={() => handlePickScheme(r)}>
+                    {r.schemeName}
+                  </Button>
                 </li>
               ))}
             </ul>
@@ -360,32 +347,21 @@ function AssetEditDialog({
           {isMutualFund && (
             <div className="asset-dialog__confirm-field">
               <span className="asset-dialog__confirm-label">Category</span>
-              <div className="asset-dialog__category-strip">
-                {(['EQUITY', 'DEBT'] as AssetCategory[]).map((cat) => (
-                  <button
-                    key={cat}
-                    type="button"
-                    className={`asset-dialog__cat-btn${category === cat ? ' asset-dialog__cat-btn--active' : ''}`}
-                    onClick={() => setCategory(cat)}
-                  >
-                    {cat}
-                  </button>
-                ))}
-              </div>
+              <SegmentedControl className="asset-dialog__category-strip" ariaLabel="Asset category" value={category} onValueChange={(value) => setCategory(value as AssetCategory)} options={[{ value: 'EQUITY', label: 'EQUITY' }, { value: 'DEBT', label: 'DEBT' }]} />
             </div>
           )}
 
           <div className="asset-dialog__confirm-field">
-            <span className="asset-dialog__confirm-label">Sub-category</span>
-            <select
-              className="asset-dialog__select"
+            <Select
+              id="asset-edit-sub-category"
+              label="Sub-category"
               value={subCategory}
               onChange={(e) => setSubCategory(e.target.value as AssetSubCategory | '')}
             >
               {SUB_CATEGORIES.map(({ label, value }) => (
                 <option key={value} value={value}>{label}</option>
               ))}
-            </select>
+            </Select>
           </div>
 
           {isMutualFund && (

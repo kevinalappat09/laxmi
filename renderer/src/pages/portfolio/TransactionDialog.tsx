@@ -4,9 +4,7 @@ import type { PortfolioAsset, AssetCategory, AssetSubCategory } from '../../../.
 import type { MfSearchResult, MfFundMeta } from '../../../../src/types/portfolioAnalytics'
 import type { PortfolioTransaction, PortfolioTransactionType } from '../../../../src/types/portfolioTransaction'
 import { AccountSubType } from '../../../../src/types/account'
-import { Button } from '../../components/ui/Button'
-import { Dialog } from '../../components/ui/Dialog'
-import { Input } from '../../components/ui/Input'
+import { Button, Checkbox, Dialog, Input, SegmentedControl, Select } from '../../components/ui'
 import './TransactionDialog.css'
 
 const TXN_TYPES: { label: string; value: PortfolioTransactionType }[] = [
@@ -253,28 +251,25 @@ export function TransactionDialog({ asset: preselectedAsset, transaction, defaul
             <div className="txn-dialog__section-label">Fund</div>
 
             {allAssets.length > 0 && (
-              <div className="txn-dialog__fund-mode-strip">
-                <button
-                  type="button"
-                  className={`txn-dialog__type-btn${fundMode === 'existing' ? ' txn-dialog__type-btn--active' : ''}`}
-                  onClick={() => { setFundMode('existing'); setDuplicateAsset(null); setMfMeta(null) }}
-                >
-                  Existing fund
-                </button>
-                <button
-                  type="button"
-                  className={`txn-dialog__type-btn${fundMode === 'new' ? ' txn-dialog__type-btn--active' : ''}`}
-                  onClick={() => { setFundMode('new'); setSelectedAssetId(''); setDuplicateAsset(null); setMfMeta(null) }}
-                >
-                  Add new fund
-                </button>
-              </div>
+              <SegmentedControl
+                className="txn-dialog__fund-mode-strip"
+                ariaLabel="Fund source"
+                value={fundMode}
+                onValueChange={(value) => {
+                  setFundMode(value as 'existing' | 'new')
+                  setDuplicateAsset(null)
+                  setMfMeta(null)
+                  if (value === 'new') setSelectedAssetId('')
+                }}
+                options={[{ value: 'existing', label: 'Existing fund' }, { value: 'new', label: 'Add new fund' }]}
+              />
             )}
 
             {fundMode === 'existing' && allAssets.length > 0 && (
-              <div className="txn-dialog__field">
-                <select
-                  className="txn-dialog__select"
+              <Select
+                  id="portfolio-existing-fund"
+                  label="Fund"
+                  className="txn-dialog__field"
                   value={selectedAssetId}
                   onChange={e => setSelectedAssetId(e.target.value ? Number(e.target.value) : '')}
                 >
@@ -282,8 +277,7 @@ export function TransactionDialog({ asset: preselectedAsset, transaction, defaul
                   {allAssets.map(a => (
                     <option key={a.id} value={a.id}>{a.name}</option>
                   ))}
-                </select>
-              </div>
+              </Select>
             )}
 
             {fundMode === 'new' && (
@@ -304,7 +298,7 @@ export function TransactionDialog({ asset: preselectedAsset, transaction, defaul
                 {selectedMf && (
                   <div className="txn-dialog__selected-fund">
                     <span className="txn-dialog__selected-fund-name">{selectedMf.schemeName}</span>
-                    <button type="button" className="txn-dialog__clear-fund" onClick={() => { setSelectedMf(null); setMfQuery(''); setDuplicateAsset(null); setMfMeta(null) }}>✕</button>
+                    <Button variant="icon" size="icon" className="txn-dialog__clear-fund" aria-label="Clear selected fund" onClick={() => { setSelectedMf(null); setMfQuery(''); setDuplicateAsset(null); setMfMeta(null) }}>✕</Button>
                   </div>
                 )}
 
@@ -317,10 +311,11 @@ export function TransactionDialog({ asset: preselectedAsset, transaction, defaul
                 {!selectedMf && mfResults.length > 0 && (
                   <ul className="txn-dialog__mf-results">
                     {mfResults.map(r => (
-                      <li
-                        key={r.schemeCode}
-                        className="txn-dialog__mf-result-item"
-                        onClick={() => {
+                      <li key={r.schemeCode}>
+                        <Button
+                          variant="subtle"
+                          className="txn-dialog__mf-result-item"
+                          onClick={() => {
                           const existing = allAssets.find(a => a.priceSourceId === r.schemeCode)
                           setDuplicateAsset(existing ?? null)
                           setSelectedMf(r)
@@ -338,9 +333,10 @@ export function TransactionDialog({ asset: preselectedAsset, transaction, defaul
                                 // Leave current defaults if metadata fetch fails.
                               })
                           }
-                        }}
-                      >
-                        {r.schemeName}
+                          }}
+                        >
+                          {r.schemeName}
+                        </Button>
                       </li>
                     ))}
                   </ul>
@@ -350,30 +346,19 @@ export function TransactionDialog({ asset: preselectedAsset, transaction, defaul
                   <div className="txn-dialog__category-row">
                     <div className="txn-dialog__field">
                       <label className="txn-dialog__label">Category</label>
-                      <div className="txn-dialog__type-strip">
-                        {(['EQUITY', 'DEBT'] as AssetCategory[]).map(cat => (
-                          <button
-                            key={cat}
-                            type="button"
-                            className={`txn-dialog__type-btn${newCategory === cat ? ' txn-dialog__type-btn--active' : ''}`}
-                            onClick={() => setNewCategory(cat)}
-                          >
-                            {cat}
-                          </button>
-                        ))}
-                      </div>
+                      <SegmentedControl className="txn-dialog__type-strip" ariaLabel="New fund category" value={newCategory} onValueChange={(value) => setNewCategory(value as AssetCategory)} options={[{ value: 'EQUITY', label: 'EQUITY' }, { value: 'DEBT', label: 'DEBT' }]} />
                     </div>
                     <div className="txn-dialog__field">
-                      <label className="txn-dialog__label">Sub-category</label>
-                      <select
-                        className="txn-dialog__select"
+                      <Select
+                        id="portfolio-new-sub-category"
+                        label="Sub-category"
                         value={newSubCat}
                         onChange={e => setNewSubCat(e.target.value as AssetSubCategory | '')}
                       >
                         {SUB_CATEGORIES.map(({ label, value }) => (
                           <option key={value} value={value}>{label}</option>
                         ))}
-                      </select>
+                      </Select>
                     </div>
                   </div>
                 )}
@@ -384,18 +369,7 @@ export function TransactionDialog({ asset: preselectedAsset, transaction, defaul
 
         {/* ── Type selector ── */}
         <div className="txn-dialog__section-label">Transaction</div>
-        <div className="txn-dialog__type-strip">
-          {TXN_TYPES.map(({ label, value }) => (
-            <button
-              key={value}
-              type="button"
-              className={`txn-dialog__type-btn${txnType === value ? ' txn-dialog__type-btn--active' : ''}`}
-              onClick={() => setTxnType(value)}
-            >
-              {label}
-            </button>
-          ))}
-        </div>
+        <SegmentedControl className="txn-dialog__type-strip" ariaLabel="Transaction type" value={txnType} onValueChange={(value) => setTxnType(value as PortfolioTransactionType)} options={TXN_TYPES} />
 
         <Input
           id="txnDate"
@@ -412,8 +386,11 @@ export function TransactionDialog({ asset: preselectedAsset, transaction, defaul
         {!manualUnits && (
           <div className="txn-dialog__amount-row">
             <span className="txn-dialog__currency">₹</span>
-            <input
-              className="txn-dialog__input"
+            <Input
+              id="portfolio-amount"
+              label="Amount"
+              hideLabel
+              controlClassName="txn-dialog__input"
               type="number"
               min="0"
               step="any"
@@ -430,14 +407,14 @@ export function TransactionDialog({ asset: preselectedAsset, transaction, defaul
           </p>
         )}
 
-        <label className="txn-dialog__toggle">
-          <input type="checkbox" checked={manualUnits} onChange={e => setManualUnits(e.target.checked)} />
-          <span>Enter units manually</span>
-        </label>
+        <Checkbox id="portfolio-manual-units" className="txn-dialog__toggle" label="Enter units manually" checked={manualUnits} onCheckedChange={(checked) => setManualUnits(checked === true)} />
 
         {manualUnits && (
-          <input
-            className="txn-dialog__input"
+          <Input
+            id="portfolio-units"
+            label="Units"
+            hideLabel
+            controlClassName="txn-dialog__input"
             type="number"
             min="0"
             step="any"
@@ -469,11 +446,10 @@ export function TransactionDialog({ asset: preselectedAsset, transaction, defaul
         {/* ── Accounts ── */}
         <div className="txn-dialog__section-label">Accounts</div>
 
-        <div className="txn-dialog__field">
-          <label className="txn-dialog__label" htmlFor="investmentAccount">Investment account *</label>
-          <select
+        <Select
             id="investmentAccount"
-            className="txn-dialog__select"
+            label="Investment account *"
+            className="txn-dialog__field"
             value={investmentAccountId}
             onChange={e => setInvestmentAccountId(e.target.value ? Number(e.target.value) : '')}
             required
@@ -484,14 +460,12 @@ export function TransactionDialog({ asset: preselectedAsset, transaction, defaul
                 {a.metadata?.brokerage ? String(a.metadata.brokerage) : a.institution_name}
               </option>
             ))}
-          </select>
-        </div>
+        </Select>
 
-        <div className="txn-dialog__field">
-          <label className="txn-dialog__label" htmlFor="sourceAccount">{fundingLabel}</label>
-          <select
+        <Select
             id="sourceAccount"
-            className="txn-dialog__select"
+            label={fundingLabel}
+            className="txn-dialog__field"
             value={sourceAccountId}
             onChange={e => setSourceAccountId(e.target.value ? Number(e.target.value) : '')}
           >
@@ -501,8 +475,7 @@ export function TransactionDialog({ asset: preselectedAsset, transaction, defaul
                 {a.institution_name} — {a.account_name}
               </option>
             ))}
-          </select>
-        </div>
+        </Select>
 
         <Input
           id="note"

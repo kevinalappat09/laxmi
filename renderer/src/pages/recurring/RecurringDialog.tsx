@@ -11,11 +11,7 @@ import {
 } from '../../../../src/types/recurringTransaction'
 import { Classification, TransactionType } from '../../../../src/types/transaction'
 import { buildCategoryPathMap } from '../../../../src/utils/categoryPaths'
-import { Button } from '../../components/ui/Button'
-import { Dialog } from '../../components/ui/Dialog'
-import { Input, Select } from '../../components/ui/Input'
-import { Checkbox } from '../../components/ui/Checkbox'
-import { Textarea } from '../../components/ui/Textarea'
+import { Button, Checkbox, Dialog, Input, Select, Textarea } from '../../components/ui'
 import './RecurringDialog.css'
 
 interface RecurringDialogProps {

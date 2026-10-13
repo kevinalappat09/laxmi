@@ -1,9 +1,6 @@
 import { useMemo } from 'react'
 import { Classification } from '../../../../../src/types/transaction'
-import { Button } from '../../../components/ui/Button'
-import { Card } from '../../../components/ui/Card'
-import { Select } from '../../../components/ui/Input'
-import { MultiSelectDropdown } from '../../../components/ui/MultiSelectDropdown'
+import { Button, Card, Input, MultiSelectDropdown, Select } from '../../../components/ui'
 import { CLASSIFICATION_OPTIONS, type DateRangePreset } from '../../../utils/chartUtils'
 import { useReportFilters } from '../context/ReportFilterContext'
 import { getFilterNote, type ReportSectionSupports } from '../sections/types'
@@ -73,30 +70,22 @@ export function ReportFilterBar({ supports }: ReportFilterBarProps) {
 
         {datePreset === 'custom' && (
           <>
-            <div className="ui-field reports-page__field">
-              <label className="ui-field__label" htmlFor="reports-custom-from">
-                Date from
-              </label>
-              <input
+            <Input
                 id="reports-custom-from"
-                className="ui-field__control"
+                label="Date from"
+                className="reports-page__field"
                 type="date"
                 value={customFrom}
                 onChange={(e) => setCustomFrom(e.target.value)}
-              />
-            </div>
-            <div className="ui-field reports-page__field">
-              <label className="ui-field__label" htmlFor="reports-custom-to">
-                Date to
-              </label>
-              <input
+            />
+            <Input
                 id="reports-custom-to"
-                className="ui-field__control"
+                label="Date to"
+                className="reports-page__field"
                 type="date"
                 value={customTo}
                 onChange={(e) => setCustomTo(e.target.value)}
-              />
-            </div>
+            />
           </>
         )}
 

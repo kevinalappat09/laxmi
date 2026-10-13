@@ -40,13 +40,27 @@
 
   --page-max-width: 1220px;
   --radius-cards: 16px;
+  --radius-none: 0;
+  --radius-xs: 4px;
   --radius-general: 10px;
   --radius-input-sm: 6px;
+  --radius-control: 8px;
+  --radius-dialog: 12px;
+  --radius-dialog-lg: 14px;
+  --radius-round: 50%;
+  --radius-full: 999px;
   --radius-buttons-pill: 99px;
   --radius-pill: var(--radius-buttons-pill);
   --radius-buttons-square: 6px;
   --shadow-xl: rgba(0, 0, 0, 0.8) 0 0 44px 0;
   --shadow-subtle: rgba(0, 0, 0, 0.85) 0 1px 0 0;
+  --shadow-dialog: 0 20px 60px var(--color-dialog-shadow);
+  --shadow-dialog-lg: 0 24px 64px var(--color-dialog-shadow);
+  --shadow-elevated: 0 8px 32px var(--color-dialog-shadow);
+  --shadow-card-subtle: 0 1px 4px var(--color-dialog-shadow);
+  --shadow-card-hover: 0 4px 16px var(--color-dialog-shadow);
+  --shadow-focus-accent: 0 0 0 2px var(--color-accent);
+  --shadow-swatch-selected: 0 0 0 2px var(--color-bg-surface), 0 0 0 4px currentColor;
   --motion-fast: 150ms;
   --motion-default: 180ms;
   --focus-ring: 0 0 0 2px rgba(var(--color-accent-rgb), 0.35);

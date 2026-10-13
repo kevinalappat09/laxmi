@@ -2,6 +2,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog'
 import type { ReactNode } from 'react'
 import { Button } from './Button'
 import './Dialog.css'
+import './utilities.css'
 
 interface DialogProps {
   open: boolean

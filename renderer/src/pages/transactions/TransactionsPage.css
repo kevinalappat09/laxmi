@@ -27,7 +27,7 @@
 /* Filters */
 .transactions-page__filters {
   background-color: var(--color-bg-elevated);
-  border-radius: 10px;
+  border-radius: var(--radius-general);
   padding: 16px 20px;
   margin-bottom: 20px;
 }
@@ -81,7 +81,7 @@
 .transactions-page__filter-group select {
   background-color: var(--color-bg-input);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   color: var(--color-text-primary);
   font-size: 0.85rem;
   font-family: inherit;
@@ -93,7 +93,7 @@
 
 .transactions-page__filter-group input:focus,
 .transactions-page__filter-group select:focus {
-  box-shadow: 0 0 0 2px var(--color-accent);
+  box-shadow: var(--shadow-focus-accent);
 }
 
 .transactions-page__filter-group input[type='date']::-webkit-calendar-picker-indicator {
@@ -130,7 +130,7 @@
 /* Table */
 .transactions-page__table-wrapper {
   overflow-x: auto;
-  border-radius: 10px;
+  border-radius: var(--radius-general);
 }
 
 .transactions-table {

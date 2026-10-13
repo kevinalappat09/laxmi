@@ -60,7 +60,7 @@
 .notifications-panel__badge {
   display: inline-flex;
   align-items: center;
-  border-radius: 999px;
+  border-radius: var(--radius-full);
   padding: var(--spacing-4) var(--spacing-8);
   font-size: var(--text-caption);
   font-weight: 600;
@@ -69,12 +69,12 @@
 
 .notifications-panel__badge--budget-warning {
   color: var(--color-negative);
-  background: rgba(var(--color-negative-rgb), 0.12);
+  background: var(--color-negative-soft);
 }
 
 .notifications-panel__badge--budget-over {
   color: var(--color-negative);
-  background: rgba(var(--color-negative-rgb), 0.22);
+  background: var(--color-negative-medium);
 }
 
 .notifications-panel__badge--recurring-income {
@@ -116,7 +116,7 @@
 }
 
 .notifications-panel__row--budget-over {
-  background: rgba(var(--color-negative-rgb), 0.05);
+  background: var(--color-negative-ultra-faint);
 }
 
 .notifications-panel__row--recurring-today {

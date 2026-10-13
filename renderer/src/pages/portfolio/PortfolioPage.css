@@ -37,9 +37,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(var(--color-negative-rgb), 0.1);
-  border: 1px solid rgba(var(--color-negative-rgb), 0.4);
-  border-radius: 8px;
+  background: var(--color-negative-tint);
+  border: 1px solid var(--color-negative-border);
+  border-radius: var(--radius-control);
   padding: 10px 14px;
   font-size: 0.85rem;
   color: var(--color-negative);
@@ -236,10 +236,17 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-.portfolio-page__row--clickable { cursor: pointer; }
-
-.portfolio-page__row--clickable:hover {
+.portfolio-page__row:hover {
   background: var(--color-bg-hover);
+}
+
+.portfolio-page__fund-link {
+  max-width: 100%;
+  padding: var(--spacing-4) var(--spacing-6);
+  color: var(--color-text-primary);
+  text-align: left;
+  white-space: normal;
+  font-weight: var(--font-weight-medium);
 }
 
 .portfolio-page__row:last-child { border-bottom: none; }
@@ -254,11 +261,6 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-}
-
-.portfolio-page__fund-name {
-  font-weight: 500;
-  color: var(--color-text-heading);
 }
 
 .portfolio-page__fund-tag {
@@ -295,45 +297,4 @@
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
-}
-
-/* Delete confirmation overlay */
-.portfolio-page__confirm-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 200;
-}
-
-.portfolio-page__confirm-dialog {
-  background: var(--color-bg-surface);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 28px 32px;
-  max-width: 380px;
-  width: 100%;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
-}
-
-.portfolio-page__confirm-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--color-text-heading);
-  margin: 0 0 10px;
-}
-
-.portfolio-page__confirm-body {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  margin: 0 0 24px;
-  line-height: 1.5;
-}
-
-.portfolio-page__confirm-actions {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
 }

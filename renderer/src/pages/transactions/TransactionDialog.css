@@ -1,7 +1,7 @@
 .transaction-dialog {
   padding: 0;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-dialog);
   background: transparent;
   max-width: 100vw;
   max-height: 100vh;
@@ -14,10 +14,10 @@
 
 .transaction-dialog__panel {
   background-color: var(--color-bg-surface);
-  border-radius: 12px;
+  border-radius: var(--radius-dialog);
   width: 560px;
   max-width: 92vw;
-  box-shadow: 0 20px 60px var(--color-dialog-shadow);
+  box-shadow: var(--shadow-dialog);
 }
 
 .transaction-dialog__body {
@@ -88,7 +88,7 @@
 .transaction-dialog__field textarea {
   background-color: var(--color-bg-input);
   border: none;
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   color: var(--color-text-primary);
   font-size: 0.9rem;
   font-family: inherit;
@@ -103,7 +103,7 @@
 .transaction-dialog__field input[type='number']:focus,
 .transaction-dialog__field select:focus,
 .transaction-dialog__field textarea:focus {
-  box-shadow: 0 0 0 2px var(--color-accent);
+  box-shadow: var(--shadow-focus-accent);
 }
 
 .transaction-dialog__field input[type='date']::-webkit-calendar-picker-indicator {

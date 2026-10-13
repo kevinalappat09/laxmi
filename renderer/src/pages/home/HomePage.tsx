@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import { AccountSubType, type Account } from '../../../../src/types/account'
+import type { CreditCardSummary } from '../../../../src/types/creditCard'
 import { TransactionType } from '../../../../src/types/transaction'
 import { computeAccountBalance } from '../../../../src/utils/balanceUtils'
 import { useNavigation } from '../../contexts/NavigationContext'
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
+import { Button, Card, EmptyState, PageHeader } from '../../components/ui'
 import { NotificationsPanel } from '../../components/home/NotificationsPanel'
 import { useNotifications } from '../../hooks/useNotifications'
 import { formatCurrency } from '../../utils/formatters'
@@ -13,6 +13,7 @@ import './HomePage.css'
 interface AccountWithBalance {
   account: Account
   balance: number
+  creditLimit?: number
   isLoadingBalance: boolean
 }
 
@@ -63,8 +64,18 @@ export function HomePage({ currentProfile, onSwitchProfile }: HomePageProps) {
       setError(null)
       setIsLoadingMetrics(true)
       try {
-        const accounts = await window.financeAPI.listActiveAccounts()
+        const [accounts, creditSummaries] = await Promise.all([
+          window.financeAPI.listActiveAccounts(),
+          window.financeAPI.listCreditCardSummaries().catch((summaryError) => {
+            console.error(summaryError)
+            return []
+          }),
+        ])
         if (!isMounted) return
+
+        const creditSummaryByAccountId = new Map<number, CreditCardSummary>(
+          creditSummaries.map((summary) => [summary.account.account_id, summary])
+        )
 
         if (accounts.length === 0) {
           setMetrics(EMPTY_HOME_METRICS)
@@ -115,24 +126,33 @@ export function HomePage({ currentProfile, onSwitchProfile }: HomePageProps) {
         })
         setIsLoadingMetrics(false)
 
-        const initial: AccountWithBalance[] = accounts.map((account) => ({
-          account,
-          balance: 0,
-          isLoadingBalance: true,
-        }))
+        const initial: AccountWithBalance[] = accounts.map((account) => {
+          const creditSummary = creditSummaryByAccountId.get(account.account_id)
+          return {
+            account,
+            balance: creditSummary?.outstanding ?? 0,
+            creditLimit: creditSummary?.details.credit_limit,
+            isLoadingBalance: creditSummary === undefined,
+          }
+        })
         setAccountsWithBalance(initial)
         setIsLoading(false)
 
         await Promise.all(
           accounts.map(async (account) => {
+            if (creditSummaryByAccountId.has(account.account_id)) return
+
             try {
-              const balance =
+              const calculatedBalance =
                 account.sub_type === AccountSubType.Investment
                   ? await window.financeAPI.portfolio.analytics.valueByAccount(account.account_id)
                   : computeAccountBalance(
                       await window.financeAPI.getTransactionsAffectingAccount(account.account_id),
                       account.account_id
                     )
+              const balance = account.sub_type === AccountSubType.Credit
+                ? Math.max(0, -calculatedBalance)
+                : calculatedBalance
               if (!isMounted) return
               setAccountsWithBalance((prev) =>
                 prev.map((item) =>
@@ -171,48 +191,57 @@ export function HomePage({ currentProfile, onSwitchProfile }: HomePageProps) {
 
   return (
     <div className="home-page">
-      <div className="home-page__header">
-        <div className="home-page__welcome">
-          <h1 className="home-page__title">Welcome back, {currentProfile}!</h1>
-        </div>
-        <Button variant="ghost" className="home-page__switch-btn" onClick={onSwitchProfile}>
+      <PageHeader title={`Welcome back, ${currentProfile}!`} actions={<Button variant="ghost" className="home-page__switch-btn" onClick={onSwitchProfile}>
           Switch Profile
-        </Button>
-      </div>
+        </Button>} />
 
       {error && <p className="home-page__error">{error}</p>}
 
       {isLoading ? (
         <div className="home-page__loading">Loading accounts…</div>
       ) : accountsWithBalance.length === 0 ? (
-        <div className="home-page__empty">
-          No accounts yet. Go to Accounts to add one.
-        </div>
+        <EmptyState title="No accounts yet" description="Go to Accounts to add one." />
       ) : (
         <div className="home-page__cards">
-          {accountsWithBalance.map(({ account, balance, isLoadingBalance }) => (
-            <Card
-              key={account.account_id}
-              className="account-card"
-              padding="none"
-              asButton
-              onClick={() => selectAccount(account.account_id)}
-            >
-              <div
-                className="account-card__color-bar"
-                style={{ backgroundColor: account.color }}
-              />
-              <div className="account-card__body">
-                <p className="account-card__institution">{account.institution_name}</p>
-                <h2 className="account-card__name">{account.account_name}</h2>
-                <p
-                  className={`account-card__balance${balance < 0 ? ' account-card__balance--negative' : ''}`}
-                >
-                  {isLoadingBalance ? '…' : formatCurrency(balance)}
-                </p>
-              </div>
-            </Card>
-          ))}
+          {accountsWithBalance.map(({ account, balance, creditLimit, isLoadingBalance }) => {
+            const isCredit = account.sub_type === AccountSubType.Credit
+            return (
+              <Card
+                key={account.account_id}
+                className="account-card"
+                padding="none"
+              >
+                <div
+                  className="account-card__color-bar"
+                  style={{ backgroundColor: account.color }}
+                />
+                <div className="account-card__body">
+                  <p className="account-card__institution">{account.institution_name}</p>
+                  <h2 className="account-card__name">
+                    <Button
+                      variant="subtle"
+                      className="account-card__link"
+                      onClick={() => selectAccount(account.account_id)}
+                      aria-label={`Open ${account.account_name} account`}
+                    >
+                      {account.account_name}
+                    </Button>
+                  </h2>
+                  {isCredit && <p className="account-card__balance-label">Utilized</p>}
+                  <p
+                    className={`account-card__balance${isCredit ? balance > 0 ? ' account-card__balance--negative' : ' account-card__balance--neutral' : balance < 0 ? ' account-card__balance--negative' : ''}`}
+                  >
+                    {isLoadingBalance ? '…' : formatCurrency(balance)}
+                  </p>
+                  {isCredit && creditLimit !== undefined && (
+                    <p className="account-card__credit-limit">
+                      Limit {formatCurrency(creditLimit)}
+                    </p>
+                  )}
+                </div>
+              </Card>
+            )
+          })}
         </div>
       )}
 

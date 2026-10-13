@@ -8,9 +8,7 @@ import {
 import { TransactionType } from '../../../../src/types/transaction'
 import { buildCategoryPathMap } from '../../../../src/utils/categoryPaths'
 import { RecurringDialog } from './RecurringDialog'
-import { Button } from '../../components/ui/Button'
-import { Card } from '../../components/ui/Card'
-import { Tag } from '../../components/ui/Tag'
+import { AlertDialog, Button, Card, EmptyState, PageHeader, Tag } from '../../components/ui'
 import { formatCurrency, formatDate } from '../../utils/formatters'
 import './RecurringPage.css'
 
@@ -103,6 +101,7 @@ export function RecurringPage() {
   const [selectedRecurring, setSelectedRecurring] = useState<RecurringTransaction | undefined>(
     undefined
   )
+  const [recurringToDelete, setRecurringToDelete] = useState<RecurringTransaction | null>(null)
 
   const categoryPathMap = useMemo(() => buildCategoryPathMap(categories), [categories])
   const accountMap = useMemo(
@@ -144,11 +143,11 @@ export function RecurringPage() {
     setDialogMode('edit')
   }
 
-  const handleDelete = async (recurring: RecurringTransaction) => {
-    if (!window.confirm('Delete this recurring transaction? This cannot be undone.')) return
-
+  const handleDeleteConfirm = async () => {
+    if (!recurringToDelete) return
     try {
-      await window.financeAPI.deleteRecurring(recurring.recurring_id!)
+      await window.financeAPI.deleteRecurring(recurringToDelete.recurring_id!)
+      setRecurringToDelete(null)
       await load()
     } catch (err) {
       console.error(err)
@@ -168,21 +167,16 @@ export function RecurringPage() {
 
   return (
     <div className="recurring-page">
-      <div className="recurring-page__header">
-        <h1>Recurring Transactions</h1>
-        <Button variant="pill" className="recurring-page__add-btn" onClick={handleCreate}>
+      <PageHeader title="Recurring Transactions" actions={<Button variant="pill" className="recurring-page__add-btn" onClick={handleCreate}>
           + Add Recurring
-        </Button>
-      </div>
+        </Button>} />
 
       {error && <p className="recurring-page__error">{error}</p>}
 
       {isLoading ? (
         <div className="recurring-page__loading">Loading recurring transactions…</div>
       ) : recurringRows.length === 0 ? (
-        <div className="recurring-page__empty">
-          No recurring transactions found. Add one to get started.
-        </div>
+        <EmptyState title="No recurring transactions found" description="Add one to get started." action={<Button variant="pill" onClick={handleCreate}>+ Add Recurring</Button>} />
       ) : (
         <Card className="recurring-page__table-wrapper" padding="none">
           <table className="recurring-table">
@@ -235,7 +229,7 @@ export function RecurringPage() {
                       <Button variant="secondary" size="sm" onClick={() => handleEdit(row)}>
                         Edit
                       </Button>
-                      <Button variant="danger" size="sm" onClick={() => handleDelete(row)}>
+                      <Button variant="danger" size="sm" onClick={() => setRecurringToDelete(row)}>
                         Delete
                       </Button>
                     </td>
@@ -257,6 +251,14 @@ export function RecurringPage() {
           onSaved={handleSaved}
         />
       )}
+      <AlertDialog
+        open={recurringToDelete !== null}
+        onOpenChange={(open) => !open && setRecurringToDelete(null)}
+        title="Delete recurring transaction?"
+        description="This recurring transaction will be permanently deleted. This cannot be undone."
+        confirmLabel="Delete recurring transaction"
+        onConfirm={() => void handleDeleteConfirm()}
+      />
     </div>
   )
 }

@@ -1,4 +1,4 @@
-import { Button } from '../../components/ui/Button'
+import { PageHeader, SegmentedControl } from '../../components/ui'
 import { useNavigation } from '../../contexts/NavigationContext'
 import { ReportFilterBar } from './components/ReportFilterBar'
 import { ReportFilterProvider, useReportFilters } from './context/ReportFilterContext'
@@ -14,27 +14,9 @@ function ReportsShell() {
 
   return (
     <div className="reports-page">
-      <div className="reports-page__header">
-        <h1>Reports</h1>
-        <p className="reports-page__header-description">{section.description}</p>
-      </div>
+      <PageHeader title="Reports" description={section.description} />
 
-      <nav className="reports-page__sections" aria-label="Report sections">
-        {REPORT_SECTIONS.map((entry) => (
-          <Button
-            key={entry.id}
-            variant="subtle"
-            size="sm"
-            aria-current={entry.id === section.id}
-            className={`reports-page__section-button ${
-              entry.id === section.id ? 'reports-page__section-button--active' : ''
-            }`}
-            onClick={() => setReportSection(entry.id)}
-          >
-            {entry.label}
-          </Button>
-        ))}
-      </nav>
+      <SegmentedControl className="reports-page__sections" size="sm" ariaLabel="Report sections" value={section.id} onValueChange={(value) => setReportSection(value as typeof section.id)} options={REPORT_SECTIONS.map((entry) => ({ value: entry.id, label: entry.label }))} />
 
       <ReportFilterBar supports={section.supports} />
 

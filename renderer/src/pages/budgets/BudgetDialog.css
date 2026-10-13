@@ -1,7 +1,7 @@
 .budget-dialog {
   padding: 0;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-dialog);
   background: transparent;
   max-width: 100vw;
   max-height: 100vh;
@@ -14,10 +14,10 @@
 
 .budget-dialog__panel {
   background-color: var(--color-bg-surface);
-  border-radius: 12px;
+  border-radius: var(--radius-dialog);
   width: 500px;
   max-width: 92vw;
-  box-shadow: 0 20px 60px var(--color-dialog-shadow);
+  box-shadow: var(--shadow-dialog);
 }
 
 .budget-dialog__body {
@@ -39,7 +39,7 @@
 
 .budget-dialog__advanced {
   border: 1px solid var(--color-border-subtle);
-  border-radius: 8px;
+  border-radius: var(--radius-control);
   padding: 10px 12px;
 }
 

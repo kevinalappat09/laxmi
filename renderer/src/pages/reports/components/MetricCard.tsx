@@ -1,4 +1,4 @@
-import { Card } from '../../../components/ui/Card'
+import { Card, Metric } from '../../../components/ui'
 
 export type MetricTone = 'neutral' | 'positive' | 'negative'
 
@@ -12,9 +12,13 @@ interface MetricCardProps {
 export function MetricCard({ label, value, caption, tone = 'neutral' }: MetricCardProps) {
   return (
     <Card className="reports-metric-card">
-      <span className="reports-metric-card__label">{label}</span>
-      <span className={`reports-metric-card__value reports-metric-card__value--${tone}`}>{value}</span>
-      {caption && <span className="reports-metric-card__caption">{caption}</span>}
+      <Metric
+        label={label}
+        value={value}
+        detail={caption}
+        tone={tone === 'neutral' ? 'default' : tone}
+        className={`reports-metric-card__metric reports-metric-card__metric--${tone}`}
+      />
     </Card>
   )
 }

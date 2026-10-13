@@ -2,9 +2,7 @@ import { useMemo, useState } from 'react'
 import type { Category } from '../../../../../../src/types/category'
 import { TransactionType, type Transaction } from '../../../../../../src/types/transaction'
 import { buildCategoryPathMap } from '../../../../../../src/utils/categoryPaths'
-import { Button } from '../../../../components/ui/Button'
-import { Select } from '../../../../components/ui/Input'
-import { MultiSelectDropdown } from '../../../../components/ui/MultiSelectDropdown'
+import { Button, MultiSelectDropdown, Select } from '../../../../components/ui'
 import {
   aggregateByKey,
   collapsePivotToTopN,
@@ -209,6 +207,8 @@ export function CategoryTab({ transactions, categories, fromDate, toDate }: Cate
             placeholder="No categories"
             allSelectedLabel="All categories"
             disabled={leafOptions.length === 0}
+            searchable
+            searchPlaceholder="Search categories"
           />
           <div className="reports-page__field-actions-buttons">
             <Button

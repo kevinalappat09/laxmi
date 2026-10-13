@@ -12,6 +12,11 @@
   cursor: not-allowed;
 }
 
+.ui-button:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
 .ui-button--size-md {
   padding: 0.5em 1.2em;
   font-size: var(--text-body);
@@ -74,7 +79,7 @@
 }
 
 .ui-button--variant-danger:hover:not(:disabled) {
-  background-color: rgba(var(--color-negative-rgb), 0.12);
+  background-color: var(--color-negative-soft);
 }
 
 .ui-button--variant-icon {
@@ -91,7 +96,7 @@
   background-color: transparent;
   color: var(--color-text-primary);
   border: 1px solid var(--color-border-input);
-  border-radius: 999px;
+  border-radius: var(--radius-full);
 }
 
 .ui-button--variant-ghost:hover:not(:disabled) {

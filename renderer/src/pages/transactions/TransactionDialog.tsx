@@ -4,10 +4,7 @@ import type { Category } from '../../../../src/types/category'
 import type { Transaction, CreateTransactionRequest, UpdateTransactionRequest } from '../../../../src/types/transaction'
 import { TransactionType, Classification } from '../../../../src/types/transaction'
 import { buildCategoryPathMap } from '../../../../src/utils/categoryPaths'
-import { Button } from '../../components/ui/Button'
-import { Dialog } from '../../components/ui/Dialog'
-import { Input, Select } from '../../components/ui/Input'
-import { Textarea } from '../../components/ui/Textarea'
+import { Button, Dialog, Input, Select, Textarea } from '../../components/ui'
 import './TransactionDialog.css'
 
 function toDateInputValue(date: Date | string): string {

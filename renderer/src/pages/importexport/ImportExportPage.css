@@ -33,7 +33,7 @@
 /* Individual card */
 .import-export-card {
   background-color: var(--color-bg-elevated);
-  border-radius: 12px;
+  border-radius: var(--radius-dialog);
   padding: 28px 24px 24px;
   display: flex;
   flex-direction: column;
@@ -84,7 +84,7 @@
 .import-export-card__field select {
   background-color: var(--color-bg-input);
   border: none;
-  border-radius: 7px;
+  border-radius: var(--radius-control);
   color: var(--color-text-primary);
   padding: 7px 10px;
   font-size: 0.9rem;
@@ -93,7 +93,7 @@
 
 .import-export-card__field select:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--color-accent);
+  box-shadow: var(--shadow-focus-accent);
 }
 
 .import-export-card__radio-group {
@@ -125,8 +125,8 @@
 .import-export-card__success {
   font-size: 0.83rem;
   color: var(--color-positive-alt);
-  background-color: rgba(var(--color-positive-alt-rgb), 0.08);
-  border-radius: 7px;
+  background-color: var(--color-positive-muted);
+  border-radius: var(--radius-control);
   padding: 8px 12px;
   word-break: break-all;
 }
@@ -138,7 +138,7 @@
 .import-export-card__error {
   font-size: 0.83rem;
   color: var(--color-error);
-  background-color: rgba(var(--color-error-rgb), 0.08);
-  border-radius: 7px;
+  background-color: var(--color-negative-faint);
+  border-radius: var(--radius-control);
   padding: 8px 12px;
 }
