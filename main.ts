@@ -12,6 +12,7 @@ import * as profileService from "./src/services/profile/profileService"
 import { MigrationService } from "./src/services/migration/migrationService"
 import { migrateProfileLayout } from "./src/services/migration/profileLayoutMigration"
 import { getRootDataDirectory } from "./src/services/path/pathService"
+import { hardenProfileStorage } from "./src/services/profile/privateStorage"
 import { AccountServiceImpl } from "./src/services/account/accountService"
 import { CreateAccountRequest, UpdateAccountRequest } from "./src/types/account"
 import { TransactionServiceImpl } from "./src/services/transaction/transactionService"
@@ -38,6 +39,10 @@ import { PriceUpdaterServiceImpl } from "./src/services/priceUpdater/priceUpdate
 import { PortfolioAnalyticsServiceImpl } from "./src/services/portfolioAnalytics/portfolioAnalyticsService"
 import { CreatePortfolioAssetRequest, UpdatePortfolioAssetRequest } from "./src/types/portfolioAsset"
 import { CreatePortfolioTransactionRequest, UpdatePortfolioTransactionRequest } from "./src/types/portfolioTransaction"
+
+// SQLite, WAL sidecars, preferences, and CSV exports should be private when
+// created. Windows uses inherited ACLs rather than a POSIX umask.
+if (process.platform !== "win32") process.umask(0o077)
 
 const isDev = !app.isPackaged;
 let mainWindow: BrowserWindow | null = null
@@ -425,10 +430,9 @@ app.whenReady().then(async () => {
     // Must finish before the renderer asks for the profile list.
     try {
         const movedProfiles = await migrateProfileLayout()
+        hardenProfileStorage(getRootDataDirectory())
         if (movedProfiles.length > 0) {
-            console.log(
-                `Moved profiles into the profiles directory: ${movedProfiles.join(", ")}`
-            )
+            console.log(`Moved ${movedProfiles.length} profiles into the profiles directory`)
         }
     } catch (err) {
         console.error("Failed to migrate profile layout:", err)

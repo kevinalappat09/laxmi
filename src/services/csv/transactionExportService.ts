@@ -4,7 +4,6 @@
  * @stability stable
  */
 
-import fs from "fs";
 import path from "path";
 import { dialog } from "electron";
 import { CSVExportRequest, CSVExportResult } from "../../types/csvImport";
@@ -13,6 +12,7 @@ import { profileSessionService } from "../profileSession/profileSessionService";
 import { CSVParser } from "./csvParser";
 import { CategoryServiceImpl } from "../category/categoryService";
 import { buildCategoryPathMap } from "../../utils/categoryPaths";
+import { writePrivateCsv } from "./privateCsvFile";
 
 export interface TransactionExportService {
     exportToCSV(request: CSVExportRequest): Promise<CSVExportResult>;
@@ -53,7 +53,7 @@ export class TransactionExportServiceImpl implements TransactionExportService {
             return { cancelled: true };
         }
 
-        fs.writeFileSync(result.filePath, csvString, "utf-8");
+        writePrivateCsv(result.filePath, csvString);
 
         return { cancelled: false, savedPath: result.filePath };
     }
