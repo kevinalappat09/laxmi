@@ -161,6 +161,13 @@ type Palette = ReturnType<typeof getChartPalette>
 /** Not every report is denominated in money: budget counts and utilization need their own units. */
 export type ValueFormat = 'currency' | 'percent' | 'count'
 
+/** ECharts tooltip formatters return HTML, so data labels must be text-escaped. */
+export function escapeTooltipText(value: unknown): string {
+  return String(value ?? '').replace(/[&<>"']/g, (character) => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+  })[character]!)
+}
+
 function formatAxisValue(value: number, format: ValueFormat): string {
   if (format === 'percent') return `${value}%`
   if (format === 'count') return String(value)
@@ -193,17 +200,17 @@ function buildTooltip(
     },
     formatter: (params: any) => {
       if (trigger === 'item') {
-        return `${params.marker} ${params.name}<br/><strong>${formatPointValue(params.value, format)}</strong> (${params.percent}%)`
+        return `${params.marker} ${escapeTooltipText(params.name)}<br/><strong>${escapeTooltipText(formatPointValue(params.value, format))}</strong> (${escapeTooltipText(params.percent)}%)`
       }
 
       const entries = (Array.isArray(params) ? params : [params]).slice()
       if (entries.length === 0) return ''
 
       entries.sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
-      const header = entries[0].axisValueLabel ?? entries[0].name
+      const header = escapeTooltipText(entries[0].axisValueLabel ?? entries[0].name)
       const rows = entries.map((entry) => {
         const value = entry.value == null ? '--' : formatPointValue(entry.value, format)
-        return `${entry.marker} ${entry.seriesName}: <strong>${value}</strong>`
+        return `${entry.marker} ${escapeTooltipText(entry.seriesName)}: <strong>${escapeTooltipText(value)}</strong>`
       })
 
       return [header, ...rows].join('<br/>')
