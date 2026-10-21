@@ -478,6 +478,22 @@ describe("TransactionRepositoryImpl", () => {
 
             expect(results).toHaveLength(2);
         });
+
+        it("sorts by an allowed column and rejects injected sort SQL", () => {
+            const sorted = repository.findWithFilter({
+                accountId: testAccountId,
+                sort: [{ field: "amount", direction: "ASC" }],
+            });
+            expect(sorted.map((row) => row.amount)).toEqual([25, 50, 500]);
+            expect(() => repository.findWithFilter({
+                accountId: testAccountId,
+                sort: [{ field: "amount COLLATE nocase", direction: "ASC" }],
+            })).toThrow("Invalid transaction sort.");
+            expect(() => repository.findWithFilter({
+                accountId: testAccountId,
+                sort: [{ field: "amount", direction: "DESC, random()" as any }],
+            })).toThrow("Invalid transaction sort.");
+        });
     });
 
     describe("aggregate", () => {
@@ -570,6 +586,20 @@ describe("TransactionRepositoryImpl", () => {
             });
             const totalValue = results.reduce((sum, r) => sum + r.value, 0);
             expect(totalValue).toBeCloseTo(625, 2);
+        });
+
+        it("sorts aggregate values and rejects injected sort SQL", () => {
+            const sorted = repository.aggregate({
+                accountId: testAccountId,
+                groupBy: [GroupByField.Classification],
+                sort: [{ field: "value", direction: "ASC" }],
+            });
+            expect(sorted.map((row) => row.value)).toEqual([50, 75, 500]);
+            expect(() => repository.aggregate({
+                accountId: testAccountId,
+                groupBy: [GroupByField.Classification],
+                sort: [{ field: "value + (SELECT 1)", direction: "ASC" }],
+            })).toThrow("Invalid transaction sort.");
         });
     });
 

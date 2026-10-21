@@ -11,7 +11,28 @@ import {
     Classification,
     TransactionReportQuery,
     ReportRow,
+    Sort,
 } from "../../types/transaction";
+
+const TRANSACTION_SORT_FIELDS = new Set([
+    "transaction_id", "account_id", "transaction_date", "transaction_type",
+    "amount", "category_id", "classification", "payee", "note",
+    "transfer_account_id", "is_active", "created_on", "modified_on",
+]);
+const AGGREGATE_SORT_FIELDS = new Set([
+    "value", "category_id", "classification", "transaction_type",
+    "month", "year", "date",
+]);
+
+function safeSortClause(sort: Sort[], allowedFields: Set<string>): string {
+    if (!Array.isArray(sort)) throw new Error("Invalid transaction sort.");
+    return sort.map(({ field, direction }) => {
+        if (!allowedFields.has(field) || (direction !== "ASC" && direction !== "DESC")) {
+            throw new Error("Invalid transaction sort.");
+        }
+        return `${field} ${direction}`;
+    }).join(", ");
+}
 
 export interface TransactionRepository {
     save(transaction: Transaction): Transaction;
@@ -242,8 +263,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
         }
 
         if (query.sort && query.sort.length > 0) {
-            const orderClauses = query.sort.map((s) => `${s.field} ${s.direction}`);
-            sql += ` ORDER BY ${orderClauses.join(", ")}`;
+            sql += ` ORDER BY ${safeSortClause(query.sort, TRANSACTION_SORT_FIELDS)}`;
         } else {
             sql += " ORDER BY transaction_date DESC, transaction_id DESC";
         }
@@ -347,8 +367,7 @@ export class TransactionRepositoryImpl implements TransactionRepository {
         }
 
         if (query.sort && query.sort.length > 0) {
-            const orderClauses = query.sort.map((s) => `${s.field} ${s.direction}`);
-            sql += ` ORDER BY ${orderClauses.join(", ")}`;
+            sql += ` ORDER BY ${safeSortClause(query.sort, AGGREGATE_SORT_FIELDS)}`;
         } else {
             sql += " ORDER BY value DESC";
         }
