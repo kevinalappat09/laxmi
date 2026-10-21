@@ -27,6 +27,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Audit packaged main-process dependencies
+        run: npm audit --omit=dev --audit-level=moderate
+
       - name: Run tests
         run: npm test
 
@@ -48,6 +51,9 @@ jobs:
 
       - name: Install renderer dependencies
         run: npm ci --prefix renderer
+
+      - name: Audit packaged renderer dependencies
+        run: npm audit --prefix renderer --omit=dev --audit-level=moderate
 
       - name: Audit design-system boundaries
         run: npm run check:design-system
