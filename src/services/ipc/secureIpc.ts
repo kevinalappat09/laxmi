@@ -4,6 +4,10 @@ const MAX_DEPTH = 8
 const MAX_KEYS = 1_000
 const MAX_ARRAY_LENGTH = 10_000
 const MAX_STRING_LENGTH = 100_000
+const MAX_TOTAL_STRING_LENGTH = 1_000_000
+const MAX_TOTAL_NODES = 50_000
+
+type PayloadBudget = { nodes: number; stringLength: number }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
     if (typeof value !== "object" || value === null) return false
@@ -11,13 +15,19 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
     return prototype === Object.prototype || prototype === null
 }
 
-function validatePayload(value: unknown, depth: number, seen: Set<object>): void {
+function validatePayload(value: unknown, depth: number, seen: Set<object>, budget: PayloadBudget): void {
     if (depth > MAX_DEPTH) throw new Error("IPC payload is too deeply nested")
+    budget.nodes++
+    if (budget.nodes > MAX_TOTAL_NODES) throw new Error("IPC payload has too many values")
     if (value === null || value === undefined) return
 
     if (typeof value === "string") {
         if (value.length > MAX_STRING_LENGTH) {
             throw new Error("IPC string payload is too large")
+        }
+        budget.stringLength += value.length
+        if (budget.stringLength > MAX_TOTAL_STRING_LENGTH) {
+            throw new Error("IPC payload contains too much text")
         }
         return
     }
@@ -39,10 +49,10 @@ function validatePayload(value: unknown, depth: number, seen: Set<object>): void
 
     if (value instanceof Set) {
         if (value.size > MAX_ARRAY_LENGTH) throw new Error("IPC set payload is too large")
-        for (const item of value) validatePayload(item, depth + 1, seen)
+        for (const item of value) validatePayload(item, depth + 1, seen, budget)
     } else if (Array.isArray(value)) {
         if (value.length > MAX_ARRAY_LENGTH) throw new Error("IPC array payload is too large")
-        for (const item of value) validatePayload(item, depth + 1, seen)
+        for (const item of value) validatePayload(item, depth + 1, seen, budget)
     } else if (isPlainObject(value)) {
         const keys = Object.keys(value)
         if (keys.length > MAX_KEYS) throw new Error("IPC object payload has too many keys")
@@ -50,7 +60,11 @@ function validatePayload(value: unknown, depth: number, seen: Set<object>): void
             if (key === "__proto__" || key === "prototype" || key === "constructor") {
                 throw new Error("Unsafe IPC object key")
             }
-            validatePayload(value[key], depth + 1, seen)
+            budget.stringLength += key.length
+            if (budget.stringLength > MAX_TOTAL_STRING_LENGTH) {
+                throw new Error("IPC payload contains too much text")
+            }
+            validatePayload(value[key], depth + 1, seen, budget)
         }
     } else {
         throw new Error("Unsupported IPC object payload")
@@ -85,5 +99,6 @@ export function assertTrustedIpcSender(
 
 export function assertSafeIpcArguments(args: unknown[]): void {
     const seen = new Set<object>()
-    for (const arg of args) validatePayload(arg, 0, seen)
+    const budget: PayloadBudget = { nodes: 0, stringLength: 0 }
+    for (const arg of args) validatePayload(arg, 0, seen, budget)
 }

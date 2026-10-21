@@ -61,4 +61,12 @@ describe("IPC boundary", () => {
         expect(() => assertSafeIpcArguments(["x".repeat(100_001)])).toThrow("too large")
         expect(() => assertSafeIpcArguments([Number.POSITIVE_INFINITY])).toThrow("must be finite")
     })
+
+    test("limits total work across nested branches and all arguments", () => {
+        const strings = Array(11).fill("x".repeat(100_000))
+        expect(() => assertSafeIpcArguments(strings)).toThrow("too much text")
+
+        const manyValues = Array.from({ length: 51 }, () => Array(1_000).fill(0))
+        expect(() => assertSafeIpcArguments([manyValues])).toThrow("too many values")
+    })
 })
