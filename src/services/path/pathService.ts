@@ -56,7 +56,16 @@ export function getProfilesDirectory(): string {
  * This function only resolves the path and does not perform any IO or validation.
  */
 export function getProfileDirectory(profileName: string): string {
-    return path.join(getProfilesDirectory(), profileName);
+    const profilesDirectory = path.resolve(getProfilesDirectory());
+    const profileDirectory = path.resolve(profilesDirectory, profileName);
+
+    // Profile names identify one direct child, including names carried forward
+    // from older installations. Never let an IPC-supplied name escape the tree.
+    if (path.dirname(profileDirectory) !== profilesDirectory) {
+        throw new Error("Invalid profile name.");
+    }
+
+    return profileDirectory;
 }
 
 /**
