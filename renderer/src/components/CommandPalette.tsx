@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import type { Account } from '../../../src/types/account'
-import { Dialog } from './ui/Dialog'
-import { Input } from './ui/Input'
+import { Dialog, Input } from './ui'
 import type { Page } from '../types/navigation'
 import './CommandPalette.css'
 

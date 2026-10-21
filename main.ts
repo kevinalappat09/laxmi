@@ -1,4 +1,6 @@
-import { app, BrowserWindow, ipcMain, Menu } from "electron"
+import { app, BrowserWindow, ipcMain as electronIpcMain, Menu } from "electron"
+import { pathToFileURL } from "url"
+import { assertSafeIpcArguments, assertTrustedIpcSender } from "./src/services/ipc/secureIpc"
 import { TransactionImportServiceImpl } from "./src/services/csv/transactionImportService"
 import { TransactionExportServiceImpl } from "./src/services/csv/transactionExportService"
 import { CSVTemplateServiceImpl } from "./src/services/csv/csvTemplateService"
@@ -38,6 +40,20 @@ import { CreatePortfolioAssetRequest, UpdatePortfolioAssetRequest } from "./src/
 import { CreatePortfolioTransactionRequest, UpdatePortfolioTransactionRequest } from "./src/types/portfolioTransaction"
 
 const isDev = !app.isPackaged;
+let mainWindow: BrowserWindow | null = null
+const productionRendererUrl = pathToFileURL(
+    path.join(__dirname, "../renderer/dist/index.html")
+).href
+
+const ipcMain = {
+    handle(channel: string, listener: (...args: any[]) => unknown): void {
+        electronIpcMain.handle(channel, (event, ...args) => {
+            assertTrustedIpcSender(event, mainWindow, isDev, productionRendererUrl)
+            assertSafeIpcArguments(args)
+            return listener(event, ...args)
+        })
+    },
+}
 
 const migrationService = new MigrationService(
     path.join(__dirname, "src", "migrations")
@@ -380,6 +396,7 @@ function createWindow(): void {
             sandbox: true
         }
     })
+    mainWindow = win
 
     win.webContents.setWindowOpenHandler(() => ({ action: "deny" }))
     win.webContents.on("will-navigate", (event) => {
