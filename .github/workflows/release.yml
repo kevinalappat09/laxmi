@@ -103,6 +103,9 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
@@ -115,6 +118,26 @@ jobs:
           pattern: installers-*
           merge-multiple: true
           path: installers
+
+      - name: Write installer checksums
+        shell: bash
+        run: |
+          cd installers
+          shopt -s nullglob
+          files=(*.AppImage *.deb *.exe)
+          if [ ${#files[@]} -eq 0 ]; then
+            echo "No installers were downloaded"
+            exit 1
+          fi
+          sha256sum "${files[@]}" > SHA256SUMS
+
+      - name: Attest installer provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: |
+            installers/*.AppImage
+            installers/*.deb
+            installers/*.exe
 
       - name: Publish release
         env:
