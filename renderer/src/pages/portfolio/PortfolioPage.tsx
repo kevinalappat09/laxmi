@@ -4,7 +4,7 @@ import type { PortfolioAsset } from '../../../../src/types/portfolioAsset'
 import type { AssetSubCategory } from '../../../../src/types/portfolioAsset'
 import type { PriceRefreshResult, PortfolioSummaryAnalytics, AssetAnalytics, PortfolioValuePoint } from '../../../../src/types/portfolioAnalytics'
 import { AlertDialog, Button, Card, EmptyState, PageHeader, SegmentedControl, StatusMessage, TableContainer } from '../../components/ui'
-import { chartFontSize, getChartPalette } from '../../utils/reportOptions'
+import { chartFontSize, escapeTooltipText, getChartPalette } from '../../utils/reportOptions'
 import { AssetDialog } from './AssetDialog'
 import { TransactionDialog } from './TransactionDialog'
 import { useNavigation } from '../../contexts/NavigationContext'
@@ -367,7 +367,7 @@ function MonthlyChart({ summary }: { summary: PortfolioSummaryAnalytics }) {
   const option = {
     tooltip: {
       trigger: 'axis',
-      formatter: (p: any) => `${p[0].name}: ${formatCurrency(p[0].value, 0)}`,
+      formatter: (p: any) => `${escapeTooltipText(p[0].name)}: ${formatCurrency(p[0].value, 0)}`,
       backgroundColor: palette.tooltipBg,
       borderColor: palette.tooltipBorder,
       textStyle: { color: palette.tooltipText, fontSize: chartFontSize(14) },
@@ -429,7 +429,7 @@ function ValueHistoryChart({ data, range, onRangeChange }: {
         const d = params[0].name
         const inv = params.find((p: any) => p.seriesName === 'Invested')?.value ?? 0
         const val = params.find((p: any) => p.seriesName === 'Current Value')?.value ?? 0
-        return `${d}<br/>Invested: ${formatCurrency(inv, 0)}<br/>Current: ${formatCurrency(val, 0)}`
+        return `${escapeTooltipText(d)}<br/>Invested: ${formatCurrency(inv, 0)}<br/>Current: ${formatCurrency(val, 0)}`
       },
     },
     legend: { bottom: 0, data: ['Invested', 'Current Value'], textStyle: { color: palette.axisTextColor, fontSize: chartFontSize(14) } },

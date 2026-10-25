@@ -4,7 +4,7 @@
  * @stability stable
  */
 
-import fs from "fs";
+import { writePrivateCsv } from "./privateCsvFile";
 import path from "path";
 import { dialog } from "electron";
 import { CSVExportResult } from "../../types/csvImport";
@@ -28,7 +28,7 @@ export class CSVErrorExportServiceImpl implements CSVErrorExportService {
             return { cancelled: true };
         }
 
-        fs.writeFileSync(result.filePath, rawLines.join("\n"), "utf-8");
+        writePrivateCsv(result.filePath, rawLines.join("\n"));
 
         return { cancelled: false, savedPath: result.filePath };
     }

@@ -1,4 +1,6 @@
-import { app, BrowserWindow, ipcMain, Menu } from "electron"
+import { app, BrowserWindow, ipcMain as electronIpcMain, Menu } from "electron"
+import { pathToFileURL } from "url"
+import { assertSafeIpcArguments, assertTrustedIpcSender } from "./src/services/ipc/secureIpc"
 import { TransactionImportServiceImpl } from "./src/services/csv/transactionImportService"
 import { TransactionExportServiceImpl } from "./src/services/csv/transactionExportService"
 import { CSVTemplateServiceImpl } from "./src/services/csv/csvTemplateService"
@@ -10,6 +12,7 @@ import * as profileService from "./src/services/profile/profileService"
 import { MigrationService } from "./src/services/migration/migrationService"
 import { migrateProfileLayout } from "./src/services/migration/profileLayoutMigration"
 import { getRootDataDirectory } from "./src/services/path/pathService"
+import { hardenProfileStorage } from "./src/services/profile/privateStorage"
 import { AccountServiceImpl } from "./src/services/account/accountService"
 import { CreateAccountRequest, UpdateAccountRequest } from "./src/types/account"
 import { TransactionServiceImpl } from "./src/services/transaction/transactionService"
@@ -37,7 +40,25 @@ import { PortfolioAnalyticsServiceImpl } from "./src/services/portfolioAnalytics
 import { CreatePortfolioAssetRequest, UpdatePortfolioAssetRequest } from "./src/types/portfolioAsset"
 import { CreatePortfolioTransactionRequest, UpdatePortfolioTransactionRequest } from "./src/types/portfolioTransaction"
 
+// SQLite, WAL sidecars, preferences, and CSV exports should be private when
+// created. Windows uses inherited ACLs rather than a POSIX umask.
+if (process.platform !== "win32") process.umask(0o077)
+
 const isDev = !app.isPackaged;
+let mainWindow: BrowserWindow | null = null
+const productionRendererUrl = pathToFileURL(
+    path.join(__dirname, "../renderer/dist/index.html")
+).href
+
+const ipcMain = {
+    handle(channel: string, listener: (...args: any[]) => unknown): void {
+        electronIpcMain.handle(channel, (event, ...args) => {
+            assertTrustedIpcSender(event, mainWindow, isDev, productionRendererUrl)
+            assertSafeIpcArguments(args)
+            return listener(event, ...args)
+        })
+    },
+}
 
 const migrationService = new MigrationService(
     path.join(__dirname, "src", "migrations")
@@ -380,6 +401,7 @@ function createWindow(): void {
             sandbox: true
         }
     })
+    mainWindow = win
 
     win.webContents.setWindowOpenHandler(() => ({ action: "deny" }))
     win.webContents.on("will-navigate", (event) => {
@@ -408,10 +430,9 @@ app.whenReady().then(async () => {
     // Must finish before the renderer asks for the profile list.
     try {
         const movedProfiles = await migrateProfileLayout()
+        hardenProfileStorage(getRootDataDirectory())
         if (movedProfiles.length > 0) {
-            console.log(
-                `Moved profiles into the profiles directory: ${movedProfiles.join(", ")}`
-            )
+            console.log(`Moved ${movedProfiles.length} profiles into the profiles directory`)
         }
     } catch (err) {
         console.error("Failed to migrate profile layout:", err)

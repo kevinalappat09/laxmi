@@ -53,7 +53,7 @@ npm run dist:win
 
 Run `releases/Laxmi-Setup-1.2.0.exe`. The installer lets you choose a directory and adds Desktop and Start menu shortcuts. Open **Laxmi** from either shortcut.
 
-The examples above use the latest published installer version. Local builds use the `version` field in `package.json` in their file names.
+The filenames above are examples. Local builds use the `version` field in `package.json` in their file names.
 
 ## Releasing
 
@@ -64,11 +64,12 @@ Set `version` in `package.json` and commit that change. Intermediate patch build
 To publish an installer, tag the commit you want to ship and push that tag:
 
 ```bash
-git tag v1.2.0
-git push origin v1.2.0
+version=$(node -p "require('./package.json').version")
+git tag "v$version"
+git push origin "v$version"
 ```
 
-The Release workflow builds the Linux AppImage and `.deb` and the Windows installer, then publishes them on that tag. The tag must match `version` in `package.json`.
+The Release workflow builds the Linux AppImage and `.deb` and the Windows installer, then publishes them on that tag. The tag must match `version` in `package.json`. Each release also includes `SHA256SUMS` for the installers and GitHub build provenance attestations. After downloading the installers and checksum file into one directory, run `sha256sum --check SHA256SUMS`. To verify an installer's provenance, run `gh attestation verify path/to/installer -R kevinalappat09/laxmi` with the installer's actual path.
 
 ## Project Structure
 
